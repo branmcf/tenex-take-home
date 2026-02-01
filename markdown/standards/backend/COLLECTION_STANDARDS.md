@@ -1,4 +1,4 @@
-# Cards Module Standards
+# COLLECTION STANDARDS
 
 This document describes the coding standards and patterns used in the `/app/cards` module.
 
@@ -47,8 +47,19 @@ This document describes the coding standards and patterns used in the `/app/card
 
 Controllers handle HTTP request/response logic. Each handler function processes a single endpoint.
 
+**NatSpec/TSDoc is required:**
+
+- Every exported controller/handler function in a `*.ctrl.ts` file **must** include a NatSpec-style doc comment (`/** ... */`) immediately above the function.
+- At minimum include: `@title`, `@notice`, and `@param` entries for `req` and `res`.
+
 **Structure:**
 ```typescript
+/**
+ * @title {Action} Handler
+ * @notice Briefly describe what this endpoint does.
+ * @param req The Express request object
+ * @param res The Express response object
+ */
 export const {actionName}Handler = async (
     req: SpecificRequestType,
     res: Response<ResourceError | SuccessType>
@@ -93,6 +104,15 @@ createFee({...}).then(result => {
 ```
 
 ---
+
+## Collection completion checklist
+
+When a collection is “complete” (routes + controllers + types + validation + exports are in place), the final step is to add an `AGENTS.md` file in the collection folder documenting:
+
+- the public API (routes, method/path, response shape)
+- file responsibilities
+- extension guidance (how to add endpoints without breaking conventions)
+- testing guidance (where tests should live and what to cover)
 
 ### Error Files (`*.errors.ts`)
 

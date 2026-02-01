@@ -11,6 +11,11 @@ Goals:
 - Each issue is **small + scoped** (one coherent change).
 - Each issue includes **explicit, testable outcomes** and a **concrete test plan** describing *what* to test.
 
+**Critical Rule: Issues must be scoped to a single layer.**
+- An issue is either **backend** or **frontend**, never both.
+- `infrastructure` issues that touch both layers must be split into separate backend and frontend issues.
+- Example: setting up Docker Compose for the backend is `backend + infrastructure`. Setting up the Next.js project is `frontend + infrastructure`. These are two separate issues.
+
 Non-goals:
 - Long narrative specs or decision logs.
 - “Explore / consider / refactor” tasks without measurable outcomes.
@@ -53,7 +58,21 @@ Choose exactly one:
 - `docs`
 - `other`
 
-Optional: add up to 3 tags at the top of the issue body, e.g. `Tags: global, security, perf`.
+### Labels (REQUIRED)
+Every issue MUST have GitHub labels applied:
+
+1. **Layer label** (exactly one):
+   - `backend` — issue touches `/backend` only
+   - `frontend` — issue touches `/frontend` only
+
+2. **Work type label** (exactly one):
+   - Use the work type from the list above (e.g., `endpoint`, `component`, `infrastructure`)
+
+Example: A backend endpoint issue has labels: `backend`, `endpoint`
+Example: A frontend page issue has labels: `frontend`, `page`
+Example: Backend Docker setup has labels: `backend`, `infrastructure`
+
+Optional: add up to 3 additional tags for cross-cutting concerns, e.g. `security`, `perf`, `auth`.
 
 ### Context
 1–2 sentences only:
@@ -150,6 +169,8 @@ If none: `- None`
 ## 3) Example Issue
 
 **Title:** Implement GET /cards/:cardId (endpoint)
+
+**Labels:** `backend`, `endpoint`
 
 ### Work Type
 endpoint

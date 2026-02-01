@@ -1,0 +1,27 @@
+{
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "rootDir": "../",
+    "testPathIgnorePatterns": [
+        "<rootDir>/dist",
+        "<rootDir>/node_modules",
+        "<rootDir>/tests",
+        "<rootDir>/lib"
+    ],
+    "collectCoverage": true,
+    "coverageReporters": ["html"],
+    "coverageDirectory": "<rootDir>/jest/coverage/unitTests",
+    "coverageThreshold": {
+        "utils/": {
+            "functions": 50
+        },
+        "middleware/requestValidator/": {
+            "functions": 50
+        },
+        "middleware/requestCircuitBreakerHandler": {
+            "functions": 100,
+            "errors": 100
+        }
+    },
+    "clearMocks": true
+}
