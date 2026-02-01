@@ -1,0 +1,19 @@
+# Docker Compose for Railway production deployment
+# NOTE: the `version:` field is removed (deprecated in Compose v2).
+
+services:  
+  postgres:                                                                 # PostgreSQL 16 (tracks latest 16.x patch; matches RDS 16.9‑R1)
+    image: postgres:16                                                      # official Postgres image
+    restart: unless-stopped                                                 # restarts unless explicitly stopped
+    environment:
+      POSTGRES_USER: postgres                                               # superuser username
+      POSTGRES_PASSWORD: postgrespassword                                   # superuser password
+      POSTGRES_DB: app                                                      # default DB created at startup
+      PGDATA: /var/lib/postgresql/data/pgdata                               # specify subdirectory for data
+    ports:
+      - "5433:5432"                                                         # map host 5433 -> container 5432 
+    volumes:
+      - db_data:/var/lib/postgresql/data/pgdata                             # persist PG data between runs
+
+volumes:
+  db_data:                                                                  # named volume storing Postgres data persistently

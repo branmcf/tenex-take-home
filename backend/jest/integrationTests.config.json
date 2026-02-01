@@ -1,0 +1,53 @@
+{
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "rootDir": "../",
+    "testPathIgnorePatterns": [
+        "<rootDir>/dist",
+        "<rootDir>/node_modules"
+    ],
+    "testMatch": [
+        "<rootDir>/tests/**/*.test.ts"
+    ],
+    "setupFiles": [
+        "<rootDir>/jest/integrationTestsEnvSetup.ts"
+    ],
+    "collectCoverage": false,
+    "coverageReporters": [
+        "html"
+    ],
+    "coverageDirectory": "<rootDir>/jest/coverage/integrationTests",
+    "coverageThreshold": {
+        "app/**/*.helper.ts": {
+            "functions": 100
+        },
+        "app/**/*.ctrl.ts": {
+            "functions": 100
+        },
+        "app/events/**/*.handler.ts": {
+            "functions": 100
+        },
+        "app/**/*.errors.ts": {
+            "functions": 100,
+            "statements": 100,
+            "lines": 100,
+            "branches": 100
+        },
+        "app/**/*.validation.ts": {
+            "functions": 100,
+            "statements": 100,
+            "lines": 100,
+            "branches": 100
+        },
+        "app/**/*.router.ts": {
+            "functions": 100,
+            "statements": 100,
+            "lines": 100,
+            "branches": 100
+        }
+    },
+    "testTimeout": 30000,
+    "maxWorkers": 8,
+    "silent": false,
+    "clearMocks": true
+}
