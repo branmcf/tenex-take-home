@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <rect fill="#f1f1f1" width="1200" height="800"/>
+
+  <!-- Crosshair/target pattern -->
+  <g stroke="#e0e0e0" stroke-width="2" fill="none">
+    <!-- Outer circle -->
+    <circle cx="600" cy="400" r="200"/>
+    <!-- Middle circle -->
+    <circle cx="600" cy="400" r="120"/>
+    <!-- Inner circle -->
+    <circle cx="600" cy="400" r="60"/>
+
+    <!-- Crosshair lines extending beyond outer circle -->
+    <!-- Top -->
+    <line x1="600" y1="100" x2="600" y2="200"/>
+    <!-- Bottom -->
+    <line x1="600" y1="600" x2="600" y2="700"/>
+    <!-- Left -->
+    <line x1="300" y1="400" x2="400" y2="400"/>
+    <!-- Right -->
+    <line x1="800" y1="400" x2="900" y2="400"/>
+
+    <!-- Diagonal lines -->
+    <line x1="458" y1="258" x2="388" y2="188"/>
+    <line x1="742" y1="258" x2="812" y2="188"/>
+    <line x1="458" y1="542" x2="388" y2="612"/>
+    <line x1="742" y1="542" x2="812" y2="612"/>
+  </g>
+
+  <!-- Image icon in center -->
+  <g transform="translate(560, 360)">
+    <rect x="0" y="0" width="80" height="80" rx="8" fill="none" stroke="#d0d0d0" stroke-width="2"/>
+    <circle cx="28" cy="28" r="8" fill="#d0d0d0"/>
+    <path d="M8 60 L30 38 L50 58 L60 48 L72 60 L72 72 L8 72 Z" fill="#d0d0d0"/>
+  </g>
+</svg>

@@ -1,0 +1,174 @@
+"use client";
+
+import * as React from "react";
+import { useRouter } from "next/navigation";
+import type { Message, Model, Workflow } from "@/components/chat/types";
+
+interface ChatContextValue {
+  // Current chat state
+  currentChatId: string | null;
+  messages: Message[];
+  isLoading: boolean;
+
+  // Model and workflow selection
+  selectedModel: Model | undefined;
+  setSelectedModel: (model: Model | undefined) => void;
+  selectedWorkflow: string | undefined;
+  setSelectedWorkflow: (workflowId: string | undefined) => void;
+
+  // Chat actions
+  sendMessage: (content: string) => void;
+  startNewChat: () => void;
+  loadChat: (chatId: string) => void;
+
+  // Input state
+  input: string;
+  setInput: (value: string) => void;
+}
+
+const ChatContext = React.createContext<ChatContextValue | null>(null);
+
+export function useChatContext() {
+  const context = React.useContext(ChatContext);
+  if (!context) {
+    throw new Error("useChatContext must be used within a ChatProvider");
+  }
+  return context;
+}
+
+interface ChatProviderProps {
+  children: React.ReactNode;
+  models: Model[];
+  workflows: Workflow[];
+  mockResponses: string[];
+  mockSources: Array<Array<{ url: string; title: string; description?: string }>>;
+}
+
+export function ChatProvider({
+  children,
+  models,
+  mockResponses,
+  mockSources,
+}: ChatProviderProps) {
+  const router = useRouter();
+
+  const [currentChatId, setCurrentChatId] = React.useState<string | null>(null);
+  const [messages, setMessages] = React.useState<Message[]>([]);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [input, setInput] = React.useState("");
+  const [selectedModel, setSelectedModel] = React.useState<Model | undefined>(
+    models[0]
+  );
+  const [selectedWorkflow, setSelectedWorkflow] = React.useState<
+    string | undefined
+  >();
+
+  // Track if this is a fresh session (no messages yet)
+  const hasMessages = messages.length > 0;
+
+  // Generate a new chat ID
+  const generateChatId = React.useCallback(() => {
+    // In a real app, this would come from the backend
+    return String(Math.floor(Math.random() * 10000));
+  }, []);
+
+  // Start a new chat - clears messages and updates URL without navigation
+  const startNewChat = React.useCallback(() => {
+    // If we have an ongoing chat, clear it and update URL to root
+    if (hasMessages || currentChatId) {
+      setMessages([]);
+      setCurrentChatId(null);
+      setInput("");
+      setIsLoading(false);
+
+      // Update URL to root without triggering navigation/remount
+      window.history.replaceState(null, "", "/");
+    }
+    // If no ongoing chat, do nothing - user is already at fresh state
+  }, [hasMessages, currentChatId]);
+
+  // Load an existing chat (navigates to chat page)
+  const loadChat = React.useCallback((chatId: string) => {
+    // In a real app, this would fetch from the backend
+    setCurrentChatId(chatId);
+    // For now, we just set the ID - messages would be loaded from API
+    setMessages([]);
+    // Use router.push for loading existing chats since we want full navigation
+    router.push(`/${chatId}`);
+  }, [router]);
+
+  // Send a message
+  const sendMessage = React.useCallback(
+    (content: string) => {
+      if (!content.trim() || isLoading) return;
+
+      const userMessage: Message = {
+        id: crypto.randomUUID(),
+        role: "user",
+        content: content.trim(),
+        createdAt: new Date(),
+      };
+
+      // If this is the first message, generate a chat ID and update URL
+      // Do this BEFORE updating messages to ensure state is consistent
+      if (!currentChatId && messages.length === 0) {
+        const newChatId = generateChatId();
+        setCurrentChatId(newChatId);
+        // Update URL without triggering Next.js navigation/remount
+        window.history.replaceState(null, "", `/${newChatId}`);
+      }
+
+      setMessages((prev) => [...prev, userMessage]);
+      setInput("");
+      setIsLoading(true);
+
+      // Simulate API response
+      const responseIndex = Math.floor(Math.random() * mockResponses.length);
+      const response = mockResponses[responseIndex];
+      const sources = mockSources[responseIndex % mockSources.length];
+
+      setTimeout(() => {
+        const assistantMessage: Message = {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: response,
+          createdAt: new Date(),
+          sources,
+        };
+        setMessages((prev) => [...prev, assistantMessage]);
+        setIsLoading(false);
+      }, 1500);
+    },
+    [isLoading, currentChatId, messages.length, generateChatId, mockResponses, mockSources]
+  );
+
+  const value = React.useMemo(
+    () => ({
+      currentChatId,
+      messages,
+      isLoading,
+      selectedModel,
+      setSelectedModel,
+      selectedWorkflow,
+      setSelectedWorkflow,
+      sendMessage,
+      startNewChat,
+      loadChat,
+      input,
+      setInput,
+    }),
+    [
+      currentChatId,
+      messages,
+      isLoading,
+      selectedModel,
+      selectedWorkflow,
+      sendMessage,
+      startNewChat,
+      loadChat,
+      input,
+    ]
+  );
+
+  return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
+}
