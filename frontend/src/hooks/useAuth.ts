@@ -18,6 +18,7 @@ interface UseAuthReturn {
   isLoading: boolean;
   isAuthenticated: boolean;
   signOut: () => Promise<void>;
+  updateName: (newName: string) => Promise<void>;
   updateEmail: (newEmail: string) => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
 }
@@ -44,6 +45,30 @@ export function useAuth(): UseAuthReturn {
     setIsLoading(false);
     // In a real app, redirect to login page
     window.location.href = "/login";
+  }, []);
+
+  const updateName = useCallback(async (newName: string) => {
+    setIsLoading(true);
+    // Mock API call - replace with actual name update
+    await new Promise((resolve) => setTimeout(resolve, 800));
+
+    // Simulate validation
+    if (newName.trim().length < 1) {
+      setIsLoading(false);
+      throw new Error("Name is required");
+    }
+
+    // Generate initials from name
+    const initials = newName
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+
+    // Update user state with new name
+    setUser((prev) => (prev ? { ...prev, name: newName, initials } : null));
+    setIsLoading(false);
   }, []);
 
   const updateEmail = useCallback(async (newEmail: string) => {
@@ -88,6 +113,7 @@ export function useAuth(): UseAuthReturn {
     isLoading,
     isAuthenticated: !!user,
     signOut,
+    updateName,
     updateEmail,
     changePassword,
   };

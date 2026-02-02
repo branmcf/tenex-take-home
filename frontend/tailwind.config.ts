@@ -62,12 +62,24 @@ export default {
         },
       },
       borderRadius: {
+        "4xl": "calc(var(--radius) + 16px)",
+        "3xl": "calc(var(--radius) + 12px)",
+        "2xl": "calc(var(--radius) + 8px)",
+        xl: "calc(var(--radius) + 4px)",
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ["var(--font-noto-sans)", "system-ui", "sans-serif"],
+        sans: ["var(--font-noto-sans)", "Inter", "system-ui", "sans-serif"],
+        mono: ["JetBrains Mono", "Fira Code", "SF Mono", "Consolas", "monospace"],
+      },
+      spacing: {
+        '18': '4.5rem',
+        '22': '5.5rem',
+      },
+      letterSpacing: {
+        'widest': '0.1em',
       },
     },
   },

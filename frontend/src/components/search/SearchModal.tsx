@@ -3,13 +3,13 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { PenNib, X } from "@phosphor-icons/react";
-import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useDebounce } from "@/hooks";
 import { SearchResultItem, type SearchResultItemData } from "./SearchResultItem";
 import { groupByDate } from "@/lib/utils/dateGrouping";
+import { useChatContext } from "@/contexts";
 
 export interface SearchModalProps {
   isOpen: boolean;
@@ -54,6 +54,7 @@ export function SearchModal({
   isLoading = false,
 }: SearchModalProps) {
   const router = useRouter();
+  const { startNewChat } = useChatContext();
   const [searchQuery, setSearchQuery] = React.useState("");
   const [selectedIndex, setSelectedIndex] = React.useState(-1);
   const [isSearching, setIsSearching] = React.useState(false);
@@ -147,14 +148,14 @@ export function SearchModal({
 
         if (!isSearchMode && selectedIndex === 0) {
           // "New chat" is selected
-          router.push("/chat/new");
           onClose();
+          startNewChat();
         } else {
           // Chat item is selected
           const chatIndex = isSearchMode ? selectedIndex : selectedIndex - 1;
           const selectedChat = flatChats[chatIndex];
           if (selectedChat) {
-            router.push(`/chat/${selectedChat.id}`);
+            router.push(`/${selectedChat.id}`);
             onClose();
           }
         }
@@ -225,12 +226,15 @@ export function SearchModal({
           {/* New Chat Option - Only shown in pre-search state */}
           {!isSearchMode && (
             <div className="border-b border-border p-2">
-              <Link
-                href="/chat/new"
-                onClick={handleItemClick}
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  startNewChat();
+                }}
                 data-index={0}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm outline-none transition-colors",
+                  "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm outline-none transition-colors",
                   "hover:bg-accent",
                   "focus-visible:ring-2 focus-visible:ring-ring",
                   selectedIndex === 0 && "bg-accent"
@@ -238,7 +242,7 @@ export function SearchModal({
               >
                 <PenNib className="h-5 w-5 text-muted-foreground" />
                 <span className="font-medium">New chat</span>
-              </Link>
+              </button>
             </div>
           )}
 

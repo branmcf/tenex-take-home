@@ -2,76 +2,132 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================
+   SWISS-MODERNIST TECHNICAL BLUEPRINT SYSTEM
+   ============================================ */
+
 @layer base {
+  /* Light Theme - Clean Modern */
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    /* Base */
+    --background: 0 0% 100%;           /* white */
+    --foreground: 0 0% 4%;             /* near-black */
+
+    /* Surfaces */
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 0 0% 4%;
+
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0rem;
+    --popover-foreground: 0 0% 4%;
+
+    /* Primary (teal-green like Tensorlake #0AA67D) */
+    --primary: 161 89% 35%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary (neutral gray) */
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 4%;
+
+    /* Muted */
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+
+    /* Accent (subtle gray for hover states) */
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 4%;
+
+    /* Destructive */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders / inputs - subtle gray, not colored */
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 161 89% 35%;               /* primary green for focus */
+
+    /* Chart colors */
+    --chart-1: 161 89% 35%;
+    --chart-2: 160 84% 39%;
+    --chart-3: 0 0% 45%;
+    --chart-4: 0 0% 64%;
+    --chart-5: 0 0% 83%;
+
+    /* Radius - sharp edges (lyra style) */
+    --radius: 0;
+
+    /* Sidebar */
     --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 240 5.9% 10%;
+    --sidebar-foreground: 0 0% 4%;
+    --sidebar-primary: 161 89% 35%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 96%;
+    --sidebar-accent-foreground: 0 0% 4%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-ring: 161 89% 35%;
+
+    /* Grid overlay */
+    --grid-color: rgba(229, 229, 229, 0.5);
+    --grid-size: 8px;
   }
 
+  /* Dark Theme - Like Tensorlake */
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
+    /* Base */
+    --background: 0 0% 0%;             /* true black */
+    --foreground: 0 0% 98%;            /* off-white */
+
+    /* Surfaces */
+    --card: 0 0% 9%;                   /* neutral-900 */
     --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
+
+    --popover: 0 0% 9%;
     --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
+
+    /* Primary (teal-green #0AA67D) */
+    --primary: 161 89% 35%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary */
+    --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
+
+    /* Muted */
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 64%;
+
+    /* Accent */
+    --accent: 0 0% 15%;
     --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+
+    /* Destructive */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders / inputs - subtle dark borders like Tensorlake */
+    --border: 0 0% 24%;
+    --input: 0 0% 24%;
+    --ring: 161 89% 35%;
+
+    /* Chart colors */
+    --chart-1: 161 89% 35%;
+    --chart-2: 160 84% 39%;
+    --chart-3: 0 0% 45%;
+    --chart-4: 0 0% 64%;
+    --chart-5: 0 0% 32%;
+
+    /* Sidebar */
+    --sidebar-background: 0 0% 5%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 161 89% 35%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 240 4.9% 83.9%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 24%;
+    --sidebar-ring: 161 89% 35%;
+
+    /* Grid overlay */
+    --grid-color: rgba(62, 62, 62, 0.5);
+    --grid-size: 8px;
   }
 }
 
@@ -79,10 +135,227 @@
   * {
     @apply border-border;
   }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "ss01", "ss02", "cv01";
+  }
+
+  /* Base typography hierarchy */
+  h1 {
+    @apply text-4xl font-bold tracking-tight;
+    letter-spacing: -0.02em;
+  }
+
+  h2 {
+    @apply text-2xl font-semibold tracking-tight;
+    letter-spacing: -0.01em;
+  }
+
+  h3 {
+    @apply text-lg font-semibold;
+  }
+
+  h4 {
+    @apply text-base font-medium;
+  }
+
+  /* Monospace for technical content */
+  code, pre, .font-mono {
+    font-family: "JetBrains Mono", "Fira Code", "SF Mono", Consolas, monospace;
   }
 }
+
+/* ============================================
+   GRID OVERLAY - BLUEPRINT AESTHETIC
+   ============================================ */
+
+/* Coordinate grid background for main canvas */
+.blueprint-grid {
+  background-image:
+    linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
+  background-size: var(--grid-size) var(--grid-size);
+}
+
+/* Subtle dot grid alternative */
+.blueprint-dots {
+  background-image: radial-gradient(circle, var(--grid-color) 1px, transparent 1px);
+  background-size: calc(var(--grid-size) * 2) calc(var(--grid-size) * 2);
+}
+
+/* ============================================
+   BLUEPRINT MOTIFS
+   ============================================ */
+
+/* Corner brackets - focus frame outline */
+.corner-brackets {
+  position: relative;
+}
+
+.corner-brackets::before,
+.corner-brackets::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-color: hsl(var(--primary));
+  pointer-events: none;
+}
+
+.corner-brackets::before {
+  top: -1px;
+  left: -1px;
+  border-top: 1px solid;
+  border-left: 1px solid;
+}
+
+.corner-brackets::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 1px solid;
+  border-right: 1px solid;
+}
+
+/* Crop marks - document registration marks */
+.crop-marks {
+  position: relative;
+}
+
+.crop-marks::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+  pointer-events: none;
+  background:
+    /* Top-left */
+    linear-gradient(to right, hsl(var(--border)) 0%, hsl(var(--border)) 100%) 0 0 / 8px 1px no-repeat,
+    linear-gradient(to bottom, hsl(var(--border)) 0%, hsl(var(--border)) 100%) 0 0 / 1px 8px no-repeat,
+    /* Top-right */
+    linear-gradient(to right, hsl(var(--border)) 0%, hsl(var(--border)) 100%) 100% 0 / 8px 1px no-repeat,
+    linear-gradient(to bottom, hsl(var(--border)) 0%, hsl(var(--border)) 100%) 100% 0 / 1px 8px no-repeat,
+    /* Bottom-left */
+    linear-gradient(to right, hsl(var(--border)) 0%, hsl(var(--border)) 100%) 0 100% / 8px 1px no-repeat,
+    linear-gradient(to bottom, hsl(var(--border)) 0%, hsl(var(--border)) 100%) 0 100% / 1px 8px no-repeat,
+    /* Bottom-right */
+    linear-gradient(to right, hsl(var(--border)) 0%, hsl(var(--border)) 100%) 100% 100% / 8px 1px no-repeat,
+    linear-gradient(to bottom, hsl(var(--border)) 0%, hsl(var(--border)) 100%) 100% 100% / 1px 8px no-repeat;
+}
+
+/* Focus frame - selection state indicator */
+.focus-frame {
+  position: relative;
+}
+
+.focus-frame::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border: 1px solid hsl(var(--primary));
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+.focus-frame:focus-within::after,
+.focus-frame:focus::after,
+.focus-frame.active::after {
+  opacity: 1;
+}
+
+/* ============================================
+   TYPOGRAPHY UTILITIES
+   ============================================ */
+
+/* Uppercase mono labels - technical metadata */
+.label-mono {
+  @apply text-xs uppercase tracking-widest font-mono;
+  letter-spacing: 0.1em;
+}
+
+/* Large metric display */
+.metric-value {
+  @apply text-4xl font-bold tracking-tight;
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-label {
+  @apply text-xs uppercase tracking-wider text-muted-foreground font-mono;
+}
+
+/* ============================================
+   HAIRLINE BORDERS
+   ============================================ */
+
+.hairline-border {
+  border-width: 1px;
+  border-style: solid;
+  border-color: hsl(var(--border));
+}
+
+.hairline-border-t {
+  border-top: 1px solid hsl(var(--border));
+}
+
+.hairline-border-b {
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.hairline-border-l {
+  border-left: 1px solid hsl(var(--border));
+}
+
+.hairline-border-r {
+  border-right: 1px solid hsl(var(--border));
+}
+
+/* ============================================
+   SPACING SYSTEM (8px base)
+   ============================================ */
+
+.space-8 { gap: 8px; }
+.space-16 { gap: 16px; }
+.space-24 { gap: 24px; }
+.space-32 { gap: 32px; }
+.space-48 { gap: 48px; }
+
+.p-8 { padding: 8px; }
+.p-16 { padding: 16px; }
+.p-24 { padding: 24px; }
+.p-32 { padding: 32px; }
+.p-48 { padding: 48px; }
+
+/* ============================================
+   COMPONENT UTILITIES
+   ============================================ */
+
+/* Flat button style - no shadows */
+.btn-flat {
+  @apply shadow-none hover:shadow-none active:shadow-none;
+  box-shadow: none !important;
+}
+
+/* Modular panel */
+.panel {
+  @apply bg-card border border-border;
+  box-shadow: none;
+}
+
+/* Table-like clarity for data */
+.data-grid {
+  @apply divide-y divide-border;
+}
+
+.data-grid-row {
+  @apply py-3 px-4;
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
 
 /* Typing cursor animation for streaming messages */
 @keyframes cursor-blink {
@@ -100,7 +373,7 @@
   display: inline-block;
   width: 2px;
   height: 1em;
-  background-color: currentColor;
+  background-color: hsl(var(--primary));
   margin-left: 1px;
   animation: cursor-blink 1s steps(1) infinite;
 }
@@ -116,4 +389,60 @@
     transform: scale(1.5);
     opacity: 1;
   }
+}
+
+/* Subtle fade in */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 200ms ease-out;
+}
+
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
+
+/* Minimal scrollbar for blueprint aesthetic */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
+}
+
+/* ============================================
+   SELECTION STYLING
+   ============================================ */
+
+::selection {
+  background: hsl(var(--primary) / 0.2);
+  color: inherit;
+}
+
+::-moz-selection {
+  background: hsl(var(--primary) / 0.2);
+  color: inherit;
 }

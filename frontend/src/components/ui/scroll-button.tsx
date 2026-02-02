@@ -21,7 +21,7 @@ export function ScrollButton({ className }: ScrollButtonProps) {
       variant="outline"
       size="icon"
       className={cn(
-        "h-8 w-8 rounded-full shadow-md",
+        "h-8 w-8 border border-border",
         className
       )}
       onClick={() => scrollToBottom()}

@@ -88,10 +88,10 @@ export function SignUpForm({ className }: SignUpFormProps) {
       className={cn("flex flex-col gap-6", className)}
       onSubmit={handleSubmit(onSubmit)}
     >
-      <div className="flex flex-col items-center gap-2 text-center">
-        <h1 className="text-2xl font-bold">Create your account</h1>
-        <p className="text-balance text-sm text-muted-foreground">
-          Fill in the form below to create your account
+      <div className="flex flex-col items-center gap-3 text-center">
+        <h1 className="text-3xl font-bold tracking-tight">Sign Up</h1>
+        <p className="text-xs uppercase tracking-widest text-muted-foreground font-mono">
+          Create a new account
         </p>
       </div>
 

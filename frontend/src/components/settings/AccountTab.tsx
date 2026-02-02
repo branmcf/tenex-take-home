@@ -14,16 +14,39 @@ interface AccountTabProps {
 }
 
 export function AccountTab({ user }: AccountTabProps) {
-  const { updateEmail } = useAuth();
+  const { updateName, updateEmail } = useAuth();
+  const [name, setName] = useState(user.name);
   const [email, setEmail] = useState(user.email);
+  const [isSavingName, setIsSavingName] = useState(false);
   const [isSavingEmail, setIsSavingEmail] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [nameSuccess, setNameSuccess] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [emailSuccess, setEmailSuccess] = useState(false);
   const [isPasswordExpanded, setIsPasswordExpanded] = useState(false);
 
   const isEmailUser = user.provider === "email";
   const isOAuthUser = !isEmailUser;
+  const hasNameChanged = name !== user.name;
   const hasEmailChanged = email !== user.email;
+
+  const handleSaveName = async () => {
+    if (!hasNameChanged) return;
+
+    setIsSavingName(true);
+    setNameError(null);
+    setNameSuccess(false);
+
+    try {
+      await updateName(name);
+      setNameSuccess(true);
+      setTimeout(() => setNameSuccess(false), 3000);
+    } catch (err) {
+      setNameError(err instanceof Error ? err.message : "Failed to update name");
+    } finally {
+      setIsSavingName(false);
+    }
+  };
 
   const handleSaveEmail = async () => {
     if (!hasEmailChanged) return;
@@ -45,6 +68,43 @@ export function AccountTab({ user }: AccountTabProps) {
 
   return (
     <div className="space-y-6">
+      {/* Name Section */}
+      <div className="space-y-3">
+        <Label htmlFor="name">Name</Label>
+        <div className="flex gap-2">
+          <Input
+            id="name"
+            type="text"
+            value={name}
+            onChange={(e) => {
+              setName(e.target.value);
+              setNameError(null);
+              setNameSuccess(false);
+            }}
+            placeholder="Your name"
+          />
+          <Button
+            onClick={handleSaveName}
+            disabled={!hasNameChanged || isSavingName}
+            size="default"
+          >
+            {isSavingName ? (
+              <CircleNotch className="size-4 animate-spin" />
+            ) : nameSuccess ? (
+              <Check className="size-4" />
+            ) : (
+              "Save"
+            )}
+          </Button>
+        </div>
+        {nameError && (
+          <p className="text-sm text-destructive">{nameError}</p>
+        )}
+        {nameSuccess && (
+          <p className="text-sm text-primary">Name updated successfully</p>
+        )}
+      </div>
+
       {/* Email Section */}
       <div className="space-y-3">
         <Label htmlFor="email">Email address</Label>
@@ -93,7 +153,7 @@ export function AccountTab({ user }: AccountTabProps) {
               <p className="text-sm text-destructive">{emailError}</p>
             )}
             {emailSuccess && (
-              <p className="text-sm text-emerald-600">Email updated successfully</p>
+              <p className="text-sm text-primary">Email updated successfully</p>
             )}
           </>
         )}

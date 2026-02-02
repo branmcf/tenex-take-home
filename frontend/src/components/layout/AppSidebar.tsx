@@ -31,6 +31,8 @@ import {
 import { ChatList, type ChatListItemData } from "@/components/chat";
 import { SearchModal } from "@/components/search";
 import { SettingsModal } from "@/components/settings";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { useChatContext } from "@/contexts";
 
 const BASE_CHAT_TIME = Date.parse("2024-02-01T12:00:00Z");
 
@@ -57,10 +59,10 @@ const mockChats: MockChat[] = [
 
 type NavItem =
   | { title: string; icon: React.ComponentType<{ className?: string }>; url: string }
-  | { title: string; icon: React.ComponentType<{ className?: string }>; action: "search" };
+  | { title: string; icon: React.ComponentType<{ className?: string }>; action: "search" | "newChat" };
 
 const navItems: NavItem[] = [
-  { title: "New chat", url: "/chat/new", icon: PenNib },
+  { title: "New chat", action: "newChat", icon: PenNib },
   { title: "Search chats", action: "search", icon: MagnifyingGlass },
   { title: "Workflows", url: "/workflows", icon: GitBranch },
 ];
@@ -68,11 +70,11 @@ const navItems: NavItem[] = [
 export function AppSidebar() {
   const [chats, setChats] = React.useState<MockChat[]>(mockChats);
   const [isLoading] = React.useState(false);
-  const [activeChatId] = React.useState<string | undefined>("1");
   const [isSearchOpen, setIsSearchOpen] = React.useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
+  const { startNewChat, currentChatId } = useChatContext();
 
   const handleDeleteChat = React.useCallback((chatId: string) => {
     setChats((prev) => prev.filter((chat) => chat.id !== chatId));
@@ -150,7 +152,15 @@ export function AppSidebar() {
           {navItems.map((item) => (
             <SidebarMenuItem key={item.title}>
               {"action" in item ? (
-                <SidebarMenuButton onClick={() => setIsSearchOpen(true)}>
+                <SidebarMenuButton
+                  onClick={() => {
+                    if (item.action === "search") {
+                      setIsSearchOpen(true);
+                    } else if (item.action === "newChat") {
+                      startNewChat();
+                    }
+                  }}
+                >
                   <item.icon className="h-4 w-4" />
                   <span>{item.title}</span>
                 </SidebarMenuButton>
@@ -175,7 +185,7 @@ export function AppSidebar() {
           </p>
           <ChatList
             chats={chats}
-            activeChatId={activeChatId}
+            activeChatId={currentChatId ?? undefined}
             isLoading={isLoading}
             onDeleteChat={handleDeleteChat}
             grouped={false}
@@ -188,17 +198,19 @@ export function AppSidebar() {
       <SidebarFooter className="border-t border-sidebar-border">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={() => setIsSettingsOpen(true)}>
-              <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-xs font-medium text-white">
-                  BM
+            <div className="flex items-center gap-1 w-full">
+              <SidebarMenuButton onClick={() => setIsSettingsOpen(true)} className="flex-1 min-w-0">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground">
+                    BM
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-sm font-medium truncate">Brandon McFarland</span>
+                  </div>
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">Brandon McFarland</span>
-                  <span className="text-xs text-sidebar-foreground/70">Plus</span>
-                </div>
-              </div>
-            </SidebarMenuButton>
+              </SidebarMenuButton>
+              {!isCollapsed && <ThemeToggle />}
+            </div>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

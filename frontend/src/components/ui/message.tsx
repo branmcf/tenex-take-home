@@ -39,7 +39,7 @@ function MessageContent({
   ...props
 }: MessageContentProps) {
   const baseClasses = cn(
-    "rounded-lg break-words whitespace-pre-wrap",
+    "break-words whitespace-pre-wrap",
     className
   );
 
@@ -53,7 +53,7 @@ function MessageContent({
               const isInline = !codeClassName;
               return isInline ? (
                 <code
-                  className="bg-secondary px-1.5 py-0.5 rounded text-xs font-mono"
+                  className="bg-secondary px-1.5 py-0.5 text-xs font-mono border border-border"
                   {...codeProps}
                 >
                   {codeChildren}
@@ -67,7 +67,7 @@ function MessageContent({
             pre({ children: preChildren, ...preProps }) {
               return (
                 <pre
-                  className="rounded-lg p-4 overflow-x-auto text-xs bg-secondary border border-border"
+                  className="p-4 overflow-x-auto text-xs bg-secondary border border-border font-mono"
                   {...preProps}
                 >
                   {preChildren}

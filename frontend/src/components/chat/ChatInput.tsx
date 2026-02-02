@@ -53,7 +53,7 @@ export function ChatInput({
         onSubmit={onSubmit}
         isLoading={isLoading}
         disabled={disabled}
-        className="border-border bg-background shadow-lg"
+        className="border border-border bg-background"
       >
         <PromptInputTextarea
           placeholder="Ask anything..."
@@ -79,7 +79,7 @@ export function ChatInput({
               size="icon"
               disabled={!canSubmit && !isLoading}
               onClick={isLoading ? undefined : onSubmit}
-              className="h-9 w-9 rounded-full"
+              className="h-9 w-9"
             >
               {isLoading ? (
                 <Stop className="h-4 w-4" weight="fill" />

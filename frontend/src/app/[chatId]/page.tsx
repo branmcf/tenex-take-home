@@ -2,6 +2,6 @@
 
 import { ChatPageLayout } from "@/components/layout/ChatPageLayout";
 
-export default function Home() {
+export default function ChatPage() {
   return <ChatPageLayout />;
 }

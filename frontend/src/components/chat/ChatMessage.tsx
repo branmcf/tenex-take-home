@@ -32,7 +32,7 @@ export function ChatMessage({ message, isLast }: ChatMessageProps) {
     return (
       <Message className="justify-end">
         <div className="group flex flex-col items-end gap-1 max-w-[85%] sm:max-w-[75%]">
-          <MessageContent className="bg-primary text-primary-foreground rounded-3xl px-4 py-2.5">
+          <MessageContent className="bg-primary text-primary-foreground px-4 py-3 border border-primary">
             {message.content}
           </MessageContent>
           <MessageActions
@@ -45,7 +45,7 @@ export function ChatMessage({ message, isLast }: ChatMessageProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 rounded-full"
+                className="h-7 w-7"
                 onClick={handleCopy}
               >
                 {copied ? (
@@ -80,7 +80,7 @@ export function ChatMessage({ message, isLast }: ChatMessageProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 rounded-full"
+              className="h-7 w-7"
               onClick={handleCopy}
             >
               {copied ? (

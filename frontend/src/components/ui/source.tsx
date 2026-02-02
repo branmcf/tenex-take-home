@@ -72,7 +72,7 @@ function SourceTrigger({
       target="_blank"
       rel="noreferrer"
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-secondary/80",
+        "inline-flex items-center gap-1.5 bg-secondary px-2 py-0.5 text-xs font-mono text-secondary-foreground transition-colors hover:bg-secondary/80 border border-border",
         className
       )}
     >
@@ -80,7 +80,7 @@ function SourceTrigger({
         <img
           src={faviconUrl}
           alt=""
-          className="h-3 w-3 rounded-sm"
+          className="h-3 w-3"
           aria-hidden="true"
         />
       )}
@@ -92,7 +92,7 @@ function SourceTrigger({
   ) : (
     <button
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-secondary/80",
+        "inline-flex items-center gap-1.5 bg-secondary px-2 py-0.5 text-xs font-mono text-secondary-foreground transition-colors hover:bg-secondary/80 border border-border",
         className
       )}
     >
@@ -100,7 +100,7 @@ function SourceTrigger({
         <img
           src={faviconUrl}
           alt=""
-          className="h-3 w-3 rounded-sm"
+          className="h-3 w-3"
           aria-hidden="true"
         />
       )}
