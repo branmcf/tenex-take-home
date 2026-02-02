@@ -21,6 +21,7 @@ import {
   MOCK_WORKFLOWS,
   MOCK_RESPONSES,
   MOCK_SOURCES,
+  MOCK_CHAT_CONVERSATIONS,
 } from "@/lib/mocks/chat";
 
 function ChatContent() {
@@ -53,13 +54,19 @@ function ChatContent() {
   );
 }
 
-export function ChatPageLayout() {
+interface ChatPageLayoutProps {
+  initialChatId?: string;
+}
+
+export function ChatPageLayout({ initialChatId }: ChatPageLayoutProps) {
   return (
     <ChatProvider
       models={MOCK_MODELS}
       workflows={MOCK_WORKFLOWS}
       mockResponses={MOCK_RESPONSES}
       mockSources={MOCK_SOURCES}
+      mockConversations={MOCK_CHAT_CONVERSATIONS}
+      initialChatId={initialChatId}
     >
       <SidebarProvider className="h-svh">
         <AppSidebar />

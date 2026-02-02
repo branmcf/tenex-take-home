@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import { PenNib, X } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -53,8 +52,7 @@ export function SearchModal({
   chats,
   isLoading = false,
 }: SearchModalProps) {
-  const router = useRouter();
-  const { startNewChat } = useChatContext();
+  const { startNewChat, loadChat } = useChatContext();
   const [searchQuery, setSearchQuery] = React.useState("");
   const [selectedIndex, setSelectedIndex] = React.useState(-1);
   const [isSearching, setIsSearching] = React.useState(false);
@@ -155,8 +153,8 @@ export function SearchModal({
           const chatIndex = isSearchMode ? selectedIndex : selectedIndex - 1;
           const selectedChat = flatChats[chatIndex];
           if (selectedChat) {
-            router.push(`/${selectedChat.id}`);
             onClose();
+            loadChat(selectedChat.id);
           }
         }
         break;
@@ -173,8 +171,9 @@ export function SearchModal({
     }
   }, [selectedIndex]);
 
-  const handleItemClick = () => {
+  const handleItemClick = (chatId: string) => {
     onClose();
+    loadChat(chatId);
   };
 
   if (!isOpen) return null;

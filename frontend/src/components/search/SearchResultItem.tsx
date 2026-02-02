@@ -16,7 +16,7 @@ interface SearchResultItemProps {
   item: SearchResultItemData;
   isSelected?: boolean;
   showDateAlways?: boolean;
-  onClick?: () => void;
+  onClick?: (chatId: string) => void;
 }
 
 function formatDate(date: Date): string {
@@ -44,10 +44,17 @@ export function SearchResultItem({
   const displayTitle = item.title || "New chat";
   const formattedDate = formatDate(item.updatedAt);
 
+  const handleClick = (e: React.MouseEvent) => {
+    if (onClick) {
+      e.preventDefault();
+      onClick(item.id);
+    }
+  };
+
   return (
     <Link
-      href={`/chat/${item.id}`}
-      onClick={onClick}
+      href={`/chats/${item.id}`}
+      onClick={handleClick}
       className={cn(
         "group/result flex items-start gap-3 rounded-lg px-3 py-2.5 text-sm outline-none transition-colors",
         "hover:bg-accent",

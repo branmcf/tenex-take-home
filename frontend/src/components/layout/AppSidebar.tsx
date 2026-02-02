@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   PenNib,
   MagnifyingGlass,
@@ -75,6 +76,7 @@ export function AppSidebar() {
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
   const { startNewChat, currentChatId } = useChatContext();
+  const pathname = usePathname();
 
   const handleDeleteChat = React.useCallback((chatId: string) => {
     setChats((prev) => prev.filter((chat) => chat.id !== chatId));
@@ -165,7 +167,7 @@ export function AppSidebar() {
                   <span>{item.title}</span>
                 </SidebarMenuButton>
               ) : (
-                <SidebarMenuButton asChild>
+                <SidebarMenuButton asChild isActive={pathname === item.url}>
                   <Link href={item.url}>
                     <item.icon className="h-4 w-4" />
                     <span>{item.title}</span>
