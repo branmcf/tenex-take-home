@@ -56,7 +56,7 @@ function ChatListItem({ chat, isActive, onDelete }: ChatListItemProps) {
     <>
       <div className="group/chat-item relative flex items-center">
         <Link
-          href={`/chat/${chat.id}`}
+          href={`/chats/${chat.id}`}
           className={cn(
             "flex w-full items-center gap-2 rounded-md px-2 py-2 pr-8 text-sm text-sidebar-foreground outline-none transition-colors",
             "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",

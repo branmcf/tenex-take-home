@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import type { Message, Model, Workflow } from "@/components/chat/types";
+import type { ChatConversation } from "@/lib/mocks/chat";
 
 interface ChatContextValue {
   // Current chat state
@@ -42,6 +43,8 @@ interface ChatProviderProps {
   workflows: Workflow[];
   mockResponses: string[];
   mockSources: Array<Array<{ url: string; title: string; description?: string }>>;
+  mockConversations?: ChatConversation[];
+  initialChatId?: string;
 }
 
 export function ChatProvider({
@@ -49,11 +52,23 @@ export function ChatProvider({
   models,
   mockResponses,
   mockSources,
+  mockConversations = [],
+  initialChatId,
 }: ChatProviderProps) {
   const router = useRouter();
+  const pathname = usePathname();
 
-  const [currentChatId, setCurrentChatId] = React.useState<string | null>(null);
-  const [messages, setMessages] = React.useState<Message[]>([]);
+  const [currentChatId, setCurrentChatId] = React.useState<string | null>(
+    initialChatId ?? null
+  );
+  const [messages, setMessages] = React.useState<Message[]>(() => {
+    // Initialize messages if loading from URL
+    if (initialChatId) {
+      const conversation = mockConversations.find((c) => c.chatId === initialChatId);
+      return conversation?.messages ?? [];
+    }
+    return [];
+  });
   const [isLoading, setIsLoading] = React.useState(false);
   const [input, setInput] = React.useState("");
   const [selectedModel, setSelectedModel] = React.useState<Model | undefined>(
@@ -72,30 +87,37 @@ export function ChatProvider({
     return String(Math.floor(Math.random() * 10000));
   }, []);
 
-  // Start a new chat - clears messages and updates URL without navigation
+  // Start a new chat - clears messages and navigates to home
   const startNewChat = React.useCallback(() => {
-    // If we have an ongoing chat, clear it and update URL to root
-    if (hasMessages || currentChatId) {
-      setMessages([]);
-      setCurrentChatId(null);
-      setInput("");
-      setIsLoading(false);
+    // Clear chat state
+    setMessages([]);
+    setCurrentChatId(null);
+    setInput("");
+    setIsLoading(false);
 
-      // Update URL to root without triggering navigation/remount
+    // Check if we're on a non-chat page (like /workflows)
+    // If so, use router.push to navigate to home
+    const isOnChatPage = pathname === "/" || pathname.startsWith("/chats/");
+
+    if (!isOnChatPage) {
+      // Navigate to home page
+      router.push("/");
+    } else if (hasMessages || currentChatId) {
+      // If on a chat page with existing chat, update URL to root without remount
       window.history.replaceState(null, "", "/");
     }
-    // If no ongoing chat, do nothing - user is already at fresh state
-  }, [hasMessages, currentChatId]);
+  }, [hasMessages, currentChatId, pathname, router]);
 
   // Load an existing chat (navigates to chat page)
   const loadChat = React.useCallback((chatId: string) => {
     // In a real app, this would fetch from the backend
     setCurrentChatId(chatId);
-    // For now, we just set the ID - messages would be loaded from API
-    setMessages([]);
+    // Load mock messages for this chat
+    const conversation = mockConversations.find((c) => c.chatId === chatId);
+    setMessages(conversation?.messages ?? []);
     // Use router.push for loading existing chats since we want full navigation
-    router.push(`/${chatId}`);
-  }, [router]);
+    router.push(`/chats/${chatId}`);
+  }, [router, mockConversations]);
 
   // Send a message
   const sendMessage = React.useCallback(
@@ -115,7 +137,7 @@ export function ChatProvider({
         const newChatId = generateChatId();
         setCurrentChatId(newChatId);
         // Update URL without triggering Next.js navigation/remount
-        window.history.replaceState(null, "", `/${newChatId}`);
+        window.history.replaceState(null, "", `/chats/${newChatId}`);
       }
 
       setMessages((prev) => [...prev, userMessage]);
