@@ -69,8 +69,10 @@ interface CreateWorkflowMutation {
 // types for update workflow
 interface UpdateWorkflowMutationVariables {
     workflowId: string;
-    name?: string | null;
-    description?: string | null;
+    workflowPatch: {
+        name?: string;
+        description?: string;
+    };
 }
 
 interface UpdateWorkflowMutation {
@@ -320,19 +322,25 @@ export const updateWorkflow = async (
     }
 ): Promise<Either<ResourceError, NonNullable<NonNullable<UpdateWorkflowMutation['updateWorkflowById']>['workflow']>>> => {
 
-    // create the graphql mutation
+    // build the patch object with only provided fields
+    // omitting fields entirely (vs passing null) preserves existing values in PostGraphile
+    const workflowPatch: { name?: string; description?: string } = {};
+    if ( params.name !== undefined ) {
+        workflowPatch.name = params.name;
+    }
+    if ( params.description !== undefined ) {
+        workflowPatch.description = params.description;
+    }
+
+    // create the graphql mutation using JSON scalar for the patch
     const UPDATE_WORKFLOW = gql`
         mutation updateWorkflow(
             $workflowId: UUID!
-            $name: String
-            $description: String
+            $workflowPatch: WorkflowPatch!
         ) {
             updateWorkflowById(input: {
                 id: $workflowId
-                workflowPatch: {
-                    name: $name
-                    description: $description
-                }
+                workflowPatch: $workflowPatch
             }) {
                 workflow {
                     id
@@ -350,8 +358,7 @@ export const updateWorkflow = async (
             mutation: UPDATE_WORKFLOW
             , variables: {
                 workflowId: params.workflowId
-                , name: params.name ?? null
-                , description: params.description ?? null
+                , workflowPatch
             }
         }
     );
@@ -384,6 +391,16 @@ export const updateWorkflow = async (
 export const deleteWorkflow = async (
     workflowId: string
 ): Promise<Either<ResourceError, { success: boolean }>> => {
+
+    // first check if the workflow exists and is not already deleted
+    const existingWorkflow = await getWorkflowById( workflowId );
+
+    // if workflow not found or already deleted, return 404
+    if ( existingWorkflow.isError() ) {
+
+        // return the error (WorkflowNotFound for deleted/missing workflows)
+        return error( existingWorkflow.value );
+    }
 
     // create the graphql mutation
     const DELETE_WORKFLOW = gql`

@@ -8,6 +8,8 @@ import FeatureGrid from "./components/FeatureGrid";
 import FeatureAlts from "./components/FeatureAlts";
 import CTA from "./components/CTA";
 import Testimonials from "./components/Testimonials";
+import Workflows from "./components/Workflows";
+import Security from "./components/Security";
 import Newsletter from "./components/Newsletter";
 import Footer from "./components/Footer";
 
@@ -24,6 +26,9 @@ export default function App() {
       <FeatureAlts />
       <CTA />
       <Testimonials />
+      <Workflows />
+      <Security />
+      <div className="big-divider" />
       <Newsletter />
       <Footer />
     </div>

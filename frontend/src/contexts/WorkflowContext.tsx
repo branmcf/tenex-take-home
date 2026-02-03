@@ -59,6 +59,9 @@ interface WorkflowProviderProps {
   initialWorkflowId?: string;
 }
 
+// Prefix for draft workflow IDs (not yet persisted to DB)
+const DRAFT_ID_PREFIX = "draft-";
+
 export function WorkflowProvider({
   children,
   initialWorkflows,
@@ -80,6 +83,16 @@ export function WorkflowProvider({
   const [workflowChatMessages, setWorkflowChatMessages] = React.useState<ChatMessage[]>([]);
   const [workflowChatInput, setWorkflowChatInput] = React.useState("");
   const [isWorkflowChatLoading, setIsWorkflowChatLoading] = React.useState(false);
+
+  // Sync workflows state when initialWorkflows prop changes (fixes async data loading)
+  React.useEffect(() => {
+    // Merge: keep any local draft workflows, update with fresh data from API
+    setWorkflows((prev) => {
+      const draftWorkflows = prev.filter((w) => w.id.startsWith(DRAFT_ID_PREFIX));
+      // Combine drafts with API workflows, drafts first
+      return [...draftWorkflows, ...initialWorkflows];
+    });
+  }, [initialWorkflows]);
 
   // Load chat messages when a workflow is selected
   const loadWorkflowChatMessages = React.useCallback(async (workflowId: string, workflowName: string, stepCount: number) => {
@@ -188,8 +201,10 @@ export function WorkflowProvider({
 
   const deleteWorkflowHandler = React.useCallback(async (workflowId: string) => {
     try {
-      // Call API to delete workflow
-      await deleteWorkflowApi(workflowId);
+      // Only call API for persisted workflows (not drafts)
+      if (!workflowId.startsWith(DRAFT_ID_PREFIX)) {
+        await deleteWorkflowApi(workflowId);
+      }
 
       // Update local state
       setWorkflows((prev) => prev.filter((w) => w.id !== workflowId));
@@ -207,8 +222,10 @@ export function WorkflowProvider({
 
   const renameWorkflowHandler = React.useCallback(async (workflowId: string, newName: string) => {
     try {
-      // Call API to update workflow
-      await updateWorkflowApi(workflowId, { name: newName });
+      // Only call API for persisted workflows (not drafts)
+      if (!workflowId.startsWith(DRAFT_ID_PREFIX)) {
+        await updateWorkflowApi(workflowId, { name: newName });
+      }
 
       // Update local state
       setWorkflows((prev) =>
@@ -230,59 +247,48 @@ export function WorkflowProvider({
     }
   }, [selectedWorkflow]);
 
-  const createWorkflowHandler = React.useCallback(async () => {
+  const createWorkflowHandler = React.useCallback(() => {
     if (!user?.id) {
       console.error("No user ID available");
       return;
     }
 
-    setIsLoading(true);
-    try {
-      // Call API to create workflow
-      const createdWorkflow = await createWorkflowApi({
-        userId: user.id,
-        name: "New Workflow",
-        description: "Describe what this workflow does",
-      });
+    // Create a draft workflow locally (not persisted to DB until first message)
+    const draftId = `${DRAFT_ID_PREFIX}${crypto.randomUUID()}`;
+    const now = new Date();
 
-      // Create WorkflowDetail from response
-      const newWorkflow: WorkflowDetail = {
-        id: createdWorkflow.id,
-        name: createdWorkflow.name,
-        description: createdWorkflow.description ?? "Describe what this workflow does",
-        version: createdWorkflow.version ?? 1,
-        steps: [],
-        lastEditedAt: new Date(createdWorkflow.updatedAt),
-        createdAt: new Date(createdWorkflow.createdAt),
-      };
+    const draftWorkflow: WorkflowDetail = {
+      id: draftId,
+      name: "New Workflow",
+      description: "Describe what this workflow does",
+      version: 1,
+      steps: [],
+      lastEditedAt: now,
+      createdAt: now,
+    };
 
-      // Update local state
-      setWorkflows((prev) => [newWorkflow, ...prev]);
+    // Update local state
+    setWorkflows((prev) => [draftWorkflow, ...prev]);
 
-      // Set selected workflow state directly
-      setSelectedWorkflowState(newWorkflow);
+    // Set selected workflow state directly
+    setSelectedWorkflowState(draftWorkflow);
 
-      // Initialize the chat for the new workflow
-      setWorkflowChatMessages([
-        {
-          id: `init-${newWorkflow.id}`,
-          role: "assistant" as const,
-          content: `This is the **${newWorkflow.name}** workflow. It currently has 0 steps.\n\nYou can modify this workflow by describing changes in natural language. For example:\n- "Add a validation step at the beginning"\n- "Remove the last step"\n- "Add a notification tool to step 2"`,
-          createdAt: newWorkflow.createdAt,
-        },
-      ]);
+    // Initialize the chat for the new workflow
+    setWorkflowChatMessages([
+      {
+        id: `init-${draftWorkflow.id}`,
+        role: "assistant" as const,
+        content: `This is a **new workflow**. It currently has 0 steps.\n\nDescribe what you want this workflow to do and I'll help you build it. For example:\n- "Create a workflow that validates user input and sends notifications"\n- "Add a step that processes uploaded files"`,
+        createdAt: now,
+      },
+    ]);
 
-      // Update URL without triggering a full navigation/remount
-      window.history.replaceState(null, "", `/workflows/${newWorkflow.id}`);
-    } catch (error) {
-      console.error("Failed to create workflow:", error);
-    } finally {
-      setIsLoading(false);
-    }
+    // Update URL to show draft workflow (use /workflows/new for drafts)
+    window.history.replaceState(null, "", `/workflows/new`);
   }, [user?.id]);
 
   const sendWorkflowChatMessageHandler = React.useCallback(async (content: string, modelId: string) => {
-    if (!content.trim() || isWorkflowChatLoading || !selectedWorkflow) return;
+    if (!content.trim() || isWorkflowChatLoading || !selectedWorkflow || !user?.id) return;
 
     // Add user message optimistically
     const userMessage: ChatMessage = {
@@ -297,8 +303,40 @@ export function WorkflowProvider({
     setIsWorkflowChatLoading(true);
 
     try {
+      let workflowId = selectedWorkflow.id;
+
+      // If this is a draft workflow, persist it to DB first
+      if (selectedWorkflow.id.startsWith(DRAFT_ID_PREFIX)) {
+        const createdWorkflow = await createWorkflowApi({
+          userId: user.id,
+          name: selectedWorkflow.name,
+          description: selectedWorkflow.description,
+        });
+
+        workflowId = createdWorkflow.id;
+
+        // Update the workflow in local state with real ID
+        const persistedWorkflow: WorkflowDetail = {
+          ...selectedWorkflow,
+          id: createdWorkflow.id,
+          lastEditedAt: new Date(createdWorkflow.updatedAt),
+          createdAt: new Date(createdWorkflow.createdAt),
+        };
+
+        // Replace draft with persisted workflow in list
+        setWorkflows((prev) =>
+          prev.map((w) => (w.id === selectedWorkflow.id ? persistedWorkflow : w))
+        );
+
+        // Update selected workflow
+        setSelectedWorkflowState(persistedWorkflow);
+
+        // Update URL to real workflow ID
+        window.history.replaceState(null, "", `/workflows/${createdWorkflow.id}`);
+      }
+
       // Call API to send message
-      const response = await sendWorkflowChatMessageApi(selectedWorkflow.id, {
+      const response = await sendWorkflowChatMessageApi(workflowId, {
         content: content.trim(),
         modelId,
       });
@@ -349,7 +387,7 @@ export function WorkflowProvider({
     } finally {
       setIsWorkflowChatLoading(false);
     }
-  }, [isWorkflowChatLoading, selectedWorkflow]);
+  }, [isWorkflowChatLoading, selectedWorkflow, user?.id]);
 
   const value = React.useMemo(
     () => ({

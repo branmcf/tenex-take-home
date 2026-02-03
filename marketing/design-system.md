@@ -115,36 +115,56 @@ Motion is precise and linear.
 
 ## 8. Components
 
-### 8.1 Buttons
-- Primary: green border with green text on white
-- Primary hover: green fill and white text
-- Secondary: black background with white text
-- Tertiary: neutral border and muted text
-- Height 40 to 44 for default, 48 for large
-- Label style is uppercase, 12 to 14px, 600 weight
+### 8.0 Layout Primitives
+- `section-dark`: default page surface (white background, near-black text).
+- `section-light`: secondary surface (warm light gray background).
+- `section-grid`: adds a subtle SVG line grid background (no gradients).
+- `hero-grid-overlay blueprint-grid`: hero-only grid overlay.
+- `dotted-divider`: dotted rule divider (SVG pattern).
+- `big-divider`: full-width hairline divider.
 
-### 8.2 Inputs
+### 8.1 Buttons
+- Implementation: `.button`, `.button-text`, `.button-arrow`
+- Configuration: `data-text-color`, `data-border-color`, `data-arrow-color`
+  - Values used: `green 1`, `green 2`, `green 3`, `black`, `white`, `dark gray`, `light gray`
+- Primary pattern (green outline, tinted background): `data-text-color="green 1" data-border-color="green 1" data-arrow-color="green 1"`
+- Primary hover: solid green fill with white text and arrow
+- Secondary pattern (dark outline): `data-text-color="dark gray" data-border-color="dark gray"`
+- White on dark surfaces: `data-text-color="white" data-border-color="white"`
+- Sizing: 40px height by default, uppercase label, tracked letter spacing
+
+### 8.2 Navigation
+- Layout: `.nav_component`, `.nav-container`, `.nav-left`, `.nav-brand`
+- Dropdown: `.dropdown`, `.nav-dropdown`, `.nav-dropdown-item`, `.green-square`
+- Mobile: `.menu-button` toggles `.mobile-menu`
+
+### 8.3 Inputs
 - Solid background and 1px border
 - Focus ring uses `--color-blue-focus` or `--color-green-2`
 - Placeholder uses muted color
 
-### 8.3 Cards
+### 8.4 Cards
 - White or black background depending on section
 - 1px border, no heavy shadows
 
-### 8.4 Tabs
+### 8.5 Tabs
 - Outline and text emphasis only
 - Active tab uses border and background shift
 
-### 8.5 Tooltips
+### 8.6 Tooltips
 - Solid background, small radius, no gradients
 
-### 8.6 Code Blocks
+### 8.7 Code Blocks
 - Black background, light text
 - Title label in top left
 - Copy button in top right
 
-### 8.7 Navigation and Footer
+### 8.8 Lines and Loops
+- Logos scroll: `.logo-row` with `logo-scroll` keyframes
+- CTA line loop: `.cta-lines-row` with `cta-lines-loop` keyframes
+- Footer line loop: `.footer-loop-row` with `footer-lines-loop` keyframes
+
+### 8.9 Navigation and Footer
 - Minimal surfaces with line separators
 - Active states use muted background and bold text
 
