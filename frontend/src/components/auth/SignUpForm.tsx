@@ -13,6 +13,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton";
 import { cn } from "@/lib/utils";
+import { signUp } from "@/lib/auth-client";
+import {
+  handleAndShowError,
+  processBetterAuthResult,
+} from "@/lib/errors";
 
 const signUpSchema = z
   .object({
@@ -35,26 +40,9 @@ interface SignUpFormProps {
   className?: string;
 }
 
-// Mock signup function - simulates backend call
-async function mockSignUp(
-  data: SignUpFormData
-): Promise<{ success: boolean; error?: string }> {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  // Mock responses based on email
-  if (data.email === "existing@example.com") {
-    return { success: false, error: "Email already registered" };
-  }
-
-  // Success case
-  return { success: true };
-}
-
 export function SignUpForm({ className }: SignUpFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
 
   const {
     register,
@@ -66,18 +54,34 @@ export function SignUpForm({ className }: SignUpFormProps) {
 
   const onSubmit = async (data: SignUpFormData) => {
     setIsLoading(true);
-    setFormError(null);
 
     try {
-      const result = await mockSignUp(data);
+      const result = await signUp.email({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        callbackURL: "/email-verified",
+      });
 
-      if (result.success) {
-        router.push("/verify-email");
-      } else {
-        setFormError(result.error || "An error occurred");
+      // Check for Better Auth errors in the result
+      const error = processBetterAuthResult(result, {
+        action: "signup",
+        email: data.email,
+      });
+
+      if (error) {
+        // Error was already logged and toast shown by processBetterAuthResult
+        return;
       }
-    } catch {
-      setFormError("An unexpected error occurred");
+
+      // Success - redirect to verify email page (no toast needed, page explains next steps)
+      router.push("/verify-email");
+    } catch (err) {
+      // Handle unexpected errors (network, CORS, etc.)
+      handleAndShowError(err, {
+        action: "signup",
+        email: data.email,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -163,10 +167,6 @@ export function SignUpForm({ className }: SignUpFormProps) {
             </p>
           )}
         </div>
-
-        {formError && (
-          <p className="text-sm text-destructive text-center">{formError}</p>
-        )}
 
         <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading && <CircleNotch className="size-4 animate-spin" />}

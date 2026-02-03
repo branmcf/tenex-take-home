@@ -7,6 +7,7 @@ import {
     serverErrorHandler
     , clientErrorHandler
 } from './server.helper';
+import { Log } from '../utils';
 import { requestLogger } from '../middleware';
 import { auth } from '../lib/betterAuth/auth';
 import { toNodeHandler } from 'better-auth/node';
@@ -30,14 +31,21 @@ export const app = http.createServer( expressApp );
  * Middleware
  */
 
-expressApp.use( cors() );
+expressApp.use( cors( {
+    origin: [
+        'http://localhost:3000'
+        , 'http://localhost:3026'
+        , 'https://api.mondayfortuesday.com'
+    ]
+    , credentials: true
+} ) );
 
 expressApp.use( express.static( path.join( __dirname, '../public' ) ) );
 
 requestLogger( expressApp );
 
-expressApp.get( '/', ( req, res ) => {
-    res.sendFile( path.join( __dirname, 'hello' ) );
+expressApp.get( '/email-verified', ( req, res ) => {
+    res.sendFile( path.join( __dirname, '../public/email-verified.html' ) );
 } );
 
 // development-only GraphQL endpoint for codegen
@@ -68,9 +76,13 @@ if ( process.env.NODE_ENV !== 'production' ) {
  * Routes
  */
 
-expressApp.all(
-    '/api/auth/*'
-    , toNodeHandler( auth )
+const authHandler = toNodeHandler( auth );
+expressApp.use(
+    '/api/auth'
+    , ( req, res ) => {
+        Log.info( '[AUTH] Matched route:', { method: req.method, url: req.url, originalUrl: req.originalUrl } );
+        authHandler( req, res );
+    }
 );
 
 expressApp.use(

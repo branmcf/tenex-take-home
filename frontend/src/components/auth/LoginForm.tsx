@@ -6,13 +6,18 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CircleNotch } from "@phosphor-icons/react";
+import { CircleNotch, EnvelopeSimple } from "@phosphor-icons/react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton";
 import { cn } from "@/lib/utils";
+import { signIn } from "@/lib/auth-client";
+import {
+  handleAndShowError,
+  processBetterAuthResult,
+} from "@/lib/errors";
 
 const loginSchema = z.object({
   email: z
@@ -28,51 +33,53 @@ interface LoginFormProps {
   className?: string;
 }
 
-// Mock login function - simulates backend call
-async function mockLogin(data: LoginFormData): Promise<{ success: boolean; error?: string }> {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  // Mock responses based on email
-  if (data.email === "unverified@example.com") {
-    return { success: false, error: "Please verify your email first" };
-  }
-
-  if (data.email === "invalid@example.com" || data.password === "wrongpassword") {
-    return { success: false, error: "Invalid email or password" };
-  }
-
-  // Success case
-  return { success: true };
-}
-
 export function LoginForm({ className }: LoginFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
+  const [needsVerification, setNeedsVerification] = useState(false);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
+    getValues,
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
-    setFormError(null);
+    setNeedsVerification(false);
 
     try {
-      const result = await mockLogin(data);
+      const result = await signIn.email({
+        email: data.email,
+        password: data.password,
+      });
 
-      if (result.success) {
-        router.push("/");
-      } else {
-        setFormError(result.error || "An error occurred");
+      // Check for email not verified specifically
+      if (result.error?.code === "EMAIL_NOT_VERIFIED") {
+        setNeedsVerification(true);
+        return;
       }
-    } catch {
-      setFormError("An unexpected error occurred");
+
+      // Check for other Better Auth errors
+      const error = processBetterAuthResult(result, {
+        action: "login",
+        email: data.email,
+      });
+
+      if (error) {
+        return;
+      }
+
+      // Success - redirect to home
+      router.push("/");
+    } catch (err) {
+      handleAndShowError(err, {
+        action: "login",
+        email: data.email,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -127,8 +134,22 @@ export function LoginForm({ className }: LoginFormProps) {
           )}
         </div>
 
-        {formError && (
-          <p className="text-sm text-destructive text-center">{formError}</p>
+        {needsVerification && (
+          <div className="flex items-start gap-3 rounded-md border border-border bg-muted/50 p-4">
+            <EnvelopeSimple className="size-5 text-muted-foreground shrink-0 mt-0.5" />
+            <div className="flex flex-col gap-1 text-sm">
+              <p className="font-medium">Email not verified</p>
+              <p className="text-muted-foreground">
+                Please verify your email before signing in.{" "}
+                <Link
+                  href={`/verify-email?email=${encodeURIComponent(getValues("email"))}`}
+                  className="text-primary underline underline-offset-2 hover:text-primary/80"
+                >
+                  Resend verification email
+                </Link>
+              </p>
+            </div>
+          </div>
         )}
 
         <Button type="submit" className="w-full" disabled={isLoading}>

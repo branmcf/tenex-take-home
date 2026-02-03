@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Noto_Sans } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthGuard } from "@/components/auth/AuthGuard";
+import { Toaster } from "@/components/ui/sonner";
 
 const notoSans = Noto_Sans({
   subsets: ["latin"],
@@ -27,7 +30,12 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <AuthProvider>
+            <AuthGuard>
+              {children}
+            </AuthGuard>
+            <Toaster />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

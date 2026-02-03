@@ -3,6 +3,7 @@
 - COLLECTION_STANDARDS.md
 - LIBRARY_STANDARDS.md
 - TESTING_STANDARDS.md
+- MIGRATION_STANDARDS.md
 
 all of these files can be foudn in the /markdown directory
 
