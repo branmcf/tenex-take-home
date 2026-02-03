@@ -65,7 +65,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 sm:p-6"
+      className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 p-4 sm:p-6"
       onClick={onClose}
     >
       <div

@@ -10,10 +10,10 @@ export const MOCK_MODELS: Model[] = [
 ];
 
 export const MOCK_WORKFLOWS: Workflow[] = [
-  { id: "code-review", name: "Code Review" },
-  { id: "summarize", name: "Summarize Document" },
-  { id: "translate", name: "Translate" },
-  { id: "debug", name: "Debug Code" },
+  { id: "code-review", name: "Code Review", description: "Review code for best practices", version: 1, updatedAt: "2024-02-01T12:00:00Z" },
+  { id: "summarize", name: "Summarize Document", description: "Create concise summaries", version: 2, updatedAt: "2024-02-01T11:00:00Z" },
+  { id: "translate", name: "Translate", description: "Translate text between languages", version: 1, updatedAt: "2024-02-01T10:00:00Z" },
+  { id: "debug", name: "Debug Code", description: "Find and fix bugs in code", version: 3, updatedAt: "2024-02-01T09:00:00Z" },
 ];
 
 export const MOCK_SOURCES: Source[][] = [

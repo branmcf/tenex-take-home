@@ -1,22 +1,15 @@
 "use client";
 
 import * as React from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { GitBranch, CaretDown } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { useModal } from "@/contexts";
 import type { Workflow } from "./types";
-
-const NONE_VALUE = "__none__";
 
 interface WorkflowSelectorProps {
   workflows: Workflow[];
   value: string | undefined;
-  onChange: (workflowId: string | undefined) => void;
   disabled?: boolean;
   className?: string;
 }
@@ -24,33 +17,30 @@ interface WorkflowSelectorProps {
 export function WorkflowSelector({
   workflows,
   value,
-  onChange,
   disabled,
   className,
 }: WorkflowSelectorProps) {
-  const handleChange = (newValue: string) => {
-    onChange(newValue === NONE_VALUE ? undefined : newValue);
-  };
+  const { openModal } = useModal();
+
+  const selectedWorkflow = workflows.find((w) => w.id === value);
+  const displayText = selectedWorkflow?.name || "Workflow";
 
   return (
-    <Select
-      value={value || NONE_VALUE}
-      onValueChange={handleChange}
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
       disabled={disabled}
+      onClick={() => openModal("workflow")}
+      className={cn(
+        "h-8 gap-1.5 px-2.5 text-xs font-normal",
+        !selectedWorkflow && "text-muted-foreground",
+        className
+      )}
     >
-      <SelectTrigger className={cn("w-[140px] h-8 text-xs", className)}>
-        <SelectValue placeholder="Workflow" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value={NONE_VALUE} className="text-xs">
-          <span className="text-muted-foreground">No workflow</span>
-        </SelectItem>
-        {workflows.map((workflow) => (
-          <SelectItem key={workflow.id} value={workflow.id} className="text-xs">
-            {workflow.name}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+      <GitBranch className="h-3.5 w-3.5" />
+      <span className="max-w-[100px] truncate">{displayText}</span>
+      <CaretDown className="h-3 w-3 opacity-50" />
+    </Button>
   );
 }

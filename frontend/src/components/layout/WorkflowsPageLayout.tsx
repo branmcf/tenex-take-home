@@ -15,18 +15,15 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { SidebarSimple, Plus } from "@phosphor-icons/react";
-import { ChatProvider, WorkflowProvider, useWorkflowContext } from "@/contexts";
-import {
-  MOCK_MODELS,
-  MOCK_WORKFLOWS,
-  MOCK_RESPONSES,
-  MOCK_SOURCES,
-  MOCK_CHAT_CONVERSATIONS,
-} from "@/lib/mocks/chat";
-import { MOCK_WORKFLOW_DETAILS } from "@/lib/mocks/workflows";
+import { ChatProvider, WorkflowProvider, useWorkflowContext, ModalProvider, useModal } from "@/contexts";
+import { ModalContainer } from "@/components/layout/ModalContainer";
+import { useModels, useWorkflows, useAuth } from "@/hooks";
+import type { WorkflowDetail } from "@/components/workflows/types";
+import type { Workflow } from "@/lib/api";
 
 function WorkflowsContent() {
   const { state, toggleSidebar } = useSidebar();
+  const { contentRef } = useModal();
   const isCollapsed = state === "collapsed";
 
   const {
@@ -62,7 +59,7 @@ function WorkflowsContent() {
   );
 
   return (
-    <SidebarInset className="flex-1 min-h-0 overflow-hidden">
+    <SidebarInset ref={contentRef} className="relative flex-1 min-h-0 overflow-hidden">
       {isCollapsed && (
         <div className="absolute left-4 top-4 z-20">
           <Tooltip>
@@ -87,24 +84,26 @@ function WorkflowsContent() {
       <div className="flex h-full">
         {/* Left Column - Workflow List */}
         <div className="w-72 shrink-0 border-r border-border flex flex-col overflow-hidden bg-background">
-          <div className="px-4 py-3 border-b border-border">
-            <div className="flex items-center justify-between gap-2">
-              <div>
-                <h2 className="text-sm font-semibold">My Workflows</h2>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {workflows.length} workflow{workflows.length !== 1 ? "s" : ""}
-                </p>
+          {workflows.length > 0 && (
+            <div className="px-4 py-3 border-b border-border shrink-0">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <h2 className="text-sm font-semibold whitespace-nowrap">My Workflows</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {workflows.length} workflow{workflows.length !== 1 ? "s" : ""}
+                  </p>
+                </div>
+                <Button
+                  onClick={createWorkflow}
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground shrink-0"
+                >
+                  Create
+                  <Plus className="h-4 w-4 ml-1" weight="bold" />
+                </Button>
               </div>
-              <Button
-                onClick={createWorkflow}
-                size="sm"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground shrink-0"
-              >
-                Create Workflow
-                <Plus className="h-4 w-4 ml-1" weight="bold" />
-              </Button>
             </div>
-          </div>
+          )}
           <div className="flex-1 overflow-y-auto p-3">
             <WorkflowList
               workflows={workflowListItems}
@@ -112,6 +111,7 @@ function WorkflowsContent() {
               onSelectWorkflow={handleSelectWorkflow}
               onRenameWorkflow={renameWorkflow}
               onDeleteWorkflow={deleteWorkflow}
+              onCreateWorkflow={createWorkflow}
             />
           </div>
         </div>
@@ -129,6 +129,7 @@ function WorkflowsContent() {
           />
         </div>
       </div>
+      <ModalContainer />
     </SidebarInset>
   );
 }
@@ -138,19 +139,35 @@ interface WorkflowsPageLayoutProps {
 }
 
 export function WorkflowsPageLayout({ initialWorkflowId }: WorkflowsPageLayoutProps) {
+  const { models } = useModels();
+  const { user } = useAuth();
+  const { workflows: apiWorkflows } = useWorkflows({
+    userId: user?.id || "",
+    enabled: !!user?.id,
+  });
+
+  // Transform API workflows to WorkflowDetail format
+  const workflowDetails: WorkflowDetail[] = React.useMemo(() => {
+    return apiWorkflows.map((workflow: Workflow) => ({
+      id: workflow.id,
+      name: workflow.name,
+      description: workflow.description ?? "",
+      version: workflow.version ?? 1,
+      steps: [], // Steps will be loaded when workflow is selected
+      lastEditedAt: new Date(workflow.updatedAt),
+      createdAt: new Date(workflow.updatedAt), // Use updatedAt as createdAt since API doesn't provide it
+    }));
+  }, [apiWorkflows]);
+
   return (
-    <ChatProvider
-      models={MOCK_MODELS}
-      workflows={MOCK_WORKFLOWS}
-      mockResponses={MOCK_RESPONSES}
-      mockSources={MOCK_SOURCES}
-      mockConversations={MOCK_CHAT_CONVERSATIONS}
-    >
-      <WorkflowProvider initialWorkflows={MOCK_WORKFLOW_DETAILS} initialWorkflowId={initialWorkflowId}>
-        <SidebarProvider className="h-svh">
-          <AppSidebar />
-          <WorkflowsContent />
-        </SidebarProvider>
+    <ChatProvider models={models} workflows={apiWorkflows}>
+      <WorkflowProvider initialWorkflows={workflowDetails} initialWorkflowId={initialWorkflowId}>
+        <ModalProvider>
+          <SidebarProvider className="h-svh">
+            <AppSidebar />
+            <WorkflowsContent />
+          </SidebarProvider>
+        </ModalProvider>
       </WorkflowProvider>
     </ChatProvider>
   );

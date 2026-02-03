@@ -54,7 +54,7 @@ export function ModelSelector({
 
   return (
     <Select value={value} onValueChange={onChange} disabled={disabled}>
-      <SelectTrigger className={cn("w-[140px] h-8 text-xs", className)}>
+      <SelectTrigger className={cn("w-[180px] h-8 text-xs [&>span]:truncate", className)}>
         <SelectValue placeholder="Select model" />
       </SelectTrigger>
       <SelectContent>

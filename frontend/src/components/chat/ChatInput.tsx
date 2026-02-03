@@ -26,7 +26,6 @@ interface ChatInputProps {
   selectedModel: string;
   onModelChange: (modelId: string) => void;
   selectedWorkflow: string | undefined;
-  onWorkflowChange: (workflowId: string | undefined) => void;
 }
 
 export function ChatInput({
@@ -41,7 +40,6 @@ export function ChatInput({
   selectedModel,
   onModelChange,
   selectedWorkflow,
-  onWorkflowChange,
 }: ChatInputProps) {
   const canSubmit = value.trim().length > 0 && !isLoading && !disabled;
 
@@ -70,7 +68,6 @@ export function ChatInput({
             <WorkflowSelector
               workflows={workflows}
               value={selectedWorkflow}
-              onChange={onWorkflowChange}
               disabled={isLoading}
             />
           </div>

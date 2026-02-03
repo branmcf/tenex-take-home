@@ -35,7 +35,18 @@ function SearchSkeleton() {
   );
 }
 
-function EmptyState({ query }: { query: string }) {
+function EmptyState({ query, hasChats }: { query: string; hasChats: boolean }) {
+  if (!hasChats) {
+    return (
+      <div className="flex flex-col items-center justify-center px-4 py-12 text-center">
+        <p className="text-sm text-muted-foreground">No conversations yet</p>
+        <p className="mt-1 text-xs text-muted-foreground/70">
+          Start a new chat to begin
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col items-center justify-center px-4 py-12 text-center">
       <p className="text-sm text-muted-foreground">No results found</p>
@@ -179,12 +190,12 @@ export function SearchModal({
   if (!isOpen) return null;
 
   const showLoading = isLoading || isSearching;
-  const showEmpty = !showLoading && isSearchMode && filteredChats.length === 0;
-  const showResults = !showLoading && !showEmpty;
+  const showEmpty = !showLoading && (filteredChats.length === 0 || (isSearchMode && filteredChats.length === 0));
+  const showResults = !showLoading && !showEmpty && filteredChats.length > 0;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 sm:p-6"
+      className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 p-4 sm:p-6"
       onClick={onClose}
     >
       <div
@@ -249,7 +260,7 @@ export function SearchModal({
           {showLoading && <SearchSkeleton />}
 
           {/* Empty State */}
-          {showEmpty && <EmptyState query={debouncedQuery} />}
+          {showEmpty && <EmptyState query={debouncedQuery} hasChats={chats.length > 0} />}
 
           {/* Results */}
           {showResults && (

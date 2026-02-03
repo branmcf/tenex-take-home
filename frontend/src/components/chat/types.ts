@@ -6,7 +6,7 @@ export interface Source {
 
 export interface Message {
   id: string;
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "system";
   content: string;
   createdAt: Date;
   sources?: Source[];
@@ -21,6 +21,9 @@ export interface Model {
 export interface Workflow {
   id: string;
   name: string;
+  description: string | null;
+  version: number | null;
+  updatedAt: string;
 }
 
 export interface ChatContainerProps {

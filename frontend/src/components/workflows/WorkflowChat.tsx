@@ -24,8 +24,7 @@ import {
   MessageAction,
 } from "@/components/ui/message";
 import { ModelSelector } from "@/components/chat/ModelSelector";
-import { MOCK_MODELS } from "@/lib/mocks/chat";
-import { useWorkflowContext } from "@/contexts";
+import { useWorkflowContext, useChatContext } from "@/contexts";
 
 interface WorkflowChatProps {
   className?: string;
@@ -124,14 +123,24 @@ export function WorkflowChat({ className }: WorkflowChatProps) {
     isWorkflowChatLoading,
     selectedWorkflow,
   } = useWorkflowContext();
+  const { models } = useChatContext();
 
-  const [selectedModel, setSelectedModel] = React.useState(MOCK_MODELS[0].id);
+  const [selectedModel, setSelectedModel] = React.useState(models[0]?.id ?? "");
 
-  const canSubmit = workflowChatInput.trim().length > 0 && !isWorkflowChatLoading && selectedWorkflow !== null;
+  // Update selected model when models change
+  React.useEffect(() => {
+    if (models.length > 0 && !selectedModel) {
+      setSelectedModel(models[0].id);
+    }
+  }, [models, selectedModel]);
+
+  const canSubmit = workflowChatInput.trim().length > 0 && !isWorkflowChatLoading && selectedWorkflow !== null && selectedModel;
 
   const handleSubmit = React.useCallback(() => {
-    sendWorkflowChatMessage(workflowChatInput);
-  }, [workflowChatInput, sendWorkflowChatMessage]);
+    if (selectedModel) {
+      sendWorkflowChatMessage(workflowChatInput, selectedModel);
+    }
+  }, [workflowChatInput, sendWorkflowChatMessage, selectedModel]);
 
   // Empty state when no workflow is selected
   if (!selectedWorkflow) {
@@ -194,7 +203,7 @@ export function WorkflowChat({ className }: WorkflowChatProps) {
             <PromptInputActions className="flex items-center justify-between gap-2 px-3 pb-3">
               <div className="flex items-center gap-2">
                 <ModelSelector
-                  models={MOCK_MODELS}
+                  models={models}
                   value={selectedModel}
                   onChange={setSelectedModel}
                   disabled={isWorkflowChatLoading}

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Copy, Check } from "@phosphor-icons/react";
+import { Copy, Check, Warning } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,12 +21,31 @@ interface ChatMessageProps {
 export function ChatMessage({ message, isLast }: ChatMessageProps) {
   const [copied, setCopied] = React.useState(false);
   const isUser = message.role === "user";
+  const isSystem = message.role === "system";
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(message.content);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  // System message - distinct alert/banner style (not a bubble)
+  if (isSystem) {
+    return (
+      <div className="w-full px-2 py-3">
+        <div
+          className={cn(
+            "flex items-start gap-3 rounded-lg border px-4 py-3",
+            "bg-amber-50 border-amber-200 text-amber-900",
+            "dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-200"
+          )}
+        >
+          <Warning className="h-5 w-5 shrink-0 mt-0.5" weight="fill" />
+          <p className="text-sm leading-relaxed">{message.content}</p>
+        </div>
+      </div>
+    );
+  }
 
   if (isUser) {
     return (
