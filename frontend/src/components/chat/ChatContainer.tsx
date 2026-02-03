@@ -11,10 +11,6 @@ import { ScrollButton } from "@/components/ui/scroll-button";
 import { Loader } from "@/components/ui/loader";
 import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
-import {
-  MOCK_MODELS,
-  MOCK_WORKFLOWS,
-} from "@/lib/mocks/chat";
 import type { ChatContainerProps } from "./types";
 import { useChatContext } from "@/contexts";
 
@@ -25,6 +21,8 @@ export function ChatContainer({ className }: ChatContainerProps) {
     input,
     setInput,
     sendMessage,
+    models,
+    workflows,
     selectedModel,
     setSelectedModel,
     selectedWorkflow,
@@ -99,15 +97,14 @@ export function ChatContainer({ className }: ChatContainerProps) {
             onChange={setInput}
             onSubmit={handleSubmit}
             isLoading={isLoading}
-            models={MOCK_MODELS}
-            workflows={MOCK_WORKFLOWS}
-            selectedModel={selectedModel?.id ?? MOCK_MODELS[0].id}
+            models={models}
+            workflows={workflows}
+            selectedModel={selectedModel?.id ?? models[0]?.id}
             onModelChange={(modelId) => {
-              const model = MOCK_MODELS.find((m) => m.id === modelId);
+              const model = models.find((m) => m.id === modelId);
               setSelectedModel(model);
             }}
             selectedWorkflow={selectedWorkflow}
-            onWorkflowChange={setSelectedWorkflow}
           />
           {!isNewChat && (
             <p className="mt-4 text-center text-xs uppercase tracking-wider text-muted-foreground font-mono">

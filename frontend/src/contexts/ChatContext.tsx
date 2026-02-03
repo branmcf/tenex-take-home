@@ -2,14 +2,21 @@
 
 import * as React from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { toast } from "sonner";
 import type { Message, Model, Workflow } from "@/components/chat/types";
-import type { ChatConversation } from "@/lib/mocks/chat";
+import { createMessage, getMessages } from "@/lib/api";
+import { useAuth } from "@/hooks";
+import { useChatRefetch } from "./ChatRefetchContext";
 
 interface ChatContextValue {
   // Current chat state
   currentChatId: string | null;
   messages: Message[];
   isLoading: boolean;
+
+  // Available models and workflows
+  models: Model[];
+  workflows: Workflow[];
 
   // Model and workflow selection
   selectedModel: Model | undefined;
@@ -41,35 +48,26 @@ interface ChatProviderProps {
   children: React.ReactNode;
   models: Model[];
   workflows: Workflow[];
-  mockResponses: string[];
-  mockSources: Array<Array<{ url: string; title: string; description?: string }>>;
-  mockConversations?: ChatConversation[];
   initialChatId?: string;
 }
 
 export function ChatProvider({
   children,
   models,
-  mockResponses,
-  mockSources,
-  mockConversations = [],
+  workflows,
   initialChatId,
 }: ChatProviderProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const { user } = useAuth();
+  const { triggerRefetch } = useChatRefetch();
 
   const [currentChatId, setCurrentChatId] = React.useState<string | null>(
     initialChatId ?? null
   );
-  const [messages, setMessages] = React.useState<Message[]>(() => {
-    // Initialize messages if loading from URL
-    if (initialChatId) {
-      const conversation = mockConversations.find((c) => c.chatId === initialChatId);
-      return conversation?.messages ?? [];
-    }
-    return [];
-  });
+  const [messages, setMessages] = React.useState<Message[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
+  const [isLoadingMessages, setIsLoadingMessages] = React.useState(false);
   const [input, setInput] = React.useState("");
   const [selectedModel, setSelectedModel] = React.useState<Model | undefined>(
     models[0]
@@ -78,14 +76,66 @@ export function ChatProvider({
     string | undefined
   >();
 
+  // Ref to track when we're actively sending a message in a new chat
+  // This prevents the URL change from triggering a message fetch that would overwrite optimistic updates
+  const isSendingNewChatRef = React.useRef(false);
+
+  // Set selectedModel when models load asynchronously and no model is selected
+  React.useEffect(() => {
+    if (models.length > 0 && !selectedModel) {
+      setSelectedModel(models[0]);
+    }
+  }, [models, selectedModel]);
+
+  // Extract chatId from URL pathname
+  const chatIdFromUrl = React.useMemo(() => {
+    const match = pathname.match(/^\/chats\/([^/]+)/);
+    return match ? match[1] : null;
+  }, [pathname]);
+
+  // Load messages when URL changes (not just initialChatId prop)
+  React.useEffect(() => {
+    // Explicitly at home page - always clear chat state
+    if (pathname === "/") {
+      setMessages([]);
+      setCurrentChatId(null);
+      setIsLoadingMessages(false);
+      return;
+    }
+
+    // Skip fetching if we're actively sending a message in a new chat
+    // This prevents the URL change from overwriting optimistic message updates
+    if (isSendingNewChatRef.current) {
+      return;
+    }
+
+    const chatIdToLoad = chatIdFromUrl || initialChatId;
+
+    if (chatIdToLoad && chatIdToLoad !== "new") {
+      setIsLoadingMessages(true);
+      setCurrentChatId(chatIdToLoad);
+
+      getMessages(chatIdToLoad)
+        .then((messageData) => {
+          // Convert string dates to Date objects
+          const messagesWithDates: Message[] = messageData.map((msg) => ({
+            ...msg,
+            createdAt: new Date(msg.createdAt),
+          }));
+          setMessages(messagesWithDates);
+        })
+        .catch((error) => {
+          console.error("Failed to load messages:", error);
+          setMessages([]);
+        })
+        .finally(() => {
+          setIsLoadingMessages(false);
+        });
+    }
+  }, [pathname, chatIdFromUrl, initialChatId]);
+
   // Track if this is a fresh session (no messages yet)
   const hasMessages = messages.length > 0;
-
-  // Generate a new chat ID
-  const generateChatId = React.useCallback(() => {
-    // In a real app, this would come from the backend
-    return String(Math.floor(Math.random() * 10000));
-  }, []);
 
   // Start a new chat - clears messages and navigates to home
   const startNewChat = React.useCallback(() => {
@@ -110,19 +160,31 @@ export function ChatProvider({
 
   // Load an existing chat (navigates to chat page)
   const loadChat = React.useCallback((chatId: string) => {
-    // In a real app, this would fetch from the backend
     setCurrentChatId(chatId);
-    // Load mock messages for this chat
-    const conversation = mockConversations.find((c) => c.chatId === chatId);
-    setMessages(conversation?.messages ?? []);
+    setMessages([]);
     // Use router.push for loading existing chats since we want full navigation
     router.push(`/chats/${chatId}`);
-  }, [router, mockConversations]);
+  }, [router]);
 
   // Send a message
   const sendMessage = React.useCallback(
-    (content: string) => {
-      if (!content.trim() || isLoading) return;
+    async (content: string) => {
+      if (!content.trim() || isLoading || !selectedModel || !user) return;
+
+      // Track if this is a new chat
+      const isNewChat = !currentChatId;
+
+      // Generate a new chat ID if this is the first message
+      let chatIdForRequest = currentChatId;
+      if (!chatIdForRequest) {
+        chatIdForRequest = crypto.randomUUID();
+        setCurrentChatId(chatIdForRequest);
+        // Mark that we're sending a new chat message to prevent the URL change
+        // from triggering a message fetch that would overwrite our optimistic update
+        isSendingNewChatRef.current = true;
+        // Update URL immediately for new chats
+        window.history.replaceState(null, "", `/chats/${chatIdForRequest}`);
+      }
 
       const userMessage: Message = {
         id: crypto.randomUUID(),
@@ -131,44 +193,92 @@ export function ChatProvider({
         createdAt: new Date(),
       };
 
-      // If this is the first message, generate a chat ID and update URL
-      // Do this BEFORE updating messages to ensure state is consistent
-      if (!currentChatId && messages.length === 0) {
-        const newChatId = generateChatId();
-        setCurrentChatId(newChatId);
-        // Update URL without triggering Next.js navigation/remount
-        window.history.replaceState(null, "", `/chats/${newChatId}`);
-      }
-
       setMessages((prev) => [...prev, userMessage]);
       setInput("");
       setIsLoading(true);
 
-      // Simulate API response
-      const responseIndex = Math.floor(Math.random() * mockResponses.length);
-      const response = mockResponses[responseIndex];
-      const sources = mockSources[responseIndex % mockSources.length];
+      try {
+        const response = await createMessage(chatIdForRequest, {
+          content: content.trim(),
+          modelId: selectedModel.id,
+          userId: user.id,
+        });
 
-      setTimeout(() => {
-        const assistantMessage: Message = {
-          id: crypto.randomUUID(),
-          role: "assistant",
-          content: response,
-          createdAt: new Date(),
-          sources,
-        };
-        setMessages((prev) => [...prev, assistantMessage]);
+        // Check if the response has an error (partial success - LLM failed but user message saved)
+        if (response.error || !response.assistantMessage) {
+          // Remove the optimistic user message (we'll fetch from server)
+          setMessages((prev) => prev.filter((msg) => msg.id !== userMessage.id));
+
+          // Fetch messages from server to get the stored user message + system error message
+          const messageData = await getMessages(chatIdForRequest);
+          const messagesWithDates: Message[] = messageData.map((msg) => ({
+            ...msg,
+            createdAt: new Date(msg.createdAt),
+          }));
+          setMessages(messagesWithDates);
+
+          // Trigger sidebar refetch to show the new chat with fallback title
+          if (isNewChat) {
+            setTimeout(() => {
+              triggerRefetch();
+            }, 500);
+          }
+
+          // Show error toast for immediate feedback
+          toast.error("Failed to get AI response", {
+            description: "Please check that the selected model's API key is configured.",
+            duration: 5000,
+          });
+        } else {
+          // Success - convert assistant message dates and add to messages
+          const assistantMessage: Message = {
+            ...response.assistantMessage,
+            createdAt: new Date(response.assistantMessage.createdAt),
+          };
+
+          setMessages((prev) => [...prev, assistantMessage]);
+
+          // If this was a new chat, trigger a refetch of the chat list
+          // Wait for the backend to generate the title (it happens async)
+          if (isNewChat) {
+            setTimeout(() => {
+              triggerRefetch();
+            }, 3500); // Increased to 3.5 seconds to give more time for title generation
+          }
+        }
+      } catch (error) {
+        console.error("Failed to send message:", error);
+        // Remove the optimistic user message on error
+        setMessages((prev) => prev.filter((msg) => msg.id !== userMessage.id));
+
+        // If this was a new chat, revert the chat state so it doesn't appear in sidebar
+        if (isNewChat) {
+          setCurrentChatId(null);
+          window.history.replaceState(null, "", "/");
+        }
+
+        // Show error toast to user
+        const errorMessage = error instanceof Error ? error.message : "Failed to send message";
+        toast.error(errorMessage, {
+          description: "Please check that the selected model's API key is configured.",
+          duration: 5000,
+        });
+      } finally {
         setIsLoading(false);
-      }, 1500);
+        // Reset the ref so future URL changes can trigger message fetches
+        isSendingNewChatRef.current = false;
+      }
     },
-    [isLoading, currentChatId, messages.length, generateChatId, mockResponses, mockSources]
+    [isLoading, currentChatId, selectedModel, user, triggerRefetch]
   );
 
   const value = React.useMemo(
     () => ({
       currentChatId,
       messages,
-      isLoading,
+      isLoading: isLoading || isLoadingMessages,
+      models,
+      workflows,
       selectedModel,
       setSelectedModel,
       selectedWorkflow,
@@ -183,6 +293,9 @@ export function ChatProvider({
       currentChatId,
       messages,
       isLoading,
+      isLoadingMessages,
+      models,
+      workflows,
       selectedModel,
       selectedWorkflow,
       sendMessage,

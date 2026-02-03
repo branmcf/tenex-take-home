@@ -15,21 +15,17 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { SidebarSimple } from "@phosphor-icons/react";
-import { ChatProvider } from "@/contexts";
-import {
-  MOCK_MODELS,
-  MOCK_WORKFLOWS,
-  MOCK_RESPONSES,
-  MOCK_SOURCES,
-  MOCK_CHAT_CONVERSATIONS,
-} from "@/lib/mocks/chat";
+import { ChatProvider, ModalProvider, useModal } from "@/contexts";
+import { useModels, useWorkflows, useAuth } from "@/hooks";
+import { ModalContainer } from "@/components/layout/ModalContainer";
 
 function ChatContent() {
   const { state, toggleSidebar } = useSidebar();
+  const { contentRef } = useModal();
   const isCollapsed = state === "collapsed";
 
   return (
-    <SidebarInset className="flex-1 min-h-0 overflow-hidden">
+    <SidebarInset ref={contentRef} className="relative flex-1 min-h-0 overflow-hidden">
       {isCollapsed && (
         <div className="absolute left-4 top-4 z-20">
           <Tooltip>
@@ -50,6 +46,7 @@ function ChatContent() {
         </div>
       )}
       <ChatContainer className="flex-1 min-h-0" />
+      <ModalContainer />
     </SidebarInset>
   );
 }
@@ -59,19 +56,25 @@ interface ChatPageLayoutProps {
 }
 
 export function ChatPageLayout({ initialChatId }: ChatPageLayoutProps) {
+  const { models } = useModels();
+  const { user } = useAuth();
+  const { workflows } = useWorkflows({
+    userId: user?.id || "",
+    enabled: !!user?.id,
+  });
+
   return (
     <ChatProvider
-      models={MOCK_MODELS}
-      workflows={MOCK_WORKFLOWS}
-      mockResponses={MOCK_RESPONSES}
-      mockSources={MOCK_SOURCES}
-      mockConversations={MOCK_CHAT_CONVERSATIONS}
+      models={models}
+      workflows={workflows}
       initialChatId={initialChatId}
     >
-      <SidebarProvider className="h-svh">
-        <AppSidebar />
-        <ChatContent />
-      </SidebarProvider>
+      <ModalProvider>
+        <SidebarProvider className="h-svh">
+          <AppSidebar />
+          <ChatContent />
+        </SidebarProvider>
+      </ModalProvider>
     </ChatProvider>
   );
 }

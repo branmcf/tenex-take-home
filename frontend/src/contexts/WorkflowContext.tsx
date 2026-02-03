@@ -1,9 +1,17 @@
 "use client";
 
 import * as React from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { WorkflowDetail } from "@/components/workflows/types";
-import { MOCK_WORKFLOW_CONVERSATIONS, generateMockStep } from "@/lib/mocks/workflows";
+import {
+  createWorkflow as createWorkflowApi,
+  updateWorkflow as updateWorkflowApi,
+  deleteWorkflow as deleteWorkflowApi,
+  getWorkflowById as getWorkflowByIdApi,
+  getWorkflowChatMessages,
+  sendWorkflowChatMessage as sendWorkflowChatMessageApi,
+} from "@/lib/api";
+import { useAuth } from "@/hooks";
 
 interface ChatMessage {
   id: string;
@@ -31,7 +39,7 @@ interface WorkflowContextValue {
   workflowChatMessages: ChatMessage[];
   workflowChatInput: string;
   setWorkflowChatInput: (value: string) => void;
-  sendWorkflowChatMessage: (content: string) => void;
+  sendWorkflowChatMessage: (content: string, modelId: string) => void;
   isWorkflowChatLoading: boolean;
 }
 
@@ -57,9 +65,9 @@ export function WorkflowProvider({
   initialWorkflowId,
 }: WorkflowProviderProps) {
   const router = useRouter();
-  const pathname = usePathname();
+  const { user } = useAuth();
   const [workflows, setWorkflows] = React.useState<WorkflowDetail[]>(initialWorkflows);
-  const [isLoading] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
   // Start with no workflow selected, or load from URL if provided
   const [selectedWorkflow, setSelectedWorkflowState] = React.useState<WorkflowDetail | null>(() => {
     if (initialWorkflowId) {
@@ -69,65 +77,107 @@ export function WorkflowProvider({
   });
 
   // Chat state for workflow authoring
-  const [workflowChatMessages, setWorkflowChatMessages] = React.useState<ChatMessage[]>(() => {
-    // Initialize conversation if loading from URL
-    if (initialWorkflowId) {
-      const initialWorkflow = initialWorkflows.find((w) => w.id === initialWorkflowId);
-      if (initialWorkflow) {
-        const existingConversation = MOCK_WORKFLOW_CONVERSATIONS.find(
-          (c) => c.workflowId === initialWorkflow.id
-        );
-        if (existingConversation) {
-          return existingConversation.messages;
-        }
-        return [
-          {
-            id: `init-${initialWorkflow.id}`,
-            role: "assistant" as const,
-            content: `This is the **${initialWorkflow.name}** workflow. It currently has ${initialWorkflow.steps.length} step${initialWorkflow.steps.length !== 1 ? 's' : ''}.\n\nYou can modify this workflow by describing changes in natural language. For example:\n- "Add a validation step at the beginning"\n- "Remove the last step"\n- "Add a notification tool to step 2"`,
-            createdAt: initialWorkflow.createdAt,
-          },
-        ];
-      }
-    }
-    return [];
-  });
+  const [workflowChatMessages, setWorkflowChatMessages] = React.useState<ChatMessage[]>([]);
   const [workflowChatInput, setWorkflowChatInput] = React.useState("");
   const [isWorkflowChatLoading, setIsWorkflowChatLoading] = React.useState(false);
 
-  // Load conversation history when workflow changes
-  const setSelectedWorkflow = React.useCallback((workflow: WorkflowDetail | null) => {
+  // Load chat messages when a workflow is selected
+  const loadWorkflowChatMessages = React.useCallback(async (workflowId: string, workflowName: string, stepCount: number) => {
+    try {
+      const messages = await getWorkflowChatMessages(workflowId);
+      if (messages.length > 0) {
+        // Convert API messages to ChatMessage format
+        setWorkflowChatMessages(
+          messages.map((msg) => ({
+            id: msg.id,
+            role: msg.role,
+            content: msg.content,
+            createdAt: new Date(msg.createdAt),
+          }))
+        );
+      } else {
+        // If no messages exist, show a welcome message
+        setWorkflowChatMessages([
+          {
+            id: `init-${workflowId}`,
+            role: "assistant" as const,
+            content: `This is the **${workflowName}** workflow. It currently has ${stepCount} step${stepCount !== 1 ? 's' : ''}.\n\nYou can modify this workflow by describing changes in natural language. For example:\n- "Add a validation step at the beginning"\n- "Remove the last step"\n- "Add a notification tool to step 2"`,
+            createdAt: new Date(),
+          },
+        ]);
+      }
+    } catch (error) {
+      // On error, show welcome message
+      console.error("Failed to load workflow chat messages:", error);
+      setWorkflowChatMessages([
+        {
+          id: `init-${workflowId}`,
+          role: "assistant" as const,
+          content: `This is the **${workflowName}** workflow. It currently has ${stepCount} step${stepCount !== 1 ? 's' : ''}.\n\nYou can modify this workflow by describing changes in natural language. For example:\n- "Add a validation step at the beginning"\n- "Remove the last step"\n- "Add a notification tool to step 2"`,
+          createdAt: new Date(),
+        },
+      ]);
+    }
+  }, []);
+
+  // Load chat messages when initial workflow is provided
+  React.useEffect(() => {
+    if (initialWorkflowId && selectedWorkflow) {
+      loadWorkflowChatMessages(selectedWorkflow.id, selectedWorkflow.name, selectedWorkflow.steps.length);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Load workflow details when workflow changes
+  const setSelectedWorkflow = React.useCallback(async (workflow: WorkflowDetail | null) => {
     setSelectedWorkflowState(workflow);
 
     // Update URL to reflect selected workflow
     if (workflow) {
       router.push(`/workflows/${workflow.id}`);
-    } else {
-      router.push('/workflows');
-    }
 
-    if (workflow) {
-      // Load existing conversation for this workflow
-      const existingConversation = MOCK_WORKFLOW_CONVERSATIONS.find(
-        (c) => c.workflowId === workflow.id
-      );
-      if (existingConversation) {
-        setWorkflowChatMessages(existingConversation.messages);
+      // Load full workflow details if steps are empty
+      if (workflow.steps.length === 0) {
+        try {
+          const fullWorkflow = await getWorkflowByIdApi(workflow.id);
+          const workflowDetail: WorkflowDetail = {
+            id: fullWorkflow.id,
+            name: fullWorkflow.name,
+            description: fullWorkflow.description ?? "",
+            version: fullWorkflow.version ?? 1,
+            steps: fullWorkflow.steps.map((step) => ({
+              id: step.id,
+              name: step.name,
+              prompt: step.prompt,
+              tools: step.tools,
+              order: step.order,
+            })),
+            lastEditedAt: new Date(fullWorkflow.updatedAt),
+            createdAt: new Date(fullWorkflow.createdAt),
+          };
+          setSelectedWorkflowState(workflowDetail);
+
+          // Update in the workflows list too
+          setWorkflows((prev) =>
+            prev.map((w) => (w.id === workflow.id ? workflowDetail : w))
+          );
+
+          // Load chat messages
+          await loadWorkflowChatMessages(workflowDetail.id, workflowDetail.name, workflowDetail.steps.length);
+        } catch (error) {
+          console.error("Failed to load workflow details:", error);
+          // Still load chat messages with current data
+          await loadWorkflowChatMessages(workflow.id, workflow.name, workflow.steps.length);
+        }
       } else {
-        // If no existing conversation, start with a system message about the workflow
-        setWorkflowChatMessages([
-          {
-            id: `init-${workflow.id}`,
-            role: "assistant",
-            content: `This is the **${workflow.name}** workflow. It currently has ${workflow.steps.length} step${workflow.steps.length !== 1 ? 's' : ''}.\n\nYou can modify this workflow by describing changes in natural language. For example:\n- "Add a validation step at the beginning"\n- "Remove the last step"\n- "Add a notification tool to step 2"`,
-            createdAt: workflow.createdAt,
-          },
-        ]);
+        // Load chat messages with current workflow data
+        await loadWorkflowChatMessages(workflow.id, workflow.name, workflow.steps.length);
       }
     } else {
+      router.push('/workflows');
       setWorkflowChatMessages([]);
     }
-  }, [router]);
+  }, [router, loadWorkflowChatMessages]);
 
   const selectWorkflowById = React.useCallback((workflowId: string) => {
     const workflow = workflows.find((w) => w.id === workflowId);
@@ -136,61 +186,105 @@ export function WorkflowProvider({
     }
   }, [workflows, setSelectedWorkflow]);
 
-  const deleteWorkflow = React.useCallback((workflowId: string) => {
-    setWorkflows((prev) => prev.filter((w) => w.id !== workflowId));
-    // If the deleted workflow was selected, clear selection and navigate back
-    if (selectedWorkflow?.id === workflowId) {
-      setSelectedWorkflowState(null);
-      setWorkflowChatMessages([]);
-      router.push('/workflows');
+  const deleteWorkflowHandler = React.useCallback(async (workflowId: string) => {
+    try {
+      // Call API to delete workflow
+      await deleteWorkflowApi(workflowId);
+
+      // Update local state
+      setWorkflows((prev) => prev.filter((w) => w.id !== workflowId));
+
+      // If the deleted workflow was selected, clear selection and navigate back
+      if (selectedWorkflow?.id === workflowId) {
+        setSelectedWorkflowState(null);
+        setWorkflowChatMessages([]);
+        router.push('/workflows');
+      }
+    } catch (error) {
+      console.error("Failed to delete workflow:", error);
     }
   }, [selectedWorkflow, router]);
 
-  const renameWorkflow = React.useCallback((workflowId: string, newName: string) => {
-    setWorkflows((prev) =>
-      prev.map((w) =>
-        w.id === workflowId
-          ? { ...w, name: newName, lastEditedAt: new Date() }
-          : w
-      )
-    );
-    // Update selected workflow if it's the one being renamed
-    if (selectedWorkflow?.id === workflowId) {
-      setSelectedWorkflowState((prev) =>
-        prev ? { ...prev, name: newName, lastEditedAt: new Date() } : null
+  const renameWorkflowHandler = React.useCallback(async (workflowId: string, newName: string) => {
+    try {
+      // Call API to update workflow
+      await updateWorkflowApi(workflowId, { name: newName });
+
+      // Update local state
+      setWorkflows((prev) =>
+        prev.map((w) =>
+          w.id === workflowId
+            ? { ...w, name: newName, lastEditedAt: new Date() }
+            : w
+        )
       );
+
+      // Update selected workflow if it's the one being renamed
+      if (selectedWorkflow?.id === workflowId) {
+        setSelectedWorkflowState((prev) =>
+          prev ? { ...prev, name: newName, lastEditedAt: new Date() } : null
+        );
+      }
+    } catch (error) {
+      console.error("Failed to rename workflow:", error);
     }
   }, [selectedWorkflow]);
 
-  const createWorkflow = React.useCallback(() => {
-    const newWorkflow: WorkflowDetail = {
-      id: `workflow-${Date.now()}`,
-      name: "New Workflow",
-      description: "Describe what this workflow does",
-      version: 1,
-      steps: [],
-      lastEditedAt: new Date(),
-      createdAt: new Date(),
-    };
-    setWorkflows((prev) => [newWorkflow, ...prev]);
-    // Set selected workflow state directly without triggering navigation remount
-    setSelectedWorkflowState(newWorkflow);
-    // Initialize the chat for the new workflow
-    setWorkflowChatMessages([
-      {
-        id: `init-${newWorkflow.id}`,
-        role: "assistant" as const,
-        content: `This is the **${newWorkflow.name}** workflow. It currently has 0 steps.\n\nYou can modify this workflow by describing changes in natural language. For example:\n- "Add a validation step at the beginning"\n- "Remove the last step"\n- "Add a notification tool to step 2"`,
-        createdAt: newWorkflow.createdAt,
-      },
-    ]);
-    // Update URL without triggering a full navigation/remount
-    window.history.replaceState(null, "", `/workflows/${newWorkflow.id}`);
-  }, []);
+  const createWorkflowHandler = React.useCallback(async () => {
+    if (!user?.id) {
+      console.error("No user ID available");
+      return;
+    }
 
-  const sendWorkflowChatMessage = React.useCallback((content: string) => {
+    setIsLoading(true);
+    try {
+      // Call API to create workflow
+      const createdWorkflow = await createWorkflowApi({
+        userId: user.id,
+        name: "New Workflow",
+        description: "Describe what this workflow does",
+      });
+
+      // Create WorkflowDetail from response
+      const newWorkflow: WorkflowDetail = {
+        id: createdWorkflow.id,
+        name: createdWorkflow.name,
+        description: createdWorkflow.description ?? "Describe what this workflow does",
+        version: createdWorkflow.version ?? 1,
+        steps: [],
+        lastEditedAt: new Date(createdWorkflow.updatedAt),
+        createdAt: new Date(createdWorkflow.createdAt),
+      };
+
+      // Update local state
+      setWorkflows((prev) => [newWorkflow, ...prev]);
+
+      // Set selected workflow state directly
+      setSelectedWorkflowState(newWorkflow);
+
+      // Initialize the chat for the new workflow
+      setWorkflowChatMessages([
+        {
+          id: `init-${newWorkflow.id}`,
+          role: "assistant" as const,
+          content: `This is the **${newWorkflow.name}** workflow. It currently has 0 steps.\n\nYou can modify this workflow by describing changes in natural language. For example:\n- "Add a validation step at the beginning"\n- "Remove the last step"\n- "Add a notification tool to step 2"`,
+          createdAt: newWorkflow.createdAt,
+        },
+      ]);
+
+      // Update URL without triggering a full navigation/remount
+      window.history.replaceState(null, "", `/workflows/${newWorkflow.id}`);
+    } catch (error) {
+      console.error("Failed to create workflow:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user?.id]);
+
+  const sendWorkflowChatMessageHandler = React.useCallback(async (content: string, modelId: string) => {
     if (!content.trim() || isWorkflowChatLoading || !selectedWorkflow) return;
 
+    // Add user message optimistically
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
       role: "user",
@@ -202,86 +296,59 @@ export function WorkflowProvider({
     setWorkflowChatInput("");
     setIsWorkflowChatLoading(true);
 
-    // Simulate workflow modification based on user input
-    // TODO: This entire block will be replaced with actual backend API calls
-    // that process natural language and return the updated workflow DAG
-    setTimeout(() => {
-      // Generate a mock response and potentially modify the workflow
-      const lowerContent = content.toLowerCase();
-      let responseText = "";
-      let updatedSteps = [...selectedWorkflow.steps];
-      let stepsChanged = false;
+    try {
+      // Call API to send message
+      const response = await sendWorkflowChatMessageApi(selectedWorkflow.id, {
+        content: content.trim(),
+        modelId,
+      });
 
-      if (lowerContent.includes("add") && (lowerContent.includes("step") || lowerContent.includes("node"))) {
-        // TODO: Replace with backend API call that compiles natural language into workflow step
-        // The backend will parse the user's intent and return the appropriate step configuration
-        const newStepNumber = updatedSteps.length + 1;
-        const newStep = generateMockStep(newStepNumber);
-        updatedSteps.push(newStep);
-        stepsChanged = true;
-        responseText = `I've added a new step: **${newStep.name}**.\n\nThe workflow now has ${updatedSteps.length} steps. The new step will ${newStep.prompt.toLowerCase()}`;
-      } else if (lowerContent.includes("remove") || lowerContent.includes("delete")) {
-        // TODO: Replace with backend API call to handle step removal
-        if (updatedSteps.length > 0) {
-          const removedStep = updatedSteps.pop();
-          // Renumber remaining steps
-          updatedSteps = updatedSteps.map((s, i) => ({ ...s, order: i + 1 }));
-          stepsChanged = true;
-          responseText = `I've removed the last step: **${removedStep?.name}**.\n\nThe workflow now has ${updatedSteps.length} step${updatedSteps.length !== 1 ? 's' : ''}.`;
-        } else {
-          responseText = "The workflow doesn't have any steps to remove.";
-        }
-      } else if (lowerContent.includes("tool")) {
-        // TODO: Replace with backend API call to handle tool configuration
-        // The backend will determine which tool to add based on natural language
-        if (updatedSteps.length > 0) {
-          const lastStep = updatedSteps[updatedSteps.length - 1];
-          const newTool = {
-            id: `tool-${Date.now()}`,
-            name: "Custom Tool",
-            description: "A custom tool based on your request",
-          };
-          updatedSteps[updatedSteps.length - 1] = {
-            ...lastStep,
-            tools: [...lastStep.tools, newTool],
-          };
-          stepsChanged = true;
-          responseText = `I've added a new tool to **${lastStep.name}**.\n\nThis step now has ${updatedSteps[updatedSteps.length - 1].tools.length} tool${updatedSteps[updatedSteps.length - 1].tools.length !== 1 ? 's' : ''}.`;
-        } else {
-          responseText = "Please add a step first before adding tools.";
-        }
-      } else {
-        // Generic response
-        responseText = `I understand you want to modify the **${selectedWorkflow.name}** workflow.\n\nYou can:\n- **Add steps**: "Add a validation step"\n- **Remove steps**: "Remove the last step"\n- **Add tools**: "Add a notification tool"\n\nWhat specific changes would you like to make?`;
-      }
+      // Update user message with actual ID from server
+      setWorkflowChatMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === userMessage.id
+            ? {
+                ...msg,
+                id: response.userMessage.id,
+                createdAt: new Date(response.userMessage.createdAt),
+              }
+            : msg
+        )
+      );
 
-      // Update the workflow if steps changed
-      if (stepsChanged) {
-        const updatedWorkflow: WorkflowDetail = {
-          ...selectedWorkflow,
-          steps: updatedSteps,
-          version: selectedWorkflow.version + 1,
-          lastEditedAt: new Date(),
+      // Add assistant message if present
+      if (response.assistantMessage) {
+        const assistantMessage: ChatMessage = {
+          id: response.assistantMessage.id,
+          role: "assistant",
+          content: response.assistantMessage.content,
+          createdAt: new Date(response.assistantMessage.createdAt),
         };
-
-        // Update in the list
-        setWorkflows((prev) =>
-          prev.map((w) => (w.id === selectedWorkflow.id ? updatedWorkflow : w))
-        );
-
-        // Update selected workflow
-        setSelectedWorkflowState(updatedWorkflow);
+        setWorkflowChatMessages((prev) => [...prev, assistantMessage]);
+      } else if (response.error) {
+        // Handle error case - show error message from assistant
+        const errorMessage: ChatMessage = {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: `Sorry, I encountered an error: ${response.error.message}. Please try again.`,
+          createdAt: new Date(),
+        };
+        setWorkflowChatMessages((prev) => [...prev, errorMessage]);
       }
+    } catch (error) {
+      console.error("Failed to send workflow chat message:", error);
 
-      const assistantMessage: ChatMessage = {
+      // Show error message
+      const errorMessage: ChatMessage = {
         id: crypto.randomUUID(),
         role: "assistant",
-        content: responseText,
+        content: "Sorry, I couldn't process your message. Please try again.",
         createdAt: new Date(),
       };
-      setWorkflowChatMessages((prev) => [...prev, assistantMessage]);
+      setWorkflowChatMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsWorkflowChatLoading(false);
-    }, 1500);
+    }
   }, [isWorkflowChatLoading, selectedWorkflow]);
 
   const value = React.useMemo(
@@ -291,13 +358,13 @@ export function WorkflowProvider({
       selectedWorkflow,
       setSelectedWorkflow,
       selectWorkflowById,
-      deleteWorkflow,
-      renameWorkflow,
-      createWorkflow,
+      deleteWorkflow: deleteWorkflowHandler,
+      renameWorkflow: renameWorkflowHandler,
+      createWorkflow: createWorkflowHandler,
       workflowChatMessages,
       workflowChatInput,
       setWorkflowChatInput,
-      sendWorkflowChatMessage,
+      sendWorkflowChatMessage: sendWorkflowChatMessageHandler,
       isWorkflowChatLoading,
     }),
     [
@@ -306,12 +373,12 @@ export function WorkflowProvider({
       selectedWorkflow,
       setSelectedWorkflow,
       selectWorkflowById,
-      deleteWorkflow,
-      renameWorkflow,
-      createWorkflow,
+      deleteWorkflowHandler,
+      renameWorkflowHandler,
+      createWorkflowHandler,
       workflowChatMessages,
       workflowChatInput,
-      sendWorkflowChatMessage,
+      sendWorkflowChatMessageHandler,
       isWorkflowChatLoading,
     ]
   );

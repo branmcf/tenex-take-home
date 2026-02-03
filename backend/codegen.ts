@@ -10,7 +10,7 @@ const config: CodegenConfig = {
 
         // , 'factory/**/**!(*.generated*).ts'
 
-        // 'app/**/**!(*.generated*).ts'
+        'app/**/**!(*.generated*).ts'
     ]
     , generates: {
         'lib/postGraphile/postGraphile.generatedTypes.ts': {
