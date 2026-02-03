@@ -1,7 +1,12 @@
 "use client";
 
+import { useState } from "react";
+import { CircleNotch } from "@phosphor-icons/react";
+
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { signIn } from "@/lib/auth-client";
+import { handleAndShowError, processBetterAuthResult } from "@/lib/errors";
 
 interface GoogleAuthButtonProps {
   className?: string;
@@ -22,8 +27,44 @@ function GoogleIcon({ className }: { className?: string }) {
 }
 
 export function GoogleAuthButton({ className, mode = "login" }: GoogleAuthButtonProps) {
-  const handleGoogleAuth = () => {
-    window.location.href = "/auth/google";
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleGoogleAuth = async () => {
+    setIsLoading(true);
+
+    try {
+      // Use full frontend URL for callback after OAuth
+      const callbackURL = typeof window !== "undefined"
+        ? `${window.location.origin}/`
+        : "/";
+
+      const result = await signIn.social({
+        provider: "google",
+        callbackURL,
+      });
+
+      // Check for errors in the result (though social sign-in typically redirects)
+      const error = processBetterAuthResult(result, {
+        action: mode === "signup" ? "google_signup" : "google_login",
+        provider: "google",
+      });
+
+      if (error) {
+        // Error was already logged and toast shown
+        return;
+      }
+
+      // If we get here without redirect, something unexpected happened
+      // The signIn.social should redirect to Google
+    } catch (err) {
+      // Handle unexpected errors (network, CORS, etc.)
+      handleAndShowError(err, {
+        action: mode === "signup" ? "google_signup" : "google_login",
+        provider: "google",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -31,9 +72,14 @@ export function GoogleAuthButton({ className, mode = "login" }: GoogleAuthButton
       variant="outline"
       className={cn("w-full", className)}
       onClick={handleGoogleAuth}
+      disabled={isLoading}
       type="button"
     >
-      <GoogleIcon className="size-4" />
+      {isLoading ? (
+        <CircleNotch className="size-4 animate-spin" />
+      ) : (
+        <GoogleIcon className="size-4" />
+      )}
       {mode === "signup" ? "Sign up with Google" : "Login with Google"}
     </Button>
   );

@@ -1,9 +1,16 @@
+"use client";
+
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Stack, EnvelopeSimple } from "@phosphor-icons/react/dist/ssr";
+import { Stack, EnvelopeSimple } from "@phosphor-icons/react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
+import { ResendVerificationForm } from "@/components/auth/ResendVerificationForm";
 
 export default function VerifyEmailPage() {
+  const searchParams = useSearchParams();
+  const email = searchParams.get("email") ?? undefined;
+
   return (
     <div className="flex min-h-svh flex-col blueprint-dots">
       <div className="flex flex-col gap-4 p-8 md:p-16">
@@ -32,9 +39,11 @@ export default function VerifyEmailPage() {
             </p>
           </div>
 
-          <div className="flex flex-col gap-2 text-sm text-muted-foreground border-t border-border pt-6">
-            <p>Didn&apos;t receive the email?</p>
-            <p className="font-mono text-xs">Check your spam folder or try signing up again.</p>
+          <div className="flex flex-col gap-4 items-center border-t border-border pt-6 w-full">
+            <p className="text-sm text-muted-foreground">
+              Didn&apos;t receive the email? Check your spam folder or resend below.
+            </p>
+            <ResendVerificationForm defaultEmail={email} />
           </div>
 
           <Link
