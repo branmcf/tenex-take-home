@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import type { WorkflowDetail } from "@/components/workflows/types";
 import {
   createWorkflow as createWorkflowApi,
@@ -10,6 +9,7 @@ import {
   getWorkflowById as getWorkflowByIdApi,
   getWorkflowChatMessages,
   sendWorkflowChatMessage as sendWorkflowChatMessageApi,
+  applyWorkflowChatProposal as applyWorkflowChatProposalApi,
 } from "@/lib/api";
 import { useAuth } from "@/hooks";
 
@@ -18,6 +18,19 @@ interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   createdAt: Date;
+}
+
+interface WorkflowChatProposal {
+  proposalId: string;
+  baseVersionId: string | null;
+  toolCalls: unknown;
+  previewSteps: Array<{
+    id: string;
+    name: string;
+    instruction: string;
+    tools?: Array<{ id: string; name?: string; version?: string }>;
+    dependsOn?: string[];
+  }>;
 }
 
 interface WorkflowContextValue {
@@ -41,6 +54,10 @@ interface WorkflowContextValue {
   setWorkflowChatInput: (value: string) => void;
   sendWorkflowChatMessage: (content: string, modelId: string) => void;
   isWorkflowChatLoading: boolean;
+  pendingProposal: WorkflowChatProposal | null;
+  applyWorkflowProposal: () => void;
+  rejectWorkflowProposal: () => void;
+  isApplyingProposal: boolean;
 }
 
 const WorkflowContext = React.createContext<WorkflowContextValue | null>(null);
@@ -67,7 +84,6 @@ export function WorkflowProvider({
   initialWorkflows,
   initialWorkflowId,
 }: WorkflowProviderProps) {
-  const router = useRouter();
   const { user } = useAuth();
   const [workflows, setWorkflows] = React.useState<WorkflowDetail[]>(initialWorkflows);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -83,6 +99,9 @@ export function WorkflowProvider({
   const [workflowChatMessages, setWorkflowChatMessages] = React.useState<ChatMessage[]>([]);
   const [workflowChatInput, setWorkflowChatInput] = React.useState("");
   const [isWorkflowChatLoading, setIsWorkflowChatLoading] = React.useState(false);
+  const [pendingProposal, setPendingProposal] = React.useState<WorkflowChatProposal | null>(null);
+  const [isApplyingProposal, setIsApplyingProposal] = React.useState(false);
+  const activeWorkflowIdRef = React.useRef<string | null>(selectedWorkflow?.id ?? null);
 
   // Sync workflows state when initialWorkflows prop changes (fixes async data loading)
   React.useEffect(() => {
@@ -98,6 +117,9 @@ export function WorkflowProvider({
   const loadWorkflowChatMessages = React.useCallback(async (workflowId: string, workflowName: string, stepCount: number) => {
     try {
       const messages = await getWorkflowChatMessages(workflowId);
+      if (activeWorkflowIdRef.current !== workflowId) {
+        return;
+      }
       if (messages.length > 0) {
         // Convert API messages to ChatMessage format
         setWorkflowChatMessages(
@@ -122,6 +144,9 @@ export function WorkflowProvider({
     } catch (error) {
       // On error, show welcome message
       console.error("Failed to load workflow chat messages:", error);
+      if (activeWorkflowIdRef.current !== workflowId) {
+        return;
+      }
       setWorkflowChatMessages([
         {
           id: `init-${workflowId}`,
@@ -143,54 +168,117 @@ export function WorkflowProvider({
 
   // Load workflow details when workflow changes
   const setSelectedWorkflow = React.useCallback(async (workflow: WorkflowDetail | null) => {
-    setSelectedWorkflowState(workflow);
+    // Handle deselection case
+    if (!workflow) {
+      activeWorkflowIdRef.current = null;
+      setSelectedWorkflowState(null);
+      setPendingProposal(null);
+      setWorkflowChatMessages([]);
+      // Update URL without triggering Next.js navigation (avoids remount)
+      window.history.pushState(null, "", "/workflows");
+      return;
+    }
 
-    // Update URL to reflect selected workflow
-    if (workflow) {
-      router.push(`/workflows/${workflow.id}`);
+    // Set the active workflow ref immediately to track stale requests
+    activeWorkflowIdRef.current = workflow.id;
+    setPendingProposal(null);
+
+    // Update URL without triggering Next.js navigation (avoids remount)
+    window.history.pushState(null, "", `/workflows/${workflow.id}`);
+
+    // Load all data first, then batch state updates together
+    try {
+      let fullWorkflowDetail = workflow;
 
       // Load full workflow details if steps are empty
       if (workflow.steps.length === 0) {
-        try {
-          const fullWorkflow = await getWorkflowByIdApi(workflow.id);
-          const workflowDetail: WorkflowDetail = {
-            id: fullWorkflow.id,
-            name: fullWorkflow.name,
-            description: fullWorkflow.description ?? "",
-            version: fullWorkflow.version ?? 1,
-            steps: fullWorkflow.steps.map((step) => ({
-              id: step.id,
-              name: step.name,
-              prompt: step.prompt,
-              tools: step.tools,
-              order: step.order,
-            })),
-            lastEditedAt: new Date(fullWorkflow.updatedAt),
-            createdAt: new Date(fullWorkflow.createdAt),
-          };
-          setSelectedWorkflowState(workflowDetail);
-
-          // Update in the workflows list too
-          setWorkflows((prev) =>
-            prev.map((w) => (w.id === workflow.id ? workflowDetail : w))
-          );
-
-          // Load chat messages
-          await loadWorkflowChatMessages(workflowDetail.id, workflowDetail.name, workflowDetail.steps.length);
-        } catch (error) {
-          console.error("Failed to load workflow details:", error);
-          // Still load chat messages with current data
-          await loadWorkflowChatMessages(workflow.id, workflow.name, workflow.steps.length);
+        const fullWorkflow = await getWorkflowByIdApi(workflow.id);
+        if (activeWorkflowIdRef.current !== workflow.id) {
+          return; // Stale request - user selected a different workflow
         }
-      } else {
-        // Load chat messages with current workflow data
-        await loadWorkflowChatMessages(workflow.id, workflow.name, workflow.steps.length);
+
+        fullWorkflowDetail = {
+          id: fullWorkflow.id,
+          name: fullWorkflow.name,
+          description: fullWorkflow.description ?? "",
+          version: fullWorkflow.version ?? 1,
+          steps: fullWorkflow.steps.map((step) => ({
+            id: step.id,
+            name: step.name,
+            prompt: step.prompt,
+            tools: step.tools,
+            order: step.order,
+          })),
+          lastEditedAt: new Date(fullWorkflow.updatedAt),
+          createdAt: new Date(fullWorkflow.createdAt),
+        };
       }
-    } else {
-      router.push('/workflows');
-      setWorkflowChatMessages([]);
+
+      // Load chat messages
+      let chatMessages: ChatMessage[] = [];
+      try {
+        const messages = await getWorkflowChatMessages(workflow.id);
+        if (activeWorkflowIdRef.current !== workflow.id) {
+          return; // Stale request
+        }
+
+        if (messages.length > 0) {
+          chatMessages = messages.map((msg) => ({
+            id: msg.id,
+            role: msg.role,
+            content: msg.content,
+            createdAt: new Date(msg.createdAt),
+          }));
+        } else {
+          // Create welcome message
+          chatMessages = [
+            {
+              id: `init-${workflow.id}`,
+              role: "assistant" as const,
+              content: `This is the **${fullWorkflowDetail.name}** workflow. It currently has ${fullWorkflowDetail.steps.length} step${fullWorkflowDetail.steps.length !== 1 ? 's' : ''}.\n\nYou can modify this workflow by describing changes in natural language. For example:\n- "Add a validation step at the beginning"\n- "Remove the last step"\n- "Add a notification tool to step 2"`,
+              createdAt: new Date(),
+            },
+          ];
+        }
+      } catch (error) {
+        console.error("Failed to load workflow chat messages:", error);
+        if (activeWorkflowIdRef.current !== workflow.id) {
+          return; // Stale request
+        }
+        // Create welcome message as fallback
+        chatMessages = [
+          {
+            id: `init-${workflow.id}`,
+            role: "assistant" as const,
+            content: `This is the **${fullWorkflowDetail.name}** workflow. It currently has ${fullWorkflowDetail.steps.length} step${fullWorkflowDetail.steps.length !== 1 ? 's' : ''}.\n\nYou can modify this workflow by describing changes in natural language. For example:\n- "Add a validation step at the beginning"\n- "Remove the last step"\n- "Add a notification tool to step 2"`,
+            createdAt: new Date(),
+          },
+        ];
+      }
+
+      // Batch all state updates together to minimize re-renders
+      setSelectedWorkflowState(fullWorkflowDetail);
+      setWorkflows((prev) =>
+        prev.map((w) => (w.id === workflow.id ? fullWorkflowDetail : w))
+      );
+      setWorkflowChatMessages(chatMessages);
+    } catch (error) {
+      console.error("Failed to load workflow details:", error);
+      if (activeWorkflowIdRef.current !== workflow.id) {
+        return; // Stale request
+      }
+      // Fallback: show the basic workflow with welcome message
+      setSelectedWorkflowState(workflow);
+      setWorkflowChatMessages([
+        {
+          id: `init-${workflow.id}`,
+          role: "assistant" as const,
+          content: `This is the **${workflow.name}** workflow. It currently has ${workflow.steps.length} step${workflow.steps.length !== 1 ? 's' : ''}.\n\nYou can modify this workflow by describing changes in natural language. For example:\n- "Add a validation step at the beginning"\n- "Remove the last step"\n- "Add a notification tool to step 2"`,
+          createdAt: new Date(),
+        },
+      ]);
     }
-  }, [router, loadWorkflowChatMessages]);
+  }, []);
 
   const selectWorkflowById = React.useCallback((workflowId: string) => {
     const workflow = workflows.find((w) => w.id === workflowId);
@@ -209,16 +297,17 @@ export function WorkflowProvider({
       // Update local state
       setWorkflows((prev) => prev.filter((w) => w.id !== workflowId));
 
-      // If the deleted workflow was selected, clear selection and navigate back
+      // If the deleted workflow was selected, clear selection and update URL
       if (selectedWorkflow?.id === workflowId) {
         setSelectedWorkflowState(null);
         setWorkflowChatMessages([]);
-        router.push('/workflows');
+        // Update URL without triggering Next.js navigation
+        window.history.pushState(null, "", "/workflows");
       }
     } catch (error) {
       console.error("Failed to delete workflow:", error);
     }
-  }, [selectedWorkflow, router]);
+  }, [selectedWorkflow]);
 
   const renameWorkflowHandler = React.useCallback(async (workflowId: string, newName: string) => {
     try {
@@ -278,7 +367,7 @@ export function WorkflowProvider({
       {
         id: `init-${draftWorkflow.id}`,
         role: "assistant" as const,
-        content: `This is a **new workflow**. It currently has 0 steps.\n\nDescribe what you want this workflow to do and I'll help you build it. For example:\n- "Create a workflow that validates user input and sends notifications"\n- "Add a step that processes uploaded files"`,
+        content: `This is a **new workflow**. It currently has 0 steps.\n\nWorkflows are reusable procedures. When a user selects this workflow in chat, their message is the input, and each step is a prompt whose output flows to the next.\n\nDescribe what you want this workflow to do and I'll propose steps. For example:\n- "Evaluate a startup idea by estimating TAM, listing competitors, and making a recommendation"\n- "Summarize a customer interview and extract action items"`,
         createdAt: now,
       },
     ]);
@@ -289,6 +378,9 @@ export function WorkflowProvider({
 
   const sendWorkflowChatMessageHandler = React.useCallback(async (content: string, modelId: string) => {
     if (!content.trim() || isWorkflowChatLoading || !selectedWorkflow || !user?.id) return;
+
+    // clear any pending proposal when sending a new message
+    setPendingProposal(null);
 
     // Add user message optimistically
     const userMessage: ChatMessage = {
@@ -373,6 +465,11 @@ export function WorkflowProvider({
         };
         setWorkflowChatMessages((prev) => [...prev, errorMessage]);
       }
+
+      // store proposal if present
+      if (response.proposedChanges) {
+        setPendingProposal(response.proposedChanges);
+      }
     } catch (error) {
       console.error("Failed to send workflow chat message:", error);
 
@@ -389,6 +486,49 @@ export function WorkflowProvider({
     }
   }, [isWorkflowChatLoading, selectedWorkflow, user?.id]);
 
+  const applyWorkflowProposalHandler = React.useCallback(async () => {
+    if (!pendingProposal || !selectedWorkflow) return;
+
+    setIsApplyingProposal(true);
+
+    try {
+      const response = await applyWorkflowChatProposalApi(
+        selectedWorkflow.id,
+        pendingProposal.proposalId
+      );
+
+      const updatedWorkflow: WorkflowDetail = {
+        ...selectedWorkflow,
+        version: response.workflowVersion.versionNumber,
+        steps: response.workflowVersion.steps.map((step) => ({
+          id: step.id,
+          name: step.name,
+          prompt: step.prompt,
+          tools: step.tools,
+          order: step.order,
+        })),
+        lastEditedAt: new Date(),
+      };
+
+      // update selected workflow and list
+      setSelectedWorkflowState(updatedWorkflow);
+      setWorkflows((prev) =>
+        prev.map((w) => (w.id === updatedWorkflow.id ? updatedWorkflow : w))
+      );
+
+      // clear proposal after applying
+      setPendingProposal(null);
+    } catch (error) {
+      console.error("Failed to apply workflow proposal:", error);
+    } finally {
+      setIsApplyingProposal(false);
+    }
+  }, [pendingProposal, selectedWorkflow]);
+
+  const rejectWorkflowProposalHandler = React.useCallback(() => {
+    setPendingProposal(null);
+  }, []);
+
   const value = React.useMemo(
     () => ({
       workflows,
@@ -404,6 +544,10 @@ export function WorkflowProvider({
       setWorkflowChatInput,
       sendWorkflowChatMessage: sendWorkflowChatMessageHandler,
       isWorkflowChatLoading,
+      pendingProposal,
+      applyWorkflowProposal: applyWorkflowProposalHandler,
+      rejectWorkflowProposal: rejectWorkflowProposalHandler,
+      isApplyingProposal,
     }),
     [
       workflows,
@@ -418,6 +562,10 @@ export function WorkflowProvider({
       workflowChatInput,
       sendWorkflowChatMessageHandler,
       isWorkflowChatLoading,
+      pendingProposal,
+      applyWorkflowProposalHandler,
+      rejectWorkflowProposalHandler,
+      isApplyingProposal,
     ]
   );
 

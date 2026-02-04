@@ -120,16 +120,32 @@ export const getWorkflowByIdHandler = async (
     const dag = latestVersion?.dag as WorkflowDAG | null;
 
     // map the DAG steps to response format
-    const steps: WorkflowStepResponse[] = ( dag?.steps ?? [] ).map( ( step, index ) => ( {
-        id: step.id
-        , name: step.name
-        , prompt: step.instruction
-        , tools: ( step.tools ?? [] ).map( toolName => ( {
-            id: toolName
-            , name: toolName
-        } ) )
-        , order: index + 1
-    } ) );
+    const steps: WorkflowStepResponse[] = ( dag?.steps ?? [] ).map( ( step, index ) => {
+
+        const tools = ( step.tools ?? [] ).map( ( tool: unknown ) => {
+            if ( typeof tool === 'string' ) {
+                return {
+                    id: tool
+                    , name: tool
+                };
+            }
+
+            const toolObject = tool as { id?: string; name?: string; version?: string };
+            return {
+                id: toolObject.id ?? 'unknown'
+                , name: toolObject.name ?? toolObject.id ?? 'unknown'
+                , version: toolObject.version
+            };
+        } );
+
+        return {
+            id: step.id
+            , name: step.name
+            , prompt: step.instruction
+            , tools
+            , order: index + 1
+        };
+    } );
 
     // map the workflow to response format
     const workflow = {

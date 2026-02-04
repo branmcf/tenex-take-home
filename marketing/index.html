@@ -1,16 +1,1720 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html data-wf-domain="www.tensorlake.ai" data-wf-page="6941d3d746b6bf0ea90b8eca" data-wf-site="6941d3d746b6bf0ea90b8ecf" lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
-    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <title>Tenex | Deterministic Workflow Chat</title>
+    <meta charset="utf-8" />
+    <title>Tensorlake</title>
+    <meta content="Tensorlake is a developer platform for building Agentic applications - it provides serverless compute, durable execution and data ingestion capabilities to build durable and reliable agents in enterprises." name="description" />
+    <meta content="Tensorlake" property="og:title" />
+    <meta content="Tensorlake is a developer platform for building Agentic applications - it provides serverless compute, durable execution and data ingestion capabilities to build durable and reliable agents in enterprises." property="og:description" />
+    <meta content="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/697a73ff0ca6228082aea012_thumbnial.png" property="og:image" />
+    <meta content="Tensorlake" property="twitter:title" />
+    <meta content="Tensorlake is a developer platform for building Agentic applications - it provides serverless compute, durable execution and data ingestion capabilities to build durable and reliable agents in enterprises." property="twitter:description" />
+    <meta property="og:type" content="website" />
+    <meta content="summary_large_image" name="twitter:card" />
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <link href="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/css/tensorlake-staging.webflow.shared.11a90667e.css" rel="stylesheet" type="text/css" crossorigin="anonymous" />
+    <link href="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6941d532fbc10ff3c7491f0f_favicon-32x32.png" rel="shortcut icon" type="image/x-icon" />
+    <link href="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6941d539f724ec3895804ac8_webclip.png" rel="apple-touch-icon" />
+    <link rel="stylesheet" href="/src/style.css" />
   </head>
-  <body class="bg-background text-foreground">
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+  <body>
+    <div class="page-wrapper">
+      <div class="global-styles w-embed">
+        <style>
+          body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+          }
+
+          *[tabindex]:focus-visible,
+          input[type="file"]:focus-visible {
+            outline: 0.125rem solid #4d65ff;
+            outline-offset: 0.125rem;
+          }
+
+          .inherit-color * {
+            color: inherit;
+          }
+
+          .w-richtext > :not(div):first-child,
+          .w-richtext > div:first-child > :first-child {
+            margin-top: 0 !important;
+          }
+
+          .w-richtext > :last-child,
+          .w-richtext ol li:last-child,
+          .w-richtext ul li:last-child {
+            margin-bottom: 0 !important;
+          }
+
+          .container-medium,
+          .container-small,
+          .container-large {
+            margin-right: auto !important;
+            margin-left: auto !important;
+          }
+
+          .text-style-3lines {
+            display: -webkit-box;
+            overflow: hidden;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+          }
+
+          .text-style-2lines {
+            display: -webkit-box;
+            overflow: hidden;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+          }
+
+          .hide {
+            display: none !important;
+          }
+
+          @media screen and (max-width: 991px) {
+            .hide,
+            .hide-tablet {
+              display: none !important;
+            }
+          }
+          @media screen and (max-width: 767px) {
+            .hide-mobile-landscape {
+              display: none !important;
+            }
+          }
+          @media screen and (max-width: 479px) {
+            .hide-mobile {
+              display: none !important;
+            }
+          }
+
+          .margin-0 {
+            margin: 0rem !important;
+          }
+
+          .padding-0 {
+            padding: 0rem !important;
+          }
+
+          .spacing-clean {
+            padding: 0rem !important;
+            margin: 0rem !important;
+          }
+
+          .margin-top {
+            margin-right: 0rem !important;
+            margin-bottom: 0rem !important;
+            margin-left: 0rem !important;
+          }
+
+          .padding-top {
+            padding-right: 0rem !important;
+            padding-bottom: 0rem !important;
+            padding-left: 0rem !important;
+          }
+
+          .margin-right {
+            margin-top: 0rem !important;
+            margin-bottom: 0rem !important;
+            margin-left: 0rem !important;
+          }
+
+          .padding-right {
+            padding-top: 0rem !important;
+            padding-bottom: 0rem !important;
+            padding-left: 0rem !important;
+          }
+
+          .margin-bottom {
+            margin-top: 0rem !important;
+            margin-right: 0rem !important;
+            margin-left: 0rem !important;
+          }
+
+          .padding-bottom {
+            padding-top: 0rem !important;
+            padding-right: 0rem !important;
+            padding-left: 0rem !important;
+          }
+
+          .margin-left {
+            margin-top: 0rem !important;
+            margin-right: 0rem !important;
+            margin-bottom: 0rem !important;
+          }
+
+          .padding-left {
+            padding-top: 0rem !important;
+            padding-right: 0rem !important;
+            padding-bottom: 0rem !important;
+          }
+
+          .margin-horizontal {
+            margin-top: 0rem !important;
+            margin-bottom: 0rem !important;
+          }
+
+          .padding-horizontal {
+            padding-top: 0rem !important;
+            padding-bottom: 0rem !important;
+          }
+
+          .margin-vertical {
+            margin-right: 0rem !important;
+            margin-left: 0rem !important;
+          }
+
+          .padding-vertical {
+            padding-right: 0rem !important;
+            padding-left: 0rem !important;
+          }
+
+          .text-balance {
+            text-wrap: balance;
+          }
+
+          @keyframes scroll {
+            from {
+              transform: translateX(0);
+            }
+            to {
+              transform: translateX(-100%);
+            }
+          }
+
+          .logos-row,
+          .logos-cms-list {
+            animation: scroll 20s linear infinite;
+          }
+
+          .logos_component:hover .logos-row,
+          .logos_component:hover .logos-cms-list {
+            animation-play-state: paused;
+          }
+
+          .button {
+            transition: gap 0.2s ease;
+          }
+
+          .button[text-color="green 1"]:hover .button-text {
+            color: var(--white);
+          }
+          .button[text-color="green 1"]:hover {
+            background-color: var(--green-1);
+          }
+          .button[text-color="green 1"]:hover .button-arrow {
+            color: var(--white);
+          }
+          .button[text-color="green 2"]:hover .button-text {
+            color: var(--white);
+          }
+          .button[text-color="green 2"]:hover {
+            background-color: var(--green-2);
+          }
+          .button[text-color="green 2"]:hover .button-arrow {
+            color: var(--white);
+          }
+          .button[text-color="green 3"]:hover {
+            opacity: 0.6;
+          }
+
+          .button[text-color="light gray"]:hover .button-arrow {
+            color: var(--white);
+          }
+          .button[text-color="light gray"]:hover .button-text {
+            color: var(--white);
+          }
+          .button[text-color="light gray"]:hover {
+            border-color: var(--white);
+          }
+          .button[text-color="dark gray"]:hover .button-arrow {
+            color: var(--black);
+          }
+          .button[text-color="dark gray"]:hover .button-text {
+            color: var(--black);
+          }
+          .button[text-color="dark gray"]:hover {
+            border-color: var(--black);
+          }
+          .button[text-color="white"]:hover .button-arrow {
+            color: #bababa;
+          }
+          .button[text-color="white"]:hover .button-text {
+            color: #bababa;
+          }
+          .button[text-color="white"]:hover {
+            border-color: #bababa;
+          }
+          .button[text-color="black"]:hover .button-arrow {
+            color: #3b3b3b;
+          }
+          .button[text-color="black"]:hover .button-text {
+            color: #3b3b3b;
+          }
+          .button[text-color="black"]:hover {
+            border-color: #3b3b3b;
+          }
+
+          .button[text-color="green 1"] .button-text {
+            color: var(--green-1);
+          }
+          .button[text-color="green 1"] {
+            background-color: rgba(10, 166, 125, 0.1);
+          }
+          .button[text-color="green 2"] .button-text {
+            color: var(--green-2);
+          }
+          .button[text-color="green 2"] {
+            background-color: rgba(10, 166, 125, 0.1);
+          }
+          .button[text-color="green 3"] .button-text {
+            color: var(--green-3);
+          }
+          .button[text-color="black"] .button-text {
+            color: var(--black);
+          }
+          .button[text-color="white"] .button-text {
+            color: var(--white);
+          }
+          .button[text-color="dark gray"] .button-text {
+            color: #3b3b3b;
+          }
+          .button[text-color="light gray"] .button-text {
+            color: #bababa;
+          }
+
+          .button[border-color="green 1"] {
+            border-color: var(--green-1);
+          }
+          .button[border-color="green 2"] {
+            border-color: var(--green-2);
+          }
+          .button[border-color="green 3"] {
+            border-color: var(--green-3);
+          }
+          .button[border-color="black"] {
+            border-color: var(--black);
+          }
+          .button[border-color="white"] {
+            border-color: var(--white);
+          }
+          .button[border-color="dark gray"] {
+            border-color: #3b3b3b;
+          }
+          .button[border-color="light gray"] {
+            border-color: #bababa;
+          }
+
+          .button[arrow-color="green 1"] .button-arrow {
+            color: var(--green-1);
+          }
+          .button[arrow-color="green 2"] .button-arrow {
+            color: var(--green-2);
+          }
+          .button[arrow-color="green 3"] .button-arrow {
+            color: var(--green-3);
+          }
+          .button[arrow-color="black"] .button-arrow {
+            color: var(--black);
+          }
+          .button[arrow-color="white"] .button-arrow {
+            color: var(--white);
+          }
+          .button[arrow-color="dark gray"] .button-arrow {
+            color: #3b3b3b;
+          }
+          .button[arrow-color="light gray"] .button-arrow {
+            color: #bababa;
+          }
+
+          .grid {
+            --s: 18px;
+            --stroke: rgba(62, 62, 62, 0.5);
+            background: linear-gradient(var(--stroke) 1px, transparent 0) 0 0/100%
+                var(--s),
+              linear-gradient(90deg, var(--stroke) 1px, transparent 0) 0 0/var(--s)
+                100%;
+          }
+          .grid.is-white {
+            --s: 18px;
+            --stroke: rgba(201, 201, 201, 0.4) !important;
+            background: linear-gradient(var(--stroke) 1px, transparent 0) 0 0/100%
+                var(--s),
+              linear-gradient(90deg, var(--stroke) 1px, transparent 0) 0 0/var(--s)
+                100%;
+          }
+          .grid.is-gray {
+            --s: 18px;
+            --stroke: rgba(201, 201, 201, 0.4) !important;
+            background: linear-gradient(var(--stroke) 1px, transparent 0) 0 0/100%
+                var(--s),
+              linear-gradient(90deg, var(--stroke) 1px, transparent 0) 0 0/var(--s)
+                100%;
+          }
+
+          .cta-grid {
+            background-image: linear-gradient(#3e3e3e 1px, transparent 1px),
+              linear-gradient(90deg, #3e3e3e 1px, transparent 1px);
+            background-size: 10px 10px;
+            background-position: 0 0;
+          }
+
+          .form_input {
+            background-image: linear-gradient(#82c38c, #82c38c);
+            background-repeat: no-repeat;
+            background-size: calc(100% - 16px) 1px;
+            background-position: 8px calc(100% - 8px);
+          }
+
+          @media screen and (min-width: 991px) {
+            .nav-dropdown-item:hover .green-square {
+              background-color: #82c38c;
+            }
+
+            .dropdown:hover .nav-dropdown {
+              max-height: 8rem;
+            }
+          }
+
+          .w-code-block {
+            background: var(--black) !important;
+            border-radius: 0.5rem !important;
+            position: relative !important;
+            padding-top: 1.25rem !important;
+            color: rgba(255, 255, 255, 0.6) !important;
+          }
+          .code-block-title {
+            position: absolute;
+            top: 0.625rem;
+            left: 0.625rem;
+            font-size: 0.75rem;
+            line-height: 1;
+            opacity: 0.8;
+            pointer-events: none;
+          }
+
+          .vertical-loop-image {
+            display: block;
+            width: 100%;
+            animation: vertical-loop 12s linear infinite;
+          }
+          .vertical-loop-image:nth-child(2) {
+            position: absolute;
+            top: 100%;
+            left: 0;
+          }
+          @keyframes vertical-loop {
+            from {
+              transform: translateY(0);
+            }
+            to {
+              transform: translateY(-100%);
+            }
+          }
+
+          .footer-loop-wrapper {
+            overflow: hidden;
+            display: flex;
+            flex-wrap: nowrap;
+          }
+
+          .footer-loop-image-wrapper {
+            display: flex;
+            flex-wrap: nowrap;
+            flex: 0 0 auto;
+            will-change: transform;
+            transform: translate3d(0, 0, 0);
+            -webkit-transform: translate3d(0, 0, 0);
+            animation: footer-loop 90s linear infinite;
+          }
+
+          .footer-loop-image {
+            flex: 0 0 auto;
+            display: block;
+          }
+
+          @keyframes footer-loop {
+            from {
+              transform: translate3d(0, 0, 0);
+            }
+            to {
+              transform: translate3d(-100%, 0, 0);
+            }
+          }
+
+          .cta-lines-wrapper {
+            display: flex;
+            overflow: hidden;
+            width: 100%;
+          }
+          .cta-lines-image {
+            flex-shrink: 0;
+            display: block;
+            animation: cta-horizontal-loop 20s linear infinite;
+          }
+          .cta-lines-image:nth-child(2) {
+            position: absolute;
+            left: 100%;
+            top: 0;
+          }
+          @keyframes cta-horizontal-loop {
+            from {
+              transform: translateX(0);
+            }
+            to {
+              transform: translateX(-100%);
+            }
+          }
+        </style>
+      </div>
+      <main class="main-wrapper">
+        <!-- Navigation -->
+        <div class="nav_component">
+          <div class="padding-global">
+            <div class="nav-container">
+              <div class="nav-left">
+                <a href="/" aria-current="page" class="nav-brand w-inline-block w--current">
+                  <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945d25af654282d3ff31f83_logo.svg" loading="lazy" alt="" class="nav-logo" />
+                </a>
+                <div class="nav-menu">
+                  <div class="nav-menu-wrapper">
+                    <div class="dropdown">
+                      <div class="nav-link hide-tablet">
+                        <a href="#" class="nav-link-text">PRODUCT</a>
+                        <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/694b54764c5645e3212fd4b3_nav-arrow.svg" loading="lazy" alt="" />
+                      </div>
+                      <div class="nav-dropdown">
+                        <div class="nav-dropdown-wrapper">
+                          <div class="subhead_component">
+                            <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/694b431882560cce4a2713f1_package-open.svg" loading="lazy" alt="" />
+                            <div class="text-style-muted">Products</div>
+                          </div>
+                          <div class="nav-dropdown-items-wrapper">
+                            <a href="/document-ingestion" class="nav-dropdown-item w-inline-block">
+                              <div class="green-square"></div>
+                              <div>Document AI</div>
+                            </a>
+                            <a href="/agentic-applications" class="nav-dropdown-item w-inline-block">
+                              <div class="green-square"></div>
+                              <div>Agentic Applications</div>
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <a href="/blog" class="nav-link">Blog</a>
+                    <a href="/case-studies" class="nav-link hide">Case Studies</a>
+                    <a href="/pricing" class="nav-link">Pricing</a>
+                    <a href="/careers" class="nav-link">Careers</a>
+                    <a href="https://docs.tensorlake.ai/introduction" target="_blank" class="nav-link">Docs</a>
+                  </div>
+                </div>
+              </div>
+              <div class="nav-button">
+                <div class="button-group">
+                  <a arrow-color="green 1" text-color="light gray" border-color="dark gray" href="https://cloud.tensorlake.ai/login" target="_blank" class="button w-inline-block">
+                    <div class="button-text">Log in</div>
+                  </a>
+                  <a arrow-color="green 1" text-color="green 1" border-color="green 1" href="https://calendly.com/diptanu-tensorlake/30min" target="_blank" class="button w-inline-block">
+                    <div class="button-text">BOOK A DEMO</div>
+                    <div class="button-arrow w-embed">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M8.23438 2.63446C8.3844 2.48448 8.58784 2.40023 8.79998 2.40023C9.01211 2.40023 9.21555 2.48448 9.36558 2.63446L14.1656 7.43446C14.3156 7.58448 14.3998 7.78793 14.3998 8.00006C14.3998 8.21219 14.3156 8.41564 14.1656 8.56566L9.36558 13.3657C9.21469 13.5114 9.01261 13.592 8.80286 13.5902C8.5931 13.5884 8.39245 13.5042 8.24412 13.3559C8.09579 13.2076 8.01166 13.0069 8.00984 12.7972C8.00801 12.5874 8.08865 12.3853 8.23438 12.2345L11.6688 8.80006H2.39998C2.1878 8.80006 1.98432 8.71578 1.83429 8.56575C1.68426 8.41572 1.59998 8.21223 1.59998 8.00006C1.59998 7.78789 1.68426 7.58441 1.83429 7.43438C1.98432 7.28435 2.1878 7.20006 2.39998 7.20006H11.6688L8.23438 3.76566C8.0844 3.61564 8.00015 3.41219 8.00015 3.20006C8.00015 2.98793 8.0844 2.78448 8.23438 2.63446Z" fill="currentColor"></path>
+                      </svg>
+                    </div>
+                  </a>
+                </div>
+              </div>
+              <div data-w-id="77a86119-47df-53f6-1f02-e881a1459165" class="menu-button">
+                <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6948e991a84b62d00766534a_menu-open%201%201.svg" loading="lazy" alt="" class="menu-open" />
+                <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6948e99d6b01512f1828953a_menu-close%201%201.svg" loading="lazy" alt="" class="menu-close" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hero Section -->
+        <section class="section is-homehero">
+          <div class="grid"></div>
+          <div class="container-xlarge">
+            <div class="homehero_component">
+              <div class="homehero-content">
+                <div class="flex-vertical align-center">
+                  <h1 data-w-id="7244342a-dd28-ed2c-e056-27143b4736e5" class="heading-style-h1 fade-in-up">
+                    The Engine for Agentic Work
+                  </h1>
+                  <div class="spacer-20px"></div>
+                  <p data-w-id="8edc5a4a-07dd-3b53-84eb-fdfbc5d724e0" class="text-style-muted fade-in-up">
+                    The complete platform for deploying production agents in the enterprise. Durable execution, document ingestion, and multi-cloud compute — all built-in so you focus on your application, not infrastructure.
+                  </p>
+                  <div class="spacer-20px"></div>
+                  <div data-w-id="5be30ef0-c9eb-4dab-76e0-e0641d3580bf" class="button-group fade-in-up">
+                    <a arrow-color="green 1" text-color="green 1" border-color="green 1" href="https://cloud.tensorlake.ai/" target="_blank" class="button w-inline-block">
+                      <div class="button-text">TRY TENSORLAKE</div>
+                      <div class="button-arrow w-embed">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path fill-rule="evenodd" clip-rule="evenodd" d="M8.23438 2.63446C8.3844 2.48448 8.58784 2.40023 8.79998 2.40023C9.01211 2.40023 9.21555 2.48448 9.36558 2.63446L14.1656 7.43446C14.3156 7.58448 14.3998 7.78793 14.3998 8.00006C14.3998 8.21219 14.3156 8.41564 14.1656 8.56566L9.36558 13.3657C9.21469 13.5114 9.01261 13.592 8.80286 13.5902C8.5931 13.5884 8.39245 13.5042 8.24412 13.3559C8.09579 13.2076 8.01166 13.0069 8.00984 12.7972C8.00801 12.5874 8.08865 12.3853 8.23438 12.2345L11.6688 8.80006H2.39998C2.1878 8.80006 1.98432 8.71578 1.83429 8.56575C1.68426 8.41572 1.59998 8.21223 1.59998 8.00006C1.59998 7.78789 1.68426 7.58441 1.83429 7.43438C1.98432 7.28435 2.1878 7.20006 2.39998 7.20006H11.6688L8.23438 3.76566C8.0844 3.61564 8.00015 3.41219 8.00015 3.20006C8.00015 2.98793 8.0844 2.78448 8.23438 2.63446Z" fill="currentColor"></path>
+                        </svg>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <div class="spacer-40px"></div>
+              <div class="code-embed radius-8 is-desktop w-embed">
+                <div style="position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden;">
+                  <div style="min-height: 60vh; position: relative;">
+                    <video src="https://pub-26ea6282fa24439493c91bf324dd1256.r2.dev/1.5.mp4" autoplay muted loop playsinline style="position: absolute; inset: 0; width: 100%; max-height: 1080px; object-fit: cover;"></video>
+                  </div>
+                </div>
+              </div>
+              <div class="mobile-rive-wrapper">
+                <div class="code-embed radius-8 is-mobile w-embed">
+                  <div style="position: relative; width: 100%; height: 100%; aspect-ratio: 16 / 9; overflow: hidden;">
+                    <div style="min-height: 60vh; position: relative;">
+                      <video src="https://pub-26ea6282fa24439493c91bf324dd1256.r2.dev/1.5.mp4" autoplay muted loop playsinline style="position: absolute; inset: 0; width: 100%; max-height: 1080px; object-fit: fill;"></video>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="section">
+          <div class="container-xlarge">
+            <div class="hero-grid">
+              <div class="hero-grid-item is-1">
+                <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945d3dc7ee51b306d0805a9_bolt-icon.svg" loading="lazy" alt="" />
+                <div>ACTIVE AGENT SESSIONS: 180</div>
+              </div>
+              <div class="hero-grid-item is-2">
+                <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945d3dc7ee51b306d0805a9_bolt-icon.svg" loading="lazy" alt="" />
+                <div>AVG DISPATCH LATENCY: 90ms</div>
+              </div>
+              <div class="hero-grid-item is-3">
+                <div class="green-highlight-text">SYSTEM STATUS: 100% OPERATIONAL</div>
+              </div>
+              <div class="hero-grid-item is-4">
+                <div class="green-highlight-text">DOCUMENTS PARSED: 500,922,040</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Feature Section 1: Production Stack for Agents -->
+        <section class="section background-color-lightgray">
+          <div class="padding-global padding-section-large">
+            <div class="container-large">
+              <div class="feature_component">
+                <div class="feature-left">
+                  <div class="max-width-480px">
+                    <div class="flex-vertical align-left gap-1d5">
+                      <div class="subhead_component fade-up">
+                        <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945e47a3b908e17a4569040_green-sq.svg" loading="lazy" width="10" alt="" />
+                        <div class="subhead-text">OUR PRODUCTS [01]</div>
+                      </div>
+                      <h2 class="heading-style-h3 text-balance fade-up">
+                        The Production Stack<br />For Agents
+                      </h2>
+                      <div class="fade-up">
+                        <a arrow-color="green 3" text-color="green 3" border-color="green 3" href="/agentic-applications" class="button w-inline-block">
+                          <div class="button-text">VIEW PRODUCT BREAKDOWN</div>
+                          <div class="button-arrow w-embed">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path fill-rule="evenodd" clip-rule="evenodd" d="M8.23438 2.63446C8.3844 2.48448 8.58784 2.40023 8.79998 2.40023C9.01211 2.40023 9.21555 2.48448 9.36558 2.63446L14.1656 7.43446C14.3156 7.58448 14.3998 7.78793 14.3998 8.00006C14.3998 8.21219 14.3156 8.41564 14.1656 8.56566L9.36558 13.3657C9.21469 13.5114 9.01261 13.592 8.80286 13.5902C8.5931 13.5884 8.39245 13.5042 8.24412 13.3559C8.09579 13.2076 8.01166 13.0069 8.00984 12.7972C8.00801 12.5874 8.08865 12.3853 8.23438 12.2345L11.6688 8.80006H2.39998C2.1878 8.80006 1.98432 8.71578 1.83429 8.56575C1.68426 8.41572 1.59998 8.21223 1.59998 8.00006C1.59998 7.78789 1.68426 7.58441 1.83429 7.43438C1.98432 7.28435 2.1878 7.20006 2.39998 7.20006H11.6688L8.23438 3.76566C8.0844 3.61564 8.00015 3.41219 8.00015 3.20006C8.00015 2.98793 8.0844 2.78448 8.23438 2.63446Z" fill="currentColor"></path>
+                            </svg>
+                          </div>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="feature-tabs-menu">
+                    <div class="feature-tabs-menu-header">
+                      <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945e5375c581406b8cce6cc_white-sq.svg" loading="lazy" alt="" />
+                      <div>AGENT NATIVE PLATFORM</div>
+                    </div>
+                    <div class="feature-tabs-menu-wrapper">
+                      <div class="feature-tabs-menu-item" data-tab="0">
+                        <div class="feature-tabs-menu-item-top">
+                          <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945e5e4880acdd473a4632d_progress-icon.svg" loading="lazy" alt="" />
+                          <div>Never lose progress</div>
+                        </div>
+                        <div class="feature-tabs-menu-item-bottom">
+                          <p class="padding-top padding-4px">
+                            Durable execution keeps state across every tool call, database query, and LLM request, so when something breaks your agent picks up where it left off.
+                          </p>
+                        </div>
+                      </div>
+                      <div class="divider is-white"></div>
+                      <div class="feature-tabs-menu-item" data-tab="1">
+                        <div class="feature-tabs-menu-item-top">
+                          <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/694ad922108ecb0319e9175b_clock.svg" loading="lazy" alt="" />
+                          <div>Accurate Document Ingestion</div>
+                        </div>
+                        <div class="feature-tabs-menu-item-bottom">
+                          <p class="padding-top padding-4px">
+                            Clean data in, good decisions out. Agents read invoices, contracts, financial statements, research papers, slide decks. Feed raw documents into a pipeline and you get broken tables, mangled layouts, garbage text. 90% of "hallucinations" are ingestion failures. The agent never got the right data.
+                          </p>
+                        </div>
+                      </div>
+                      <div class="divider is-white"></div>
+                      <div class="feature-tabs-menu-item" data-tab="2">
+                        <div class="feature-tabs-menu-item-top">
+                          <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945e5e4880acdd473a4632d_progress-icon.svg" loading="lazy" alt="" />
+                          <div>Stay fast under load</div>
+                        </div>
+                        <div class="feature-tabs-menu-item-bottom">
+                          <p class="padding-top padding-4px">
+                            Predictable throughput means fresh sessions spin up immediately, even when a thousand others are mid-task.
+                          </p>
+                        </div>
+                      </div>
+                      <div class="divider is-white"></div>
+                      <div class="feature-tabs-menu-item" data-tab="3">
+                        <div class="feature-tabs-menu-item-top">
+                          <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/694ad9223ceb86bac1fbe726_block.svg" loading="lazy" alt="" />
+                          <div>Code Sandboxes</div>
+                        </div>
+                        <div class="feature-tabs-menu-item-bottom">
+                          <p class="padding-top padding-4px">
+                            Run generated code safely. LLMs write code to compute answers, transform data, query databases. Every session gets its own sandbox so untrusted code can't touch system integrity or leak data across sessions.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="feature-image-content">
+                  <div class="feature-image-wrapper active" data-image="0">
+                    <div class="feature-image-top">
+                      <div class="subhead_component">
+                        <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945e47a3b908e17a4569040_green-sq.svg" loading="lazy" alt="" />
+                        <div>visual 1.1</div>
+                      </div>
+                    </div>
+                    <div class="feature-image-middle">
+                      <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/695e7448842c05d047fdd817_never-lose-progress.svg" loading="lazy" alt="" />
+                    </div>
+                    <div class="feature-image-bottom">
+                      <div class="subhead-text text-style-xmuted">tensorlake</div>
+                      <div class="subhead-text text-style-xmuted">never lose progress</div>
+                    </div>
+                  </div>
+                  <div class="feature-image-wrapper" data-image="1">
+                    <div class="feature-image-top">
+                      <div class="subhead_component">
+                        <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945e47a3b908e17a4569040_green-sq.svg" loading="lazy" alt="" />
+                        <div>visual 1.2</div>
+                      </div>
+                    </div>
+                    <div class="feature-image-middle">
+                      <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/695e7448392e8d226c1abee3_accurate-document.svg" loading="lazy" alt="" />
+                    </div>
+                    <div class="feature-image-bottom">
+                      <div class="subhead-text text-style-xmuted">tensorlake</div>
+                      <div class="subhead-text text-style-xmuted">Accurate Document Ingestion</div>
+                    </div>
+                  </div>
+                  <div class="feature-image-wrapper" data-image="2">
+                    <div class="feature-image-top">
+                      <div class="subhead_component">
+                        <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945e47a3b908e17a4569040_green-sq.svg" loading="lazy" alt="" />
+                        <div>visual 1.3</div>
+                      </div>
+                    </div>
+                    <div class="feature-image-middle">
+                      <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/695e7448565e66c7aa348921_stay-fast.svg" loading="lazy" alt="" />
+                    </div>
+                    <div class="feature-image-bottom">
+                      <div class="subhead-text text-style-xmuted">tensorlake</div>
+                      <div class="subhead-text text-style-xmuted">Stay fast under load</div>
+                    </div>
+                  </div>
+                  <div class="feature-image-wrapper" data-image="3">
+                    <div class="feature-image-top">
+                      <div class="subhead_component">
+                        <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945e47a3b908e17a4569040_green-sq.svg" loading="lazy" alt="" />
+                        <div>visual 1.4</div>
+                      </div>
+                    </div>
+                    <div class="feature-image-middle">
+                      <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/695e74baec6963cdf9ca498b_code-sandboxes.svg" loading="lazy" alt="" />
+                    </div>
+                    <div class="feature-image-bottom">
+                      <div class="subhead-text text-style-xmuted">tensorlake</div>
+                      <div class="subhead-text text-style-xmuted">Code Sandboxes</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="spacer-96px"></div>
+              <h2 class="heading-style-h5 fade-up">
+                Deploy Durable Agents as APIs written in any framework
+              </h2>
+              <div class="spacer-32px"></div>
+              <div class="feature-grid">
+                <div class="feature-grid-item fade-up">
+                  <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6963b76758a9dbdaa8e2e0ef_proof-of-income-verificaiton.svg" loading="lazy" alt="" />
+                  <div class="feature-grid-item-content">
+                    <div class="subhead-large text-weight-normal">PROOF OF INCOME VERIFICATION</div>
+                    <p>Process pay stubs, tax forms and bank statements. Verify income automatically.</p>
+                  </div>
+                </div>
+                <div class="feature-grid-item fade-up">
+                  <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/694afa77c1fa4727dc1c622d_serverless-image-2.svg" loading="lazy" alt="" />
+                  <div class="feature-grid-item-content">
+                    <div class="subhead-large text-weight-normal">INSURANCE CLAIM PROCESSING</div>
+                    <p>Ingest claim documents, pull key fields, route to the right workflow. Handle thousands.</p>
+                  </div>
+                </div>
+                <div class="feature-grid-item fade-up">
+                  <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/694afa776c76a61dfe653cef_serverless-image-3.svg" loading="lazy" alt="" />
+                  <div class="feature-grid-item-content">
+                    <div class="subhead-large text-weight-normal">CONTRACT REVIEW</div>
+                    <p>Read through agreements, flag key clauses, extract terms.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Feature Section 2: Document Ingestion API -->
+        <section class="section">
+          <div class="padding-global padding-section-large">
+            <div class="container-large">
+              <div class="feature_component">
+                <div class="feature-left">
+                  <div class="max-width-480px">
+                    <div class="flex-vertical align-left gap-1d5">
+                      <div class="subhead_component fade-up">
+                        <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945e47a3b908e17a4569040_green-sq.svg" loading="lazy" alt="" />
+                        <div class="subhead-text">OUR PRODUCTS [02]</div>
+                      </div>
+                      <h2 class="heading-style-h3 text-balance fade-up">
+                        Frontier Document Ingestion API
+                      </h2>
+                      <p class="text-style-muted fade-up">
+                        A comprehensive toolbox of APIs for accurate Document Understanding to speed up building AI Workflows and Agents in Enterprises for back-office use-cases
+                      </p>
+                      <div class="fade-up">
+                        <a arrow-color="green 1" text-color="green 1" border-color="green 1" href="/document-ingestion" class="button w-inline-block">
+                          <div class="button-text">VIEW PRODUCT BREAKDOWN</div>
+                          <div class="button-arrow w-embed">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path fill-rule="evenodd" clip-rule="evenodd" d="M8.23438 2.63446C8.3844 2.48448 8.58784 2.40023 8.79998 2.40023C9.01211 2.40023 9.21555 2.48448 9.36558 2.63446L14.1656 7.43446C14.3156 7.58448 14.3998 7.78793 14.3998 8.00006C14.3998 8.21219 14.3156 8.41564 14.1656 8.56566L9.36558 13.3657C9.21469 13.5114 9.01261 13.592 8.80286 13.5902C8.5931 13.5884 8.39245 13.5042 8.24412 13.3559C8.09579 13.2076 8.01166 13.0069 8.00984 12.7972C8.00801 12.5874 8.08865 12.3853 8.23438 12.2345L11.6688 8.80006H2.39998C2.1878 8.80006 1.98432 8.71578 1.83429 8.56575C1.68426 8.41572 1.59998 8.21223 1.59998 8.00006C1.59998 7.78789 1.68426 7.58441 1.83429 7.43438C1.98432 7.28435 2.1878 7.20006 2.39998 7.20006H11.6688L8.23438 3.76566C8.0844 3.61564 8.00015 3.41219 8.00015 3.20006C8.00015 2.98793 8.0844 2.78448 8.23438 2.63446Z" fill="currentColor"></path>
+                            </svg>
+                          </div>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="feature-tabs-menu is-dark">
+                    <div class="feature-tabs-menu-header is-dark">
+                      <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945e5375c581406b8cce6cc_white-sq.svg" loading="lazy" alt="" />
+                      <div>READ DOCUMENTS EFFORTLESSLY</div>
+                    </div>
+                    <div class="feature-tabs-menu-wrapper">
+                      <div class="feature-tabs-menu-item">
+                        <div class="feature-tabs-menu-item-top">
+                          <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945ea1187e85774b5f85b47_white-icon.svg" loading="lazy" alt="" />
+                          <div>Layout Aware Parsing</div>
+                        </div>
+                        <div class="feature-tabs-menu-item-bottom">
+                          <p class="padding-top padding-4px">
+                            Read Documents with complex layouts in their natural reading order, understands tables, charts, returns bounding boxes for citations.
+                          </p>
+                        </div>
+                      </div>
+                      <div class="divider is-black"></div>
+                      <div class="feature-tabs-menu-item">
+                        <div class="feature-tabs-menu-item-top">
+                          <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/694ad9ecba9e25c4fd055b4d_white-clock.svg" loading="lazy" alt="" />
+                          <div>Read Images and Charts</div>
+                        </div>
+                        <div class="feature-tabs-menu-item-bottom">
+                          <p class="padding-top padding-4px">
+                            Summarize meaning of figures, charts and tables for LLMs to understand the meaning of complex information.
+                          </p>
+                        </div>
+                      </div>
+                      <div class="divider is-black"></div>
+                      <div class="feature-tabs-menu-item">
+                        <div class="feature-tabs-menu-item-top">
+                          <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945ea1187e85774b5f85b47_white-icon.svg" loading="lazy" alt="" />
+                          <div>Structured Extraction</div>
+                        </div>
+                        <div class="feature-tabs-menu-item-bottom">
+                          <p class="padding-top padding-4px">
+                            Extracts structured data from documents guided by JSON Schema
+                          </p>
+                        </div>
+                      </div>
+                      <div class="divider is-black"></div>
+                      <div class="feature-tabs-menu-item">
+                        <div class="feature-tabs-menu-item-top">
+                          <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/694ad9ec7934a1fde2cf6067_white-block.svg" loading="lazy" alt="" />
+                          <div>Document Classification</div>
+                        </div>
+                        <div class="feature-tabs-menu-item-bottom">
+                          <p class="padding-top padding-4px">
+                            Read Documents with complex layouts in their natural reading order, understands tables, charts, returns bounding boxes for citations.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="feature-image-content">
+                  <div class="feature-image-wrapper is-dark active">
+                    <div class="feature-image-top">
+                      <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945e47a3b908e17a4569040_green-sq.svg" loading="lazy" alt="" />
+                      <div>DOCUMENT AI</div>
+                    </div>
+                    <div class="feature-image-middle">
+                      <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/695e760c7280c88526ad7b94_frontier-1.svg" loading="lazy" alt="" />
+                    </div>
+                    <div class="feature-image-bottom">
+                      <div class="subhead-text text-style-xmuted">tl labs</div>
+                      <div class="subhead-text text-style-xmuted">read documents like humans</div>
+                    </div>
+                  </div>
+                  <div class="feature-image-wrapper is-dark">
+                    <div class="feature-image-top">
+                      <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945e47a3b908e17a4569040_green-sq.svg" loading="lazy" alt="" />
+                      <div>DOCUMENT AI</div>
+                    </div>
+                    <div class="feature-image-middle">
+                      <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/694af9187e682f42ac7b843d_frontier-2.svg" loading="lazy" alt="" />
+                    </div>
+                    <div class="feature-image-bottom">
+                      <div class="subhead-text text-style-xmuted">tl labs</div>
+                      <div class="subhead-text text-style-xmuted">Summarize Charts and Tables</div>
+                    </div>
+                  </div>
+                  <div class="feature-image-wrapper is-dark">
+                    <div class="feature-image-top">
+                      <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945e47a3b908e17a4569040_green-sq.svg" loading="lazy" alt="" />
+                      <div>DOCUMENT AI</div>
+                    </div>
+                    <div class="feature-image-middle">
+                      <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/694af9186ee773f9ccf830ac_frontier-3.svg" loading="lazy" alt="" />
+                    </div>
+                    <div class="feature-image-bottom">
+                      <div class="subhead-text text-style-xmuted">tl labs</div>
+                      <div class="subhead-text text-style-xmuted">Structured Output From Anything</div>
+                    </div>
+                  </div>
+                  <div class="feature-image-wrapper is-dark">
+                    <div class="feature-image-top">
+                      <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945e47a3b908e17a4569040_green-sq.svg" loading="lazy" alt="" />
+                      <div>DOCUMENT AI</div>
+                    </div>
+                    <div class="feature-image-middle">
+                      <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/694af918dbdb16eb5090206c_frontier-4.svg" loading="lazy" alt="" />
+                    </div>
+                    <div class="feature-image-bottom">
+                      <div class="subhead-text text-style-xmuted">tl labs</div>
+                      <div class="subhead-text text-style-xmuted">BUILD FURTHER WITH SERVER-LESS</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="spacer-96px"></div>
+              <h2 class="heading-style-h5 fade-up">
+                Document Ingestion enables building Agentic automation faster
+              </h2>
+              <div class="spacer-32px"></div>
+              <div class="feature-grid">
+                <div class="feature-grid-item is-dark fade-up">
+                  <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945eaffd801da9a66274260_dark-feature-grid-image.svg" loading="lazy" alt="" />
+                  <div class="feature-grid-item-content">
+                    <div class="subhead-large text-weight-normal">FINANCE</div>
+                    <p>Extract key insights, complex tables and charts from investor decks, huge spreadsheets, and SEC filings.</p>
+                  </div>
+                </div>
+                <div class="feature-grid-item is-dark fade-up">
+                  <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/694afac221a16c1080892166_healthcare.svg" loading="lazy" alt="" />
+                  <div class="feature-grid-item-content">
+                    <div class="subhead-large text-weight-normal">HEALTHCARE</div>
+                    <p>Handle low-quality faxes, handwritten notes, and complex medical forms with ease.</p>
+                  </div>
+                </div>
+                <div class="feature-grid-item is-dark fade-up">
+                  <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6963b819b280120e873edf1b_insurance-1.svg" loading="lazy" alt="" />
+                  <div class="feature-grid-item-content">
+                    <div class="subhead-large text-weight-normal">INSURANCE</div>
+                    <p>Parse complex intake files into labeled claims data—accelerating adjudication, triage, and system-ready handoff.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Everything You Need Section -->
+        <section class="section background-color-lightgray overflow-hidden">
+          <div class="dotted-divider"></div>
+          <div class="padding-global padding-section-large">
+            <div class="container-large">
+              <div class="max-width-512px align-center text-align-center">
+                <div class="flex-vertical align-center gap-1d25">
+                  <div class="subhead_component is-long fade-up">
+                    <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945e47a3b908e17a4569040_green-sq.svg" loading="lazy" alt="" class="green-square-subhead" />
+                    <div class="subhead-text">BATTERIES INCLUDED PLATFORM FOR AI WORKFLOWS</div>
+                  </div>
+                  <h2 class="heading-style-h3 fade-up">
+                    Everything you need for Agents in Enterprises
+                  </h2>
+                </div>
+              </div>
+              <div class="spacer-40px"></div>
+              <div class="everything_component">
+                <div class="everything-items-wrapper">
+                  <div class="everything-item fade-up">
+                    <div class="max-width-280px">
+                      <div class="flex-vertical align-left gap-1d25">
+                        <div class="subhead-large">DOCUMENT INGESTION</div>
+                        <p>Understanding Documents is the biggest bottleneck for AI Applications. Document AI reads documents effortlessly</p>
+                      </div>
+                    </div>
+                    <div class="everything-line"></div>
+                  </div>
+                  <div class="everything-item is-2 fade-up">
+                    <div class="max-width-280px">
+                      <div class="flex-vertical align-left gap-1d25">
+                        <div class="subhead-large">DURABLE AGENTIC RUNTIME</div>
+                        <p>An application runtime to run serverless agents in any framework with built-in durable execution to help agents run longer and recover from crashes</p>
+                      </div>
+                    </div>
+                    <div class="everything-line"></div>
+                    <div class="everything-full-line is-full"></div>
+                  </div>
+                </div>
+                <div class="everything-image-wrapper">
+                  <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945ef73bd7d31468c9af6d4_everything-feature-image.svg" loading="lazy" alt="" class="everything-image" />
+                </div>
+                <div class="everything-items-wrapper">
+                  <div class="everything-item fade-up">
+                    <div class="everything-line"></div>
+                    <div class="max-width-280px">
+                      <div class="flex-vertical align-left gap-1d25">
+                        <div class="subhead-large">CODE SANDBOXES</div>
+                        <p>Code Sandboxes enable your agents to run untrusted LLM generated code and solve a wide range of problems</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="everything-item fade-up">
+                    <div class="everything-line"></div>
+                    <div class="max-width-280px">
+                      <div class="flex-vertical align-left gap-1d25">
+                        <div class="subhead-large">DURABLE DATA WORKFLOWS</div>
+                        <p>Build large scale data ingestion and ETL workflows on CPUs and GPU machines with map-reduce primitives and built-in queues</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="everything-full-line is-1"></div>
+                <div class="everything-full-line is-2"></div>
+                <div class="everything-full-line is-3"></div>
+              </div>
+            </div>
+          </div>
+          <div class="dotted-divider"></div>
+        </section>
+
+        <!-- Product Feature Cards Section -->
+        <section class="section">
+          <div class="padding-global">
+            <div class="container-large is-line-dark">
+              <div class="spacer-128px"></div>
+
+              <!-- 7a. Serverless Compute -->
+              <div class="feature-alt_component fade-up">
+                <div class="feature-alt-wrapper">
+                  <div class="feature-alt-left-wrapper">
+                    <div class="feature-alt-image-wrapper">
+                      <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/694ade174072ee816b46ecce_features-alt-image-serverless.svg" loading="lazy" alt="" class="max-width-full" />
+                    </div>
+                    <div class="feature-alt-left-items is-3">
+                      <div class="feature-alt-left-item">
+                        <div class="feature-alt-left-item-wrapper">
+                          <div class="feature-alt-left-item-heading">&lt; 100 ms</div>
+                          <p class="text-size-small text-style-muted">Average request dispatch time</p>
+                        </div>
+                        <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945f2a8d688d156797d56b4_ms-icon.svg" loading="lazy" alt="" />
+                      </div>
+                      <div class="feature-alt-left-item">
+                        <div class="feature-alt-left-item-wrapper">
+                          <div class="feature-alt-left-item-heading">10,000+</div>
+                          <p class="text-size-small text-style-muted">Number of concurrent requests</p>
+                        </div>
+                        <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945f2a8d688d156797d56b4_ms-icon.svg" loading="lazy" alt="" />
+                      </div>
+                      <div class="feature-alt-left-item">
+                        <div class="feature-alt-left-item-wrapper">
+                          <div class="feature-alt-left-item-heading">&lt; 5 GB</div>
+                          <p class="text-size-small text-style-muted">Function Input/Output payload size</p>
+                        </div>
+                        <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945f2a8d688d156797d56b4_ms-icon.svg" loading="lazy" alt="" />
+                      </div>
+                    </div>
+                  </div>
+                  <div class="feature-alt-content">
+                    <div class="flex-vertical align-left gap-2d5">
+                      <div class="flex-vertical align-left gap-1d25">
+                        <div class="subhead_component">
+                          <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945f450e6a72dffdf1b8558_green-sq-2.svg" loading="lazy" alt="" />
+                          <div class="subhead-text is-swamp">PRODUCT</div>
+                        </div>
+                        <h2 class="heading-style-h4 text-balance">Serverless Compute for your High Throughput Agents</h2>
+                      </div>
+                      <p class="text-style-muted">Tensorlake's compute platform lets you deploy agents on a serverless runtime to serve them to thousands of users instantly without touching infrastructure.<br /><br />The platform combines many foundational infrastructure components that typically a platform team have to build, operate and maintain for you to start deploying agents reliably in production environments</p>
+                      <a arrow-color="green 1" text-color="green 1" border-color="green 1" href="https://calendly.com/diptanu-tensorlake/30min" target="_blank" class="button w-inline-block">
+                        <div class="button-text">TALK TO ENGINEERING</div>
+                        <div class="button-arrow w-embed">
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M8.23438 2.63446C8.3844 2.48448 8.58784 2.40023 8.79998 2.40023C9.01211 2.40023 9.21555 2.48448 9.36558 2.63446L14.1656 7.43446C14.3156 7.58448 14.3998 7.78793 14.3998 8.00006C14.3998 8.21219 14.3156 8.41564 14.1656 8.56566L9.36558 13.3657C9.21469 13.5114 9.01261 13.592 8.80286 13.5902C8.5931 13.5884 8.39245 13.5042 8.24412 13.3559C8.09579 13.2076 8.01166 13.0069 8.00984 12.7972C8.00801 12.5874 8.08865 12.3853 8.23438 12.2345L11.6688 8.80006H2.39998C2.1878 8.80006 1.98432 8.71578 1.83429 8.56575C1.68426 8.41572 1.59998 8.21223 1.59998 8.00006C1.59998 7.78789 1.68426 7.58441 1.83429 7.43438C1.98432 7.28435 2.1878 7.20006 2.39998 7.20006H11.6688L8.23438 3.76566C8.0844 3.61564 8.00015 3.41219 8.00015 3.20006C8.00015 2.98793 8.0844 2.78448 8.23438 2.63446Z" fill="currentColor"></path>
+                          </svg>
+                        </div>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+                <div class="feature-bottom"></div>
+              </div>
+
+              <div class="spacer-60px"></div>
+
+              <!-- 7b. Durable Execution -->
+              <div class="feature-alt_component fade-up">
+                <div class="feature-alt-wrapper is-flipped">
+                  <div class="feature-alt-content">
+                    <div class="flex-vertical align-left gap-2d5">
+                      <div class="flex-vertical align-left gap-1d25">
+                        <div class="subhead_component">
+                          <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945f450e6a72dffdf1b8558_green-sq-2.svg" loading="lazy" alt="" />
+                          <div class="subhead-text is-swamp">PRODUCT</div>
+                        </div>
+                        <h2 class="heading-style-h4 text-balance">Durable Execution</h2>
+                      </div>
+                      <div class="max-width-400px">
+                        <p class="text-style-muted">Agents runs for minutes, makes 100s of tool calls along the way. Durable Execution built into Tensorlake's platform allows them to start from where they crashed.<br /><br />It reduces time, money and reliability of 99% agentic applications in production</p>
+                      </div>
+                      <a arrow-color="green 1" text-color="green 1" border-color="green 1" href="https://calendly.com/diptanu-tensorlake/30min" target="_blank" class="button w-inline-block">
+                        <div class="button-text">TALK TO ENGINEERING</div>
+                        <div class="button-arrow w-embed">
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M8.23438 2.63446C8.3844 2.48448 8.58784 2.40023 8.79998 2.40023C9.01211 2.40023 9.21555 2.48448 9.36558 2.63446L14.1656 7.43446C14.3156 7.58448 14.3998 7.78793 14.3998 8.00006C14.3998 8.21219 14.3156 8.41564 14.1656 8.56566L9.36558 13.3657C9.21469 13.5114 9.01261 13.592 8.80286 13.5902C8.5931 13.5884 8.39245 13.5042 8.24412 13.3559C8.09579 13.2076 8.01166 13.0069 8.00984 12.7972C8.00801 12.5874 8.08865 12.3853 8.23438 12.2345L11.6688 8.80006H2.39998C2.1878 8.80006 1.98432 8.71578 1.83429 8.56575C1.68426 8.41572 1.59998 8.21223 1.59998 8.00006C1.59998 7.78789 1.68426 7.58441 1.83429 7.43438C1.98432 7.28435 2.1878 7.20006 2.39998 7.20006H11.6688L8.23438 3.76566C8.0844 3.61564 8.00015 3.41219 8.00015 3.20006C8.00015 2.98793 8.0844 2.78448 8.23438 2.63446Z" fill="currentColor"></path>
+                          </svg>
+                        </div>
+                      </a>
+                    </div>
+                  </div>
+                  <div class="feature-alt-left-wrapper">
+                    <div class="feature-alt-image-wrapper">
+                      <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/695e77e863a329cb61a1aa4d_durable-execution.svg" loading="lazy" alt="" class="max-width-full" />
+                    </div>
+                    <div class="feature-alt-left-items">
+                      <div class="feature-alt-left-item">
+                        <div class="feature-alt-left-item-wrapper">
+                          <div class="feature-alt-left-item-heading">Automatic Durability</div>
+                          <p class="text-size-small text-style-muted">State and function calls are automatically checkpointed to enable agents to resume from crashes</p>
+                        </div>
+                        <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945f2a8d688d156797d56b4_ms-icon.svg" loading="lazy" alt="" />
+                      </div>
+                      <div class="feature-alt-left-item">
+                        <div class="feature-alt-left-item-wrapper">
+                          <div class="feature-alt-left-item-heading">Durable Timers</div>
+                          <p class="text-size-small text-style-muted">Pause functions to start after weeks or months</p>
+                        </div>
+                        <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945f2a8d688d156797d56b4_ms-icon.svg" loading="lazy" alt="" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="feature-bottom"></div>
+              </div>
+
+              <div class="spacer-60px"></div>
+
+              <!-- 7c. Document Ingestion - OCR -->
+              <div class="feature-alt_component fade-up">
+                <div class="feature-alt-wrapper">
+                  <div class="feature-alt-left-wrapper">
+                    <div class="feature-alt-image-wrapper">
+                      <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/694ade7a5b974501551d0b5d_features-alt-image-ingestion.svg" loading="lazy" alt="" class="max-width-full" />
+                    </div>
+                    <div class="feature-alt-left-items">
+                      <div class="feature-alt-left-item">
+                        <div class="feature-alt-left-item-wrapper">
+                          <div class="feature-alt-left-item-heading">Visual Citations</div>
+                          <p class="text-size-small text-style-muted">Every extracted field links back to its exact location in the source document—pixel-level coordinates for full auditability</p>
+                        </div>
+                        <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945f2a8d688d156797d56b4_ms-icon.svg" loading="lazy" alt="" />
+                      </div>
+                      <div class="feature-alt-left-item">
+                        <div class="feature-alt-left-item-wrapper">
+                          <div class="feature-alt-left-item-heading">30+ formats supported</div>
+                          <p class="text-size-small text-style-muted">PDFs, spreadsheets, presentations, Word docs, images, scanned forms—ingest anything your enterprise throws at it</p>
+                        </div>
+                        <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945f2a8d688d156797d56b4_ms-icon.svg" loading="lazy" alt="" />
+                      </div>
+                    </div>
+                  </div>
+                  <div class="feature-alt-content">
+                    <div class="flex-vertical align-left gap-2d5">
+                      <div class="flex-vertical align-left gap-1d25">
+                        <div class="subhead_component">
+                          <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945f450e6a72dffdf1b8558_green-sq-2.svg" loading="lazy" alt="" />
+                          <div class="subhead-text is-swamp">PRODUCT</div>
+                        </div>
+                        <h2 class="heading-style-h4 text-balance">Document Ingestion - OCR Infused with VLMs</h2>
+                      </div>
+                      <p class="text-style-muted">We use VLMs with OCRs to read Documents the way humans do.<br /><br />Layout and OCR Models - Break down documents into text, tables, figures while maintaining reading order<br /><br />VLMs - Read images, complex tables, correct OCR mistakes and classify documents based on visual context</p>
+                      <a arrow-color="green 1" text-color="green 1" border-color="green 1" href="https://calendly.com/diptanu-tensorlake/30min" target="_blank" class="button w-inline-block">
+                        <div class="button-text">TALK TO ENGINEERING</div>
+                        <div class="button-arrow w-embed">
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M8.23438 2.63446C8.3844 2.48448 8.58784 2.40023 8.79998 2.40023C9.01211 2.40023 9.21555 2.48448 9.36558 2.63446L14.1656 7.43446C14.3156 7.58448 14.3998 7.78793 14.3998 8.00006C14.3998 8.21219 14.3156 8.41564 14.1656 8.56566L9.36558 13.3657C9.21469 13.5114 9.01261 13.592 8.80286 13.5902C8.5931 13.5884 8.39245 13.5042 8.24412 13.3559C8.09579 13.2076 8.01166 13.0069 8.00984 12.7972C8.00801 12.5874 8.08865 12.3853 8.23438 12.2345L11.6688 8.80006H2.39998C2.1878 8.80006 1.98432 8.71578 1.83429 8.56575C1.68426 8.41572 1.59998 8.21223 1.59998 8.00006C1.59998 7.78789 1.68426 7.58441 1.83429 7.43438C1.98432 7.28435 2.1878 7.20006 2.39998 7.20006H11.6688L8.23438 3.76566C8.0844 3.61564 8.00015 3.41219 8.00015 3.20006C8.00015 2.98793 8.0844 2.78448 8.23438 2.63446Z" fill="currentColor"></path>
+                          </svg>
+                        </div>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+                <div class="feature-bottom"></div>
+              </div>
+
+              <div class="spacer-60px"></div>
+
+              <!-- 7d. Sandboxes for Agents -->
+              <div class="feature-alt_component fade-up">
+                <div class="feature-alt-wrapper is-flipped">
+                  <div class="feature-alt-content">
+                    <div class="flex-vertical align-left gap-2d5">
+                      <div class="flex-vertical align-left gap-1d25">
+                        <div class="subhead_component">
+                          <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945f450e6a72dffdf1b8558_green-sq-2.svg" loading="lazy" alt="" />
+                          <div class="subhead-text is-swamp">PRODUCT</div>
+                        </div>
+                        <h2 class="heading-style-h4 text-balance">Sandboxes for Agents</h2>
+                      </div>
+                      <div class="max-width-400px">
+                        <p class="text-style-muted">Execute LLM generated code in isolated sandboxes<br /><br />Enable agents to read, explore and plot data, use headless browsers or write code.<br /><br />Expose Sandboxes with a full file-system as a tool to your agents.</p>
+                      </div>
+                      <a arrow-color="green 1" text-color="green 1" border-color="green 1" href="https://calendly.com/diptanu-tensorlake/30min" target="_blank" class="button w-inline-block">
+                        <div class="button-text">TALK TO ENGINEERING</div>
+                        <div class="button-arrow w-embed">
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M8.23438 2.63446C8.3844 2.48448 8.58784 2.40023 8.79998 2.40023C9.01211 2.40023 9.21555 2.48448 9.36558 2.63446L14.1656 7.43446C14.3156 7.58448 14.3998 7.78793 14.3998 8.00006C14.3998 8.21219 14.3156 8.41564 14.1656 8.56566L9.36558 13.3657C9.21469 13.5114 9.01261 13.592 8.80286 13.5902C8.5931 13.5884 8.39245 13.5042 8.24412 13.3559C8.09579 13.2076 8.01166 13.0069 8.00984 12.7972C8.00801 12.5874 8.08865 12.3853 8.23438 12.2345L11.6688 8.80006H2.39998C2.1878 8.80006 1.98432 8.71578 1.83429 8.56575C1.68426 8.41572 1.59998 8.21223 1.59998 8.00006C1.59998 7.78789 1.68426 7.58441 1.83429 7.43438C1.98432 7.28435 2.1878 7.20006 2.39998 7.20006H11.6688L8.23438 3.76566C8.0844 3.61564 8.00015 3.41219 8.00015 3.20006C8.00015 2.98793 8.0844 2.78448 8.23438 2.63446Z" fill="currentColor"></path>
+                          </svg>
+                        </div>
+                      </a>
+                    </div>
+                  </div>
+                  <div class="feature-alt-left-wrapper">
+                    <div class="feature-alt-image-wrapper">
+                      <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/694addc67eefae455352cd30_feeatures-alt-image-computers.svg" loading="lazy" alt="" class="max-width-full" />
+                    </div>
+                    <div class="feature-alt-left-items">
+                      <div class="feature-alt-left-item">
+                        <div class="feature-alt-left-item-wrapper">
+                          <div class="feature-alt-left-item-heading">BYOC In Your Cloud</div>
+                          <p class="text-size-small text-style-muted">Tensorlake can spin up sandboxes in your cloud enabling lower cost on infrastructure and zero egress network bandwidth fees.</p>
+                        </div>
+                        <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945f2a8d688d156797d56b4_ms-icon.svg" loading="lazy" alt="" />
+                      </div>
+                      <div class="feature-alt-left-item">
+                        <div class="feature-alt-left-item-wrapper">
+                          <div class="feature-alt-left-item-heading">Unlimited Sandboxes</div>
+                          <p class="text-size-small text-style-muted">No limits on number of active sandboxes and 100 sandboxes/second</p>
+                        </div>
+                        <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945f2a8d688d156797d56b4_ms-icon.svg" loading="lazy" alt="" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="feature-bottom"></div>
+              </div>
+
+              <div class="spacer-60px"></div>
+
+              <!-- 7e. Fits Into Your Stack -->
+              <div class="feature-alt_component fade-up">
+                <div class="feature-alt-wrapper">
+                  <div class="feature-alt-left-wrapper">
+                    <div class="feature-alt-image-wrapper">
+                      <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/694addc6625907b0a75c3824_features-alt-image-stack.svg" loading="lazy" alt="" class="max-width-full" />
+                    </div>
+                    <div class="feature-alt-left-items">
+                      <div class="feature-alt-left-item">
+                        <div class="feature-alt-left-item-wrapper">
+                          <div class="feature-alt-left-item-heading">Runs on Any Cloud</div>
+                          <p class="text-size-small text-style-muted">Use Tensorlake on our SAAS or deploy In-VPC or air-gapped environments</p>
+                        </div>
+                        <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945f2a8d688d156797d56b4_ms-icon.svg" loading="lazy" alt="" />
+                      </div>
+                      <div class="feature-alt-left-item">
+                        <div class="feature-alt-left-item-wrapper">
+                          <div class="feature-alt-left-item-heading">Framework Agnostic</div>
+                          <p class="text-size-small text-style-muted">Agent and Workflow Runtimes are framework agnostic - can use with frameworks like Langchain or Pydantic</p>
+                        </div>
+                        <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945f2a8d688d156797d56b4_ms-icon.svg" loading="lazy" alt="" />
+                      </div>
+                    </div>
+                  </div>
+                  <div class="feature-alt-content">
+                    <div class="flex-vertical align-left gap-2d5">
+                      <div class="flex-vertical align-left gap-1d25">
+                        <div class="subhead_component">
+                          <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945f450e6a72dffdf1b8558_green-sq-2.svg" loading="lazy" alt="" />
+                          <div class="subhead-text is-swamp">PRODUCT</div>
+                        </div>
+                        <h2 class="heading-style-h4 text-balance">Fits Into Your Stack Seamlessly</h2>
+                      </div>
+                      <p class="text-style-muted">You can integrate Document AI into your workflows using our HTTP APIs</p>
+                      <a arrow-color="green 1" text-color="green 1" border-color="green 1" href="https://calendly.com/diptanu-tensorlake/30min" target="_blank" class="button w-inline-block">
+                        <div class="button-text">TALK TO ENGINEERING</div>
+                        <div class="button-arrow w-embed">
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M8.23438 2.63446C8.3844 2.48448 8.58784 2.40023 8.79998 2.40023C9.01211 2.40023 9.21555 2.48448 9.36558 2.63446L14.1656 7.43446C14.3156 7.58448 14.3998 7.78793 14.3998 8.00006C14.3998 8.21219 14.3156 8.41564 14.1656 8.56566L9.36558 13.3657C9.21469 13.5114 9.01261 13.592 8.80286 13.5902C8.5931 13.5884 8.39245 13.5042 8.24412 13.3559C8.09579 13.2076 8.01166 13.0069 8.00984 12.7972C8.00801 12.5874 8.08865 12.3853 8.23438 12.2345L11.6688 8.80006H2.39998C2.1878 8.80006 1.98432 8.71578 1.83429 8.56575C1.68426 8.41572 1.59998 8.21223 1.59998 8.00006C1.59998 7.78789 1.68426 7.58441 1.83429 7.43438C1.98432 7.28435 2.1878 7.20006 2.39998 7.20006H11.6688L8.23438 3.76566C8.0844 3.61564 8.00015 3.41219 8.00015 3.20006C8.00015 2.98793 8.0844 2.78448 8.23438 2.63446Z" fill="currentColor"></path>
+                          </svg>
+                        </div>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+                <div class="feature-bottom"></div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="section overflow-hidden">
+          <div class="padding-global">
+            <div class="container-large is-line-dark">
+              <div class="container-cta is-line">
+                <div class="spacer-128px"></div>
+                <div class="cta_component">
+                  <div class="cta-lines_component">
+                    <div class="cta-lines-wrapper">
+                      <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/69535185829b5e2731ac841d_cta-lines.svg" loading="lazy" alt="" class="cta-lines-image" />
+                      <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/69535185829b5e2731ac841d_cta-lines.svg" loading="lazy" alt="" class="cta-lines-image" />
+                    </div>
+                    <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/69535006105d882976f28814_cta-logo.svg" loading="lazy" alt="" class="cta-lines-logo" />
+                  </div>
+                  <div class="cta-content-wrapper">
+                    <div class="cta-wrapper">
+                      <h2 class="heading-style-h4 fade-up">Get server-less runtime for agents and data ingestion</h2>
+                      <div class="flex-vertical align-left gap-d75">
+                        <div class="text-style-muted fade-up">Get Durable Agents and Data Ingestion Workflows with zero infrastructure</div>
+                        <div class="button-group fade-up">
+                          <a arrow-color="green 1" text-color="green 1" border-color="green 1" href="https://cloud.tensorlake.ai/" target="_blank" class="button w-inline-block">
+                            <div class="button-text">TRY TENSORLAKE</div>
+                            <div class="button-arrow w-embed">
+                              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" clip-rule="evenodd" d="M8.23438 2.63446C8.3844 2.48448 8.58784 2.40023 8.79998 2.40023C9.01211 2.40023 9.21555 2.48448 9.36558 2.63446L14.1656 7.43446C14.3156 7.58448 14.3998 7.78793 14.3998 8.00006C14.3998 8.21219 14.3156 8.41564 14.1656 8.56566L9.36558 13.3657C9.21469 13.5114 9.01261 13.592 8.80286 13.5902C8.5931 13.5884 8.39245 13.5042 8.24412 13.3559C8.09579 13.2076 8.01166 13.0069 8.00984 12.7972C8.00801 12.5874 8.08865 12.3853 8.23438 12.2345L11.6688 8.80006H2.39998C2.1878 8.80006 1.98432 8.71578 1.83429 8.56575C1.68426 8.41572 1.59998 8.21223 1.59998 8.00006C1.59998 7.78789 1.68426 7.58441 1.83429 7.43438C1.98432 7.28435 2.1878 7.20006 2.39998 7.20006H11.6688L8.23438 3.76566C8.0844 3.61564 8.00015 3.41219 8.00015 3.20006C8.00015 2.98793 8.0844 2.78448 8.23438 2.63446Z" fill="currentColor"></path>
+                              </svg>
+                            </div>
+                          </a>
+                          <a arrow-color="white" text-color="white" border-color="white" href="https://calendly.com/diptanu-tensorlake/30min" target="_blank" class="button w-inline-block">
+                            <div class="button-text">REQUEST A DEMO</div>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="cta-grid"></div>
+                  </div>
+                  <div class="cta-full-line is-1"></div>
+                  <div class="cta-full-line is-2"></div>
+                </div>
+                <div class="spacer-128px"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Testimonials Section -->
+        <section class="section background-color-lightgray z-index-1">
+          <div class="grid is-white"></div>
+          <div class="container-large is-line-white background-color-lightgray">
+            <div class="spacer-60px"></div>
+            <div class="testimonials_component">
+              <div class="max-width-400px">
+                <div class="flex-vertical align-left gap-1d25">
+                  <div class="subhead_component fade-up">
+                    <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945ffb7263b4e448e21710e_green-sq-3.svg" loading="lazy" alt="" />
+                    <div class="subhead-large text-weight-normal">TRUSTED BY PRO DEVS GLOBALLY</div>
+                  </div>
+                  <p class="fade-up">Tensorlake is the Agentic Compute Runtime the durable serverless platform that runs Agents at scale.</p>
+                </div>
+              </div>
+              <div class="testimonial-slider fade-up">
+                <div fs-slider-type="cms" fs-slider-instance="fs-slider" class="fs-slider_instance">
+                  <div fs-slider-element="list-wrapper" class="fs-slider_list-wrapper w-dyn-list">
+                    <div fs-slider-element="list" role="list" class="fs-slider_list w-dyn-items">
+                      <div fs-slider-element="slide" role="listitem" class="fs-slider_slide w-dyn-item">
+                        <div class="testimonial-slide-item">
+                          <h3 class="heading-style-h5 is-testimonial">"With Tensorlake, we've been able to handle complex document parsing and data formats that many other providers don't support natively, at a throughput that significantly improves our application's UX. Beyond the technology, the team's responsiveness stands out, they quickly iterate on our feedback and continuously expand the model's capabilities."</h3>
+                          <div class="flex-vertical align-left gap-d5">
+                            <img src="https://cdn.prod.website-files.com/694612e61aac61089dc06700/697bb9efa72c1a934acb3878_image%20(7).png" loading="lazy" alt="" sizes="(max-width: 991px) 100vw, 800px, 100vw" srcset="https://cdn.prod.website-files.com/694612e61aac61089dc06700/697bb9efa72c1a934acb3878_image%20(7)-p-500.png 500w, https://cdn.prod.website-files.com/694612e61aac61089dc06700/697bb9efa72c1a934acb3878_image%20(7).png 800w" class="icon-40px" />
+                            <div class="flex-vertical align-left gap-d25">
+                              <div class="heading-style-h6">Vincent Di Pietro</div>
+                              <div class="testimonial-person-title">Founder, Novis AI</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div fs-slider-element="slide" role="listitem" class="fs-slider_slide w-dyn-item">
+                        <div class="testimonial-slide-item">
+                          <h3 class="heading-style-h5 is-testimonial">"At SIXT, we're building AI-powered experiences for millions of customers while managing the complexity of enterprise-scale data. TensorLake gives us the foundation we need—reliable document ingestion that runs securely in our VPC to power our generative AI initiatives."</h3>
+                          <div class="flex-vertical align-left gap-d5">
+                            <img src="https://cdn.prod.website-files.com/694612e61aac61089dc06700/697a71408b03ff9edfd2b036_image%20(1).png" loading="lazy" alt="" class="icon-40px" />
+                            <div class="flex-vertical align-left gap-d25">
+                              <div class="heading-style-h6">Boyan Dimitrov</div>
+                              <div class="testimonial-person-title">CTO, Sixt</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div fs-slider-element="slide" role="listitem" class="fs-slider_slide w-dyn-item">
+                        <div class="testimonial-slide-item">
+                          <h3 class="heading-style-h5 is-testimonial">"Tensorlake enabled us to avoid building and operating an in-house OCR pipeline by providing a robust, scalable OCR and document ingestion layer with excellent accuracy and feature coverage. Ongoing improvements to the platform, combined with strong technical support, make it a dependable foundation for our scientific document workflows."</h3>
+                          <div class="flex-vertical align-left gap-d5">
+                            <img src="https://cdn.prod.website-files.com/694612e61aac61089dc06700/697a7068a57ec28c92331090_image.png" loading="lazy" alt="" sizes="(max-width: 991px) 100vw, 800px, 100vw" srcset="https://cdn.prod.website-files.com/694612e61aac61089dc06700/697a7068a57ec28c92331090_image-p-500.png 500w, https://cdn.prod.website-files.com/694612e61aac61089dc06700/697a7068a57ec28c92331090_image.png 562w" class="icon-40px" />
+                            <div class="flex-vertical align-left gap-d25">
+                              <div class="heading-style-h6">Yaroslav Sklabinskyi</div>
+                              <div class="testimonial-person-title">Principal Software Engineer, Reliant AI</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div fs-slider-element="slide" role="listitem" class="fs-slider_slide w-dyn-item">
+                        <div class="testimonial-slide-item">
+                          <h3 class="heading-style-h5 is-testimonial">"For BindHQ customers, the integration with Tensorlake represents a shift from manual data handling to intelligent automation, helping insurance businesses operate with greater precision, and responsiveness across a variety of transactions"</h3>
+                          <div class="flex-vertical align-left gap-d5">
+                            <img src="https://cdn.prod.website-files.com/694612e61aac61089dc06700/696d2f7051e7e26be0f16c61_images.jpeg" loading="lazy" alt="" class="icon-40px" />
+                            <div class="flex-vertical align-left gap-d25">
+                              <div class="heading-style-h6">Cristian Joe</div>
+                              <div class="testimonial-person-title">CEO @ BindHQ</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div fs-slider-element="slide" role="listitem" class="fs-slider_slide w-dyn-item">
+                        <div class="testimonial-slide-item">
+                          <h3 class="heading-style-h5 is-testimonial">"Tensorlake let us ship faster and stay reliable from day one. Complex stateful AI workloads that used to require serious infra engineering are now just long-running functions. As we scale, that means we can stay lean—building product, not managing infrastructure."</h3>
+                          <div class="flex-vertical align-left gap-d5">
+                            <img src="https://cdn.prod.website-files.com/694612e61aac61089dc06700/696d2f0d0ed703e7713ec789_1765956652230.jpeg" loading="lazy" alt="" sizes="(max-width: 991px) 100vw, 800px, 100vw" srcset="https://cdn.prod.website-files.com/694612e61aac61089dc06700/696d2f0d0ed703e7713ec789_1765956652230-p-500.jpeg 500w, https://cdn.prod.website-files.com/694612e61aac61089dc06700/696d2f0d0ed703e7713ec789_1765956652230.jpeg 800w" class="icon-40px" />
+                            <div class="flex-vertical align-left gap-d25">
+                              <div class="heading-style-h6">Arpan Bhattacharya</div>
+                              <div class="testimonial-person-title">CEO, The Intelligent Search Company</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div fs-slider-element="navigation" class="fs-slider_navigation">
+                    <div fs-slider-element="pagination" class="fs-slider_pagination">
+                      <div fs-slider-element="pagination-bullet" class="fs-slider_pagination_bullet"></div>
+                      <div fs-slider-element="pagination-bullet-active" class="fs-slider_pagination_bullet is-bullet-active"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="spacer-60px"></div>
+          </div>
+        </section>
+
+        <!-- Data Workflows Section -->
+        <section class="section">
+          <div class="padding-global">
+            <div class="container-large is-line-dark">
+              <div class="spacer-80px"></div>
+              <div class="divider is-black"></div>
+              <div class="padding-32px">
+                <div class="max-width-512px">
+                  <div class="flex-vertical align-left gap-1d25">
+                    <div class="subhead_component fade-up">
+                      <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945f450e6a72dffdf1b8558_green-sq-2.svg" loading="lazy" alt="" />
+                      <div class="subhead-text is-swamp">DATA WORKFLOWS</div>
+                    </div>
+                    <h2 class="heading-style-h4 text-balance fade-up">The All-In-One Runtime for AI Data Workflows</h2>
+                  </div>
+                </div>
+              </div>
+              <div class="spacer-40px"></div>
+              <div class="workflows_component">
+                <div class="workflow-grid-item">
+                  <div class="max-width-320px">
+                    <div class="flex-vertical align-left gap-d5">
+                      <div class="subhead-large">1TB BUILT-IN QUEUE</div>
+                      <p class="text-size-small text-style-xmuted">Built-in 1TB persistence layer. Ingest massive datasets without managing Kafka or Redis sidecars</p>
+                    </div>
+                  </div>
+                  <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945f2a8d688d156797d56b4_ms-icon.svg" loading="lazy" alt="" />
+                </div>
+                <div id="w-node-_84c91d54-906c-ec74-6ab4-e6128a78568e-a90b8eca" class="data-workflow-graphic">
+                  <div class="data-workflow-graphic-top">
+                    <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/694b5c90e033e4c31f7e3f4b_three-dots.svg" loading="lazy" alt="" />
+                    <div>tensorlake_function.py</div>
+                  </div>
+                  <div class="data-workflow-graphic-content">
+                    <p>
+                      <span class="text-color-swamp">from </span>tensorlake<span class="text-color-swamp"> import </span>function, File<br /><br />
+                      <span class="text-color-green-2">@function</span><span class="text-color-swamp">()</span><br />
+                      <span class="text-color-swamp">def </span><span class="text-color-green-2">download_dataset</span><span class="text-color-swamp">(path: str) -&gt; </span>List[File]<span class="text-color-swamp">:</span>
+                      <span class="text-color-swamp"> images = </span><span class="text-color-green-2">load_images</span><span class="text-color-swamp">(path)</span><br />
+                      <span class="text-color-swamp"> return [</span><span class="text-color-green-2">pre_process_image</span><span class="text-color-swamp">(image) for </span>image<span class="text-color-swamp"> in </span>images<span class="text-color-swamp">]</span><br /><br />
+                      <span class="text-color-green-2">@function</span><span class="text-color-swamp">(gpu=</span><span class="text-color-green-1">"A10"</span><span class="text-color-swamp">)</span><br />
+                      <span class="text-color-swamp">def </span><span class="text-color-green-2">detect_objects</span><span class="text-color-swamp">(image: </span>PIL.Image<span class="text-color-swamp">) -&gt; </span>Detection<span class="text-color-swamp">:</span><br />
+                      <span class="text-color-swamp"> detection = </span><span class="text-color-green-2">yolo</span><span class="text-color-swamp">(image)</span><br />
+                      <span class="text-color-swamp"> return </span>detection<br /><br />
+                      <span class="text-color-green-2">@function</span><span class="text-color-swamp">()</span><br />
+                      <span class="text-color-swamp">def </span><span class="text-color-green-2">write_to_db</span><span class="text-color-swamp">(</span>detection<span class="text-color-swamp">: </span>Detection<span class="text-color-swamp">):</span>
+                      psql<span class="text-color-green-2">.write</span><span class="text-color-swamp">(dection)</span>
+                    </p>
+                  </div>
+                </div>
+                <div class="workflow-grid-item">
+                  <div class="max-width-320px">
+                    <div class="flex-vertical align-left gap-d5">
+                      <div class="subhead-large">NO-SQL PARALLELISM</div>
+                      <p class="text-size-small text-style-xmuted">Achieve data-warehouse concurrency directly in Python. Use .map() to fan out execution across thousands of nodes instantly, replacing the need for SQL-based orchestration</p>
+                    </div>
+                  </div>
+                  <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945f2a8d688d156797d56b4_ms-icon.svg" loading="lazy" alt="" />
+                </div>
+                <div class="workflow-grid-item">
+                  <div class="max-width-320px">
+                    <div class="flex-vertical align-left gap-d5">
+                      <div class="subhead-large">90,000 REQ/SEC</div>
+                      <p class="text-size-small text-style-xmuted">Concurrent invocations per workflow. Zero cold-start throttling</p>
+                    </div>
+                  </div>
+                  <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945f2a8d688d156797d56b4_ms-icon.svg" loading="lazy" alt="" />
+                </div>
+                <div class="workflow-grid-item">
+                  <div class="max-width-320px">
+                    <div class="flex-vertical align-left gap-d5">
+                      <div class="subhead-large">SERVERLESS COMPUTE</div>
+                      <p class="text-size-small text-style-xmuted">Attach H100 GPUs to any step via a single decorator argument. Mix CPU and GPU workloads in the same workflow.</p>
+                    </div>
+                  </div>
+                  <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945f2a8d688d156797d56b4_ms-icon.svg" loading="lazy" alt="" />
+                </div>
+              </div>
+              <div class="spacer-96px"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Security Section -->
+        <section class="section background-color-lightgray overflow-hidden">
+          <div class="padding-global">
+            <div class="container-large is-line-white">
+              <div class="spacer-80px"></div>
+              <div class="max-width-480px align-center text-align-center">
+                <div class="flex-vertical align-center gap-2">
+                  <div class="flex-vertical align-center gap-1d25">
+                    <div class="subhead_component fade-up">
+                      <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945f450e6a72dffdf1b8558_green-sq-2.svg" loading="lazy" alt="" />
+                      <div class="subhead-text text-weight-normal">SECURITY</div>
+                    </div>
+                    <h2 class="heading-style-h3 fade-up">Security Built for Agentic and AI Data Workflows</h2>
+                  </div>
+                  <div class="fade-up">
+                    <a arrow-color="black" text-color="black" border-color="black" href="https://calendly.com/diptanu-tensorlake/30min" target="_blank" class="button w-inline-block">
+                      <div class="button-text">LEARN MORE</div>
+                      <div class="button-arrow w-embed">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path fill-rule="evenodd" clip-rule="evenodd" d="M8.23438 2.63446C8.3844 2.48448 8.58784 2.40023 8.79998 2.40023C9.01211 2.40023 9.21555 2.48448 9.36558 2.63446L14.1656 7.43446C14.3156 7.58448 14.3998 7.78793 14.3998 8.00006C14.3998 8.21219 14.3156 8.41564 14.1656 8.56566L9.36558 13.3657C9.21469 13.5114 9.01261 13.592 8.80286 13.5902C8.5931 13.5884 8.39245 13.5042 8.24412 13.3559C8.09579 13.2076 8.01166 13.0069 8.00984 12.7972C8.00801 12.5874 8.08865 12.3853 8.23438 12.2345L11.6688 8.80006H2.39998C2.1878 8.80006 1.98432 8.71578 1.83429 8.56575C1.68426 8.41572 1.59998 8.21223 1.59998 8.00006C1.59998 7.78789 1.68426 7.58441 1.83429 7.43438C1.98432 7.28435 2.1878 7.20006 2.39998 7.20006H11.6688L8.23438 3.76566C8.0844 3.61564 8.00015 3.41219 8.00015 3.20006C8.00015 2.98793 8.0844 2.78448 8.23438 2.63446Z" fill="currentColor"></path>
+                        </svg>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <div class="spacer-48px"></div>
+              <div class="security_component">
+                <div class="security-grid-item">
+                  <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945f2a8d688d156797d56b4_ms-icon.svg" loading="lazy" alt="" />
+                  <div class="max-width-320px">
+                    <div class="flex-vertical align-left gap-d5">
+                      <div class="text-size-medium text-style-muted fade-up">Tracing and Observability</div>
+                      <p class="text-size-small fade-up">Full traces of every function and tool call — with logs, timing, and structured execution paths.</p>
+                    </div>
+                  </div>
+                </div>
+                <div id="w-node-_59353a4f-d4b3-415e-329c-c9415b168584-a90b8eca" class="security-image-wrapper">
+                  <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/694608b20da4d17f11682f10_security-image.svg" loading="lazy" width="451" alt="" class="security-image" />
+                </div>
+                <div class="security-grid-item">
+                  <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945f2a8d688d156797d56b4_ms-icon.svg" loading="lazy" alt="" />
+                  <div class="max-width-320px">
+                    <div class="flex-vertical align-left gap-d5">
+                      <div class="text-size-medium text-style-muted fade-up">Sandbox for tool calls</div>
+                      <p class="text-size-small fade-up">Tool calls run in isolated sandboxes, making them safe for LLM-generated code.</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="security-grid-item">
+                  <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945f2a8d688d156797d56b4_ms-icon.svg" loading="lazy" alt="" />
+                  <div class="max-width-320px">
+                    <div class="flex-vertical align-left gap-d5">
+                      <div class="text-size-medium text-style-muted fade-up">Sandbox for agent harness</div>
+                      <p class="text-size-small fade-up">Each agent harness executes inside an isolated sandbox to keep sessions safe and independent.</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="security-grid-item">
+                  <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945f2a8d688d156797d56b4_ms-icon.svg" loading="lazy" alt="" />
+                  <div class="max-width-320px">
+                    <div class="flex-vertical align-left gap-d5">
+                      <div class="text-size-medium text-style-muted fade-up">HIPAA / SOC2 Type2 Compliant</div>
+                      <p class="text-size-small fade-up">Secure by default for PHI, PII, and sensitive documents.</p>
+                    </div>
+                  </div>
+                </div>
+                <div id="w-node-e4d5a86f-4fd3-4890-f602-3aaa547c38c9-a90b8eca" class="security-grid-item">
+                  <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/6945f2a8d688d156797d56b4_ms-icon.svg" loading="lazy" alt="" />
+                  <div class="flex-vertical align-left gap-d5">
+                    <div class="text-size-medium text-style-muted fade-up">Isolated &amp; Auditable Data Boundaries</div>
+                    <p class="text-size-small fade-up">Each project's data lives in its own isolated bucket with full audit trails and strong RBAC controls.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="spacer-80px"></div>
+            </div>
+          </div>
+        </section>
+
+        <div class="big-divider"></div>
+
+        <!-- Newsletter Section -->
+        <section class="section background-color-lightgray">
+          <div class="padding-global padding-section-medium">
+            <div class="container-large">
+              <div class="newsletter_component">
+                <div class="newsletter-header">
+                  <div class="subhead-text">SUBSCRIBE FOR NEWS &amp; MORE</div>
+                  <div class="vertical-infinite-loop is-newsletter">
+                    <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/69534baee3228daaca23d326_vertical-loop-2.svg" loading="lazy" alt="" class="vertical-loop-image" />
+                    <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/69534baee3228daaca23d326_vertical-loop-2.svg" loading="lazy" alt="" class="vertical-loop-image" />
+                  </div>
+                </div>
+                <div class="newsletter-wrapper">
+                  <div class="flex-vertical align-left gap-2d5">
+                    <div class="max-width-480px">
+                      <div class="flex-vertical align-left gap-d75">
+                        <div class="subhead-text text-weight-normal fade-up">The Document Digest</div>
+                        <h2 class="heading-style-h4 fade-up">Join our newsletter for the latest product updates</h2>
+                      </div>
+                    </div>
+                    <div class="form_component is-newsletter w-form">
+                      <form id="wf-form-Newsletter-Form" name="wf-form-Newsletter-Form" data-name="Newsletter Form" method="get" class="form_form is-newsletter" data-wf-page-id="6941d3d746b6bf0ea90b8eca" data-wf-element-id="0061c635-006a-5197-16e2-f755d8b11e00">
+                        <input class="form_input w-input" maxlength="256" name="Email" data-name="Email" placeholder="youremail@gmail.com" type="email" id="Email" required="" />
+                        <input class="form_input w-input" maxlength="256" name="Full-Name" data-name="Full Name" placeholder="Full Name" type="text" id="Full-Name" required="" />
+                        <input type="submit" data-wait="Please wait..." class="button is-form-submit w-button" value="Sign up" />
+                      </form>
+                      <div class="form_message-success w-form-done">
+                        <div>Thank you! Your submission has been received!</div>
+                      </div>
+                      <div class="form_message-error w-form-fail">
+                        <div>Oops! Something went wrong while submitting the form.</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Footer -->
+        <section class="section is-footer">
+          <div class="padding-global padding-section-footertop">
+            <div class="container-large">
+              <div class="flex-vertical align-left gap-d75">
+                <div class="subhead-text text-weight-normal text-style-xmuted fade-up">THE AI PLATFORM FOR YOUR AGENTIC APPLICATIONS</div>
+                <h2 class="heading-style-h2 fade-up">Ship AI Automation Faster With Tensorlake</h2>
+              </div>
+            </div>
+          </div>
+          <div class="divider is-black"></div>
+          <div class="padding-global padding-section-footerbottom">
+            <div class="container-large">
+              <div class="footer-grid">
+                <div class="footer-column">
+                  <div class="subhead-text text-weight-normal">COMPANY</div>
+                  <div class="flex-vertical align-left gap-d5">
+                    <a href="/blog" class="footer-link">Blog</a>
+                    <a href="/pricing" class="footer-link">Pricing</a>
+                    <a href="/careers" class="footer-link">Careers</a>
+                    <a href="https://docs.tensorlake.ai/introduction" target="_blank" class="footer-link">Documentation</a>
+                    <a href="https://calendly.com/diptanu-tensorlake/30min" target="_blank" class="footer-link">Contact Sales</a>
+                  </div>
+                </div>
+                <div class="footer-column">
+                  <div class="subhead-text text-weight-normal">PRODUCTS</div>
+                  <div class="flex-vertical align-left gap-d5">
+                    <a href="/document-ingestion" class="footer-link">Document AI</a>
+                    <a href="/agentic-applications" class="footer-link">Agentic Application</a>
+                  </div>
+                </div>
+                <div class="footer-column">
+                  <div class="subhead-text text-weight-normal">DEVELOPERS</div>
+                  <div class="flex-vertical align-left gap-d5">
+                    <a href="/changelog" class="footer-link">Changelog</a>
+                    <a href="https://status.tensorlake.ai/" target="_blank" class="footer-link">Status Page</a>
+                  </div>
+                </div>
+                <div class="footer-column">
+                  <div class="subhead-text text-weight-normal">Social</div>
+                  <div class="flex-vertical align-left gap-d5">
+                    <a href="https://x.com/tensorlake" target="_blank" class="footer-link">Twitter</a>
+                    <a href="https://tensorlakecloud.slack.com/join/shared_invite/zt-32fq4nmib-gO0OM5RIar3zLOBm~ZGqKg#/shared-invite/email" target="_blank" class="footer-link">Slack</a>
+                    <a href="https://www.linkedin.com/company/tensorlake/" target="_blank" class="footer-link">LinkedIn</a>
+                    <a href="https://github.com/tensorlakeai" target="_blank" class="footer-link">GitHub</a>
+                    <a href="https://bsky.app/profile/tensorlake.ai" target="_blank" class="footer-link">Bluesky</a>
+                  </div>
+                </div>
+              </div>
+              <div class="spacer-192px"></div>
+              <div class="footer-copyright">
+                <div class="green-highlight-text">[ TENSORLAKE INC. ] HQ: SF / TEAM: GLOBAL_</div>
+              </div>
+            </div>
+          </div>
+          <div class="footer-loop-wrapper">
+            <div class="footer-loop-image-wrapper">
+              <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/69534c779f0c80f299b83329_footer-lines.svg" loading="eager" alt="" class="footer-loop-image" />
+              <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/69534c779f0c80f299b83329_footer-lines.svg" loading="eager" alt="" class="footer-loop-image" />
+              <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/69534c779f0c80f299b83329_footer-lines.svg" loading="eager" alt="" class="footer-loop-image" />
+              <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/69534c779f0c80f299b83329_footer-lines.svg" loading="eager" alt="" class="footer-loop-image" />
+              <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/69534c779f0c80f299b83329_footer-lines.svg" loading="eager" alt="" class="footer-loop-image" />
+            </div>
+            <div class="footer-loop-image-wrapper">
+              <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/69534c779f0c80f299b83329_footer-lines.svg" loading="eager" alt="" class="footer-loop-image" />
+              <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/69534c779f0c80f299b83329_footer-lines.svg" loading="eager" alt="" class="footer-loop-image" />
+              <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/69534c779f0c80f299b83329_footer-lines.svg" loading="eager" alt="" class="footer-loop-image" />
+              <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/69534c779f0c80f299b83329_footer-lines.svg" loading="eager" alt="" class="footer-loop-image" />
+              <img src="https://cdn.prod.website-files.com/6941d3d746b6bf0ea90b8ecf/69534c779f0c80f299b83329_footer-lines.svg" loading="eager" alt="" class="footer-loop-image" />
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

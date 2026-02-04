@@ -11,51 +11,12 @@ import {
     GetWorkflowChatMessagesFailed
     , CreateWorkflowChatMessageFailed
 } from './workflowChatMessages.errors';
-
-// types for get workflow chat messages
-interface GetWorkflowChatMessagesQueryVariables {
-    workflowId: string;
-}
-
-interface GetWorkflowChatMessagesQuery {
-    __typename: 'Query';
-    workflowById?: {
-        __typename: 'Workflow';
-        id: string;
-        workflowChatMessagesByWorkflowId: {
-            __typename: 'WorkflowChatMessagesConnection';
-            nodes: Array<{
-                __typename: 'WorkflowChatMessage';
-                id: string;
-                role: string;
-                content: string;
-                createdAt: string;
-            } | null>;
-        };
-    } | null;
-}
-
-// types for create workflow chat message
-interface CreateWorkflowChatMessageMutationVariables {
-    workflowId: string;
-    role: MessageRole;
-    content: string;
-    modelId?: string | null;
-}
-
-interface CreateWorkflowChatMessageMutation {
-    __typename: 'Mutation';
-    createWorkflowChatMessage?: {
-        __typename: 'CreateWorkflowChatMessagePayload';
-        workflowChatMessage?: {
-            __typename: 'WorkflowChatMessage';
-            id: string;
-            role: string;
-            content: string;
-            createdAt: string;
-        } | null;
-    } | null;
-}
+import {
+    CreateWorkflowChatMessageMutation
+    , CreateWorkflowChatMessageMutationVariables
+    , GetWorkflowChatMessagesQuery
+    , GetWorkflowChatMessagesQueryVariables
+} from './workflowChatMessages.service.generatedTypes';
 
 /**
  * get all chat messages for a workflow from the database

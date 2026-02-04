@@ -1,7 +1,49 @@
-# Frontend docker-compose
-# NOTE: Run `docker-compose up` in /backend first to start the database and API
+# Top-level docker-compose for local full-stack
+# NOTE: the `version:` field is removed (deprecated in Compose v2).
 
 services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: app
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5433:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data/pgdata
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3026:3026"
+    env_file:
+      - ./backend/.env
+    environment:
+      PORT: 3026
+      DATABASE_URL: postgres://postgres:postgrespassword@postgres:5432/app
+      MCP_TOOLS_URL: http://mcp-tools-server:4010
+    depends_on:
+      - postgres
+      - mcp-tools-server
+
+  mcp-tools-server:
+    build:
+      context: ./mcp-tools-server
+      dockerfile: Dockerfile
+    ports:
+      - "4010:4010"
+    env_file:
+      - ./mcp-tools-server/.env
+    environment:
+      PORT: 4010
+      MCP_TOOLS_API_KEY: local_mcp_tools_key
+    restart: unless-stopped
+
   frontend:
     build:
       context: ./frontend
@@ -10,7 +52,9 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=http://localhost:4000
-    restart: unless-stopped
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - NEXT_PUBLIC_API_URL=http://localhost:3026
+    depends_on:
+      - backend
+
+volumes:
+  db_data:

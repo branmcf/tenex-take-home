@@ -4,18 +4,19 @@ import express from 'express';
 // internal dependencies
 import { livenessRouter } from './liveness';
 import { modelsRouter } from './models';
-import { messagesRouter } from './messages';
 import { chatsRouter } from './chats';
+import { usersRouter } from './users';
 import { workflowsRouter } from './workflows';
-import { workflowChatMessagesRouter } from './workflowChatMessages';
+import { toolsRouter } from './tools';
+import { sessionValidator } from '../middleware';
 
 // create an express router
 export const apiRouter = express.Router();
 
 // use the routers
 apiRouter.use( '/liveness', livenessRouter );
-apiRouter.use( '/models', modelsRouter );
-apiRouter.use( '/chats/:chatId/messages', messagesRouter );
-apiRouter.use( '/workflows/:workflowId/messages', workflowChatMessagesRouter );
-apiRouter.use( '/', chatsRouter );
-apiRouter.use( '/', workflowsRouter );
+apiRouter.use( '/models', sessionValidator, modelsRouter );
+apiRouter.use( '/users', sessionValidator, usersRouter );
+apiRouter.use( '/chats', sessionValidator, chatsRouter );
+apiRouter.use( '/workflows', sessionValidator, workflowsRouter );
+apiRouter.use( '/tools', sessionValidator, toolsRouter );

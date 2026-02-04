@@ -1,0 +1,24 @@
+{
+    "name": "tenex-mcp-tools-server",
+    "version": "0.1.0",
+    "type": "module",
+    "description": "Standalone MCP tools service",
+    "main": "index.js",
+    "scripts": {
+        "dev": "tsx watch --env-file=.env index.ts",
+        "build": "rm -rf dist/ ; tsc",
+        "start": "tsx dist/index.js"
+    },
+    "dependencies": {
+        "cors": "^2.8.5",
+        "express": "^4.18.2",
+        "joi": "^17.13.3"
+    },
+    "devDependencies": {
+        "@types/cors": "^2.8.19",
+        "@types/express": "^4.17.21",
+        "@types/node": "^22.13.4",
+        "tsx": "^4.19.2",
+        "typescript": "^5.7.3"
+    }
+}

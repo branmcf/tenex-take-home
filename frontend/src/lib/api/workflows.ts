@@ -19,6 +19,7 @@ export interface WorkflowTool {
     id: string;
     name: string;
     description?: string;
+    version?: string;
 }
 
 /**
@@ -116,9 +117,30 @@ interface CreateWorkflowChatMessageResponse {
     userMessage: WorkflowChatMessage;
     assistantMessage: WorkflowChatMessage | null;
     workflowId: string;
+    proposedChanges?: {
+        proposalId: string;
+        baseVersionId: string | null;
+        toolCalls: unknown;
+        previewSteps: Array<{
+            id: string;
+            name: string;
+            instruction: string;
+            tools?: Array<{ id: string; name?: string; version?: string }>;
+            dependsOn?: string[];
+        }>;
+    };
     error?: {
         message: string;
         code: string;
+    };
+}
+
+interface ApplyWorkflowProposalResponse {
+    success: boolean;
+    workflowVersion: {
+        id: string;
+        versionNumber: number;
+        steps: WorkflowStep[];
     };
 }
 
@@ -225,6 +247,23 @@ export async function sendWorkflowChatMessage(
     const response = await apiClient.post<CreateWorkflowChatMessageResponse>(
         `/api/workflows/${workflowId}/messages`,
         data
+    );
+    return response.data;
+}
+
+/**
+ * Applies a workflow proposal.
+ * @param workflowId - The workflow ID
+ * @param proposalId - The proposal ID
+ * @returns Updated workflow version
+ */
+export async function applyWorkflowChatProposal(
+    workflowId: string,
+    proposalId: string
+): Promise<ApplyWorkflowProposalResponse> {
+    const response = await apiClient.post<ApplyWorkflowProposalResponse>(
+        `/api/workflows/${workflowId}/messages/apply`,
+        { proposalId }
     );
     return response.data;
 }

@@ -15,6 +15,7 @@ import {
     , MessageResponse
 } from './messages.types';
 import { generateLLMResponse, generateAndUpdateChatTitle, generateFallbackChatTitle } from './messages.helper';
+import { runWorkflow } from '../../lib/workflowRunner';
 import { streamLLMText } from '../../lib/llm';
 import { ChatAccessForbidden } from './messages.errors';
 
@@ -33,7 +34,7 @@ export const createMessageHandler = async (
     const { chatId } = req.params;
 
     // get the message content, modelId, and userId from the body
-    const { content, modelId, userId } = req.body;
+    const { content, modelId, userId, workflowId } = req.body;
 
     // check if chat exists
     const getChatByIdResult = await getChatById( chatId );
@@ -96,14 +97,68 @@ export const createMessageHandler = async (
     // store the user message data
     const userMessageData = createUserMessageResult.value;
 
+    // if a workflow is selected, run it instead of free-form LLM response
+    const workflowExecutionResult = workflowId
+        ? await runWorkflow( {
+            workflowId
+            , chatId
+            , triggerMessageId: userMessageData.id
+            , userMessage: content
+            , modelId
+        } )
+        : null;
+
     // generate LLM response
-    const generateLLMResponseResult = await generateLLMResponse( {
-        userMessage: content
-        , modelId
-    } );
+    const generateLLMResponseResult = workflowExecutionResult
+        ? null
+        : await generateLLMResponse( {
+            userMessage: content
+            , modelId
+        } );
 
     // check for errors
-    if ( generateLLMResponseResult.isError() ) {
+    if ( workflowExecutionResult && workflowExecutionResult.isError() ) {
+
+        // if this is a new chat, store a system message and generate fallback title
+        if ( isNewChat ) {
+            const systemMessageContent = 'Failed to run the selected workflow. Your message has been saved — please try again.';
+
+            await createMessage( {
+                chatId
+                , role: 'system'
+                , content: systemMessageContent
+                , modelId
+            } );
+
+            await generateFallbackChatTitle( {
+                chatId
+                , userMessage: content
+            } );
+
+            const userMessage: MessageResponse = {
+                id: userMessageData.id
+                , role: 'user'
+                , content
+                , createdAt: userMessageData.createdAt
+            };
+
+            return res.status( 201 ).json( {
+                userMessage
+                , assistantMessage: null
+                , chatId
+                , error: {
+                    message: 'Workflow execution failed'
+                    , code: 'WORKFLOW_RUN_FAILED'
+                }
+            } );
+        }
+
+        return res
+            .status( workflowExecutionResult.value.statusCode )
+            .json( workflowExecutionResult.value );
+    }
+
+    if ( generateLLMResponseResult && generateLLMResponseResult.isError() ) {
 
         // if this is a new chat, store a system message and generate fallback title
         // so the user can see what happened and retry
@@ -153,13 +208,17 @@ export const createMessageHandler = async (
     }
 
     // store the LLM response data
-    const llmResponseData = generateLLMResponseResult.value;
+    const llmResponseData = generateLLMResponseResult ? generateLLMResponseResult.value : null;
 
     // create the assistant message
+    const assistantContent = workflowExecutionResult
+        ? workflowExecutionResult.value.content
+        : llmResponseData?.content ?? '';
+
     const createAssistantMessageResult = await createMessage( {
         chatId
         , role: 'assistant'
-        , content: llmResponseData.content
+        , content: assistantContent
         , modelId
     } );
 
@@ -176,27 +235,25 @@ export const createMessageHandler = async (
     const assistantMessageData = createAssistantMessageResult.value;
 
     // create message sources for the assistant message
-    const sourcePromises = llmResponseData.sources.map( ( source, index ) =>
-        createMessageSource( {
-            messageId: assistantMessageData.id
-            , url: source.url
-            , title: source.title
-            , description: source.description
-            , position: index
-        } )
-    );
+    if ( llmResponseData ) {
+        const sourcePromises = llmResponseData.sources.map( ( source, index ) =>
+            createMessageSource( {
+                messageId: assistantMessageData.id
+                , url: source.url
+                , title: source.title
+                , description: source.description
+                , position: index
+            } )
+        );
 
-    // wait for all sources to be created
-    const sourceResults = await Promise.all( sourcePromises );
+        const sourceResults = await Promise.all( sourcePromises );
 
-    // check if any source creation failed
-    for ( const sourceResult of sourceResults ) {
-        if ( sourceResult.isError() ) {
-
-            // return the error
-            return res
-                .status( sourceResult.value.statusCode )
-                .json( sourceResult.value );
+        for ( const sourceResult of sourceResults ) {
+            if ( sourceResult.isError() ) {
+                return res
+                    .status( sourceResult.value.statusCode )
+                    .json( sourceResult.value );
+            }
         }
     }
 
@@ -226,9 +283,9 @@ export const createMessageHandler = async (
     const assistantMessage: MessageResponse = {
         id: assistantMessageData.id
         , role: 'assistant'
-        , content: llmResponseData.content
+        , content: assistantContent
         , createdAt: assistantMessageData.createdAt
-        , sources: llmResponseData.sources
+        , sources: llmResponseData ? llmResponseData.sources : undefined
     };
 
     // return success

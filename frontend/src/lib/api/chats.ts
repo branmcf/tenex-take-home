@@ -74,6 +74,7 @@ interface CreateMessageRequest {
     content: string;
     modelId: string;
     userId: string;
+    workflowId?: string | null;
 }
 
 interface CreateMessageResponse {

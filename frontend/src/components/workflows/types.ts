@@ -2,6 +2,7 @@ export interface WorkflowTool {
   id: string;
   name: string;
   description?: string;
+  version?: string;
 }
 
 export interface WorkflowStep {

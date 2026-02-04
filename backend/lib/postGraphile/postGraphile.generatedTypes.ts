@@ -772,6 +772,43 @@ export type CreateWorkflowPayloadWorkflowEdgeArgs = {
   orderBy?: InputMaybe<Array<WorkflowsOrderBy>>;
 };
 
+/** All input for the create `WorkflowProposal` mutation. */
+export type CreateWorkflowProposalInput = {
+  /**
+   * An arbitrary string value with no semantic meaning. Will be included in the
+   * payload verbatim. May be used to track mutations by the client.
+   */
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+  /** The `WorkflowProposal` to be created by this mutation. */
+  workflowProposal: WorkflowProposalInput;
+};
+
+/** The output of our create `WorkflowProposal` mutation. */
+export type CreateWorkflowProposalPayload = {
+  __typename?: 'CreateWorkflowProposalPayload';
+  /**
+   * The exact same `clientMutationId` that was provided in the mutation input,
+   * unchanged and unused. May be used by a client to track mutations.
+   */
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  /** Our root query field type. Allows us to run any query from our mutation payload. */
+  query?: Maybe<Query>;
+  /** Reads a single `Workflow` that is related to this `WorkflowProposal`. */
+  workflowByWorkflowId?: Maybe<Workflow>;
+  /** The `WorkflowProposal` that was created by this mutation. */
+  workflowProposal?: Maybe<WorkflowProposal>;
+  /** An edge for our `WorkflowProposal`. May be used by Relay 1. */
+  workflowProposalEdge?: Maybe<WorkflowProposalsEdge>;
+  /** Reads a single `WorkflowVersion` that is related to this `WorkflowProposal`. */
+  workflowVersionByBaseVersionId?: Maybe<WorkflowVersion>;
+};
+
+
+/** The output of our create `WorkflowProposal` mutation. */
+export type CreateWorkflowProposalPayloadWorkflowProposalEdgeArgs = {
+  orderBy?: InputMaybe<Array<WorkflowProposalsOrderBy>>;
+};
+
 /** All input for the create `WorkflowRun` mutation. */
 export type CreateWorkflowRunInput = {
   /**
@@ -1536,6 +1573,54 @@ export type DeleteWorkflowPayloadWorkflowEdgeArgs = {
   orderBy?: InputMaybe<Array<WorkflowsOrderBy>>;
 };
 
+/** All input for the `deleteWorkflowProposalById` mutation. */
+export type DeleteWorkflowProposalByIdInput = {
+  /**
+   * An arbitrary string value with no semantic meaning. Will be included in the
+   * payload verbatim. May be used to track mutations by the client.
+   */
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['UUID']['input'];
+};
+
+/** All input for the `deleteWorkflowProposal` mutation. */
+export type DeleteWorkflowProposalInput = {
+  /**
+   * An arbitrary string value with no semantic meaning. Will be included in the
+   * payload verbatim. May be used to track mutations by the client.
+   */
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+  /** The globally unique `ID` which will identify a single `WorkflowProposal` to be deleted. */
+  nodeId: Scalars['ID']['input'];
+};
+
+/** The output of our delete `WorkflowProposal` mutation. */
+export type DeleteWorkflowProposalPayload = {
+  __typename?: 'DeleteWorkflowProposalPayload';
+  /**
+   * The exact same `clientMutationId` that was provided in the mutation input,
+   * unchanged and unused. May be used by a client to track mutations.
+   */
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  deletedWorkflowProposalId?: Maybe<Scalars['ID']['output']>;
+  /** Our root query field type. Allows us to run any query from our mutation payload. */
+  query?: Maybe<Query>;
+  /** Reads a single `Workflow` that is related to this `WorkflowProposal`. */
+  workflowByWorkflowId?: Maybe<Workflow>;
+  /** The `WorkflowProposal` that was deleted by this mutation. */
+  workflowProposal?: Maybe<WorkflowProposal>;
+  /** An edge for our `WorkflowProposal`. May be used by Relay 1. */
+  workflowProposalEdge?: Maybe<WorkflowProposalsEdge>;
+  /** Reads a single `WorkflowVersion` that is related to this `WorkflowProposal`. */
+  workflowVersionByBaseVersionId?: Maybe<WorkflowVersion>;
+};
+
+
+/** The output of our delete `WorkflowProposal` mutation. */
+export type DeleteWorkflowProposalPayloadWorkflowProposalEdgeArgs = {
+  orderBy?: InputMaybe<Array<WorkflowProposalsOrderBy>>;
+};
+
 /** All input for the `deleteWorkflowRunById` mutation. */
 export type DeleteWorkflowRunByIdInput = {
   /**
@@ -2064,6 +2149,8 @@ export type Mutation = {
   createWorkflow?: Maybe<CreateWorkflowPayload>;
   /** Creates a single `WorkflowChatMessage`. */
   createWorkflowChatMessage?: Maybe<CreateWorkflowChatMessagePayload>;
+  /** Creates a single `WorkflowProposal`. */
+  createWorkflowProposal?: Maybe<CreateWorkflowProposalPayload>;
   /** Creates a single `WorkflowRun`. */
   createWorkflowRun?: Maybe<CreateWorkflowRunPayload>;
   /** Creates a single `WorkflowVersion`. */
@@ -2132,6 +2219,10 @@ export type Mutation = {
   deleteWorkflowChatMessage?: Maybe<DeleteWorkflowChatMessagePayload>;
   /** Deletes a single `WorkflowChatMessage` using a unique key. */
   deleteWorkflowChatMessageById?: Maybe<DeleteWorkflowChatMessagePayload>;
+  /** Deletes a single `WorkflowProposal` using its globally unique id. */
+  deleteWorkflowProposal?: Maybe<DeleteWorkflowProposalPayload>;
+  /** Deletes a single `WorkflowProposal` using a unique key. */
+  deleteWorkflowProposalById?: Maybe<DeleteWorkflowProposalPayload>;
   /** Deletes a single `WorkflowRun` using its globally unique id. */
   deleteWorkflowRun?: Maybe<DeleteWorkflowRunPayload>;
   /** Deletes a single `WorkflowRun` using a unique key. */
@@ -2206,6 +2297,10 @@ export type Mutation = {
   updateWorkflowChatMessage?: Maybe<UpdateWorkflowChatMessagePayload>;
   /** Updates a single `WorkflowChatMessage` using a unique key and a patch. */
   updateWorkflowChatMessageById?: Maybe<UpdateWorkflowChatMessagePayload>;
+  /** Updates a single `WorkflowProposal` using its globally unique id and a patch. */
+  updateWorkflowProposal?: Maybe<UpdateWorkflowProposalPayload>;
+  /** Updates a single `WorkflowProposal` using a unique key and a patch. */
+  updateWorkflowProposalById?: Maybe<UpdateWorkflowProposalPayload>;
   /** Updates a single `WorkflowRun` using its globally unique id and a patch. */
   updateWorkflowRun?: Maybe<UpdateWorkflowRunPayload>;
   /** Updates a single `WorkflowRun` using a unique key and a patch. */
@@ -2300,6 +2395,12 @@ export type MutationCreateWorkflowArgs = {
 /** The root mutation type which contains root level fields which mutate data. */
 export type MutationCreateWorkflowChatMessageArgs = {
   input: CreateWorkflowChatMessageInput;
+};
+
+
+/** The root mutation type which contains root level fields which mutate data. */
+export type MutationCreateWorkflowProposalArgs = {
+  input: CreateWorkflowProposalInput;
 };
 
 
@@ -2504,6 +2605,18 @@ export type MutationDeleteWorkflowChatMessageArgs = {
 /** The root mutation type which contains root level fields which mutate data. */
 export type MutationDeleteWorkflowChatMessageByIdArgs = {
   input: DeleteWorkflowChatMessageByIdInput;
+};
+
+
+/** The root mutation type which contains root level fields which mutate data. */
+export type MutationDeleteWorkflowProposalArgs = {
+  input: DeleteWorkflowProposalInput;
+};
+
+
+/** The root mutation type which contains root level fields which mutate data. */
+export type MutationDeleteWorkflowProposalByIdArgs = {
+  input: DeleteWorkflowProposalByIdInput;
 };
 
 
@@ -2730,6 +2843,18 @@ export type MutationUpdateWorkflowChatMessageByIdArgs = {
 
 
 /** The root mutation type which contains root level fields which mutate data. */
+export type MutationUpdateWorkflowProposalArgs = {
+  input: UpdateWorkflowProposalInput;
+};
+
+
+/** The root mutation type which contains root level fields which mutate data. */
+export type MutationUpdateWorkflowProposalByIdArgs = {
+  input: UpdateWorkflowProposalByIdInput;
+};
+
+
+/** The root mutation type which contains root level fields which mutate data. */
 export type MutationUpdateWorkflowRunArgs = {
   input: UpdateWorkflowRunInput;
 };
@@ -2880,6 +3005,8 @@ export type Query = Node & {
   allVerifications?: Maybe<VerificationsConnection>;
   /** Reads and enables pagination through a set of `WorkflowChatMessage`. */
   allWorkflowChatMessages?: Maybe<WorkflowChatMessagesConnection>;
+  /** Reads and enables pagination through a set of `WorkflowProposal`. */
+  allWorkflowProposals?: Maybe<WorkflowProposalsConnection>;
   /** Reads and enables pagination through a set of `WorkflowRun`. */
   allWorkflowRuns?: Maybe<WorkflowRunsConnection>;
   /** Reads and enables pagination through a set of `WorkflowVersion`. */
@@ -2938,6 +3065,9 @@ export type Query = Node & {
   /** Reads a single `WorkflowChatMessage` using its globally unique `ID`. */
   workflowChatMessage?: Maybe<WorkflowChatMessage>;
   workflowChatMessageById?: Maybe<WorkflowChatMessage>;
+  /** Reads a single `WorkflowProposal` using its globally unique `ID`. */
+  workflowProposal?: Maybe<WorkflowProposal>;
+  workflowProposalById?: Maybe<WorkflowProposal>;
   /** Reads a single `WorkflowRun` using its globally unique `ID`. */
   workflowRun?: Maybe<WorkflowRun>;
   workflowRunById?: Maybe<WorkflowRun>;
@@ -3113,6 +3243,18 @@ export type QueryAllWorkflowChatMessagesArgs = {
   last?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
   orderBy?: InputMaybe<Array<WorkflowChatMessagesOrderBy>>;
+};
+
+
+/** The root query type which gives access points into the data universe. */
+export type QueryAllWorkflowProposalsArgs = {
+  after?: InputMaybe<Scalars['Cursor']['input']>;
+  before?: InputMaybe<Scalars['Cursor']['input']>;
+  condition?: InputMaybe<WorkflowProposalCondition>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Array<WorkflowProposalsOrderBy>>;
 };
 
 
@@ -3336,6 +3478,18 @@ export type QueryWorkflowChatMessageArgs = {
 
 /** The root query type which gives access points into the data universe. */
 export type QueryWorkflowChatMessageByIdArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
+/** The root query type which gives access points into the data universe. */
+export type QueryWorkflowProposalArgs = {
+  nodeId: Scalars['ID']['input'];
+};
+
+
+/** The root query type which gives access points into the data universe. */
+export type QueryWorkflowProposalByIdArgs = {
   id: Scalars['UUID']['input'];
 };
 
@@ -3607,16 +3761,21 @@ export type Tool = Node & {
   createdAt: Scalars['Datetime']['output'];
   deletedAt?: Maybe<Scalars['Datetime']['output']>;
   description?: Maybe<Scalars['String']['output']>;
+  externalId?: Maybe<Scalars['String']['output']>;
   id: Scalars['UUID']['output'];
   isSystem: Scalars['Boolean']['output'];
+  lastSyncedAt?: Maybe<Scalars['Datetime']['output']>;
   name: Scalars['String']['output'];
   /** A globally unique identifier. Can be used in various places throughout the system to identify this single value. */
   nodeId: Scalars['ID']['output'];
   schema?: Maybe<Scalars['JSON']['output']>;
+  schemaHash?: Maybe<Scalars['String']['output']>;
+  source: Scalars['String']['output'];
   updatedAt: Scalars['Datetime']['output'];
   /** Reads a single `User` that is related to this `Tool`. */
   userByUserId?: Maybe<User>;
   userId?: Maybe<Scalars['String']['output']>;
+  version?: Maybe<Scalars['String']['output']>;
 };
 
 /** A condition to be used against `Tool` object types. All fields are tested for equality and combined with a logical ‘and.’ */
@@ -3627,18 +3786,28 @@ export type ToolCondition = {
   deletedAt?: InputMaybe<Scalars['Datetime']['input']>;
   /** Checks for equality with the object’s `description` field. */
   description?: InputMaybe<Scalars['String']['input']>;
+  /** Checks for equality with the object’s `externalId` field. */
+  externalId?: InputMaybe<Scalars['String']['input']>;
   /** Checks for equality with the object’s `id` field. */
   id?: InputMaybe<Scalars['UUID']['input']>;
   /** Checks for equality with the object’s `isSystem` field. */
   isSystem?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Checks for equality with the object’s `lastSyncedAt` field. */
+  lastSyncedAt?: InputMaybe<Scalars['Datetime']['input']>;
   /** Checks for equality with the object’s `name` field. */
   name?: InputMaybe<Scalars['String']['input']>;
   /** Checks for equality with the object’s `schema` field. */
   schema?: InputMaybe<Scalars['JSON']['input']>;
+  /** Checks for equality with the object’s `schemaHash` field. */
+  schemaHash?: InputMaybe<Scalars['String']['input']>;
+  /** Checks for equality with the object’s `source` field. */
+  source?: InputMaybe<Scalars['String']['input']>;
   /** Checks for equality with the object’s `updatedAt` field. */
   updatedAt?: InputMaybe<Scalars['Datetime']['input']>;
   /** Checks for equality with the object’s `userId` field. */
   userId?: InputMaybe<Scalars['String']['input']>;
+  /** Checks for equality with the object’s `version` field. */
+  version?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** An input for mutations affecting `Tool` */
@@ -3646,12 +3815,17 @@ export type ToolInput = {
   createdAt?: InputMaybe<Scalars['Datetime']['input']>;
   deletedAt?: InputMaybe<Scalars['Datetime']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
+  externalId?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['UUID']['input']>;
   isSystem?: InputMaybe<Scalars['Boolean']['input']>;
+  lastSyncedAt?: InputMaybe<Scalars['Datetime']['input']>;
   name: Scalars['String']['input'];
   schema?: InputMaybe<Scalars['JSON']['input']>;
+  schemaHash?: InputMaybe<Scalars['String']['input']>;
+  source?: InputMaybe<Scalars['String']['input']>;
   updatedAt?: InputMaybe<Scalars['Datetime']['input']>;
   userId?: InputMaybe<Scalars['String']['input']>;
+  version?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** Represents an update to a `Tool`. Fields that are set will be updated. */
@@ -3659,12 +3833,17 @@ export type ToolPatch = {
   createdAt?: InputMaybe<Scalars['Datetime']['input']>;
   deletedAt?: InputMaybe<Scalars['Datetime']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
+  externalId?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['UUID']['input']>;
   isSystem?: InputMaybe<Scalars['Boolean']['input']>;
+  lastSyncedAt?: InputMaybe<Scalars['Datetime']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   schema?: InputMaybe<Scalars['JSON']['input']>;
+  schemaHash?: InputMaybe<Scalars['String']['input']>;
+  source?: InputMaybe<Scalars['String']['input']>;
   updatedAt?: InputMaybe<Scalars['Datetime']['input']>;
   userId?: InputMaybe<Scalars['String']['input']>;
+  version?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** A connection to a list of `Tool` values. */
@@ -3697,10 +3876,14 @@ export enum ToolsOrderBy {
   DeletedAtDesc = 'DELETED_AT_DESC',
   DescriptionAsc = 'DESCRIPTION_ASC',
   DescriptionDesc = 'DESCRIPTION_DESC',
+  ExternalIdAsc = 'EXTERNAL_ID_ASC',
+  ExternalIdDesc = 'EXTERNAL_ID_DESC',
   IdAsc = 'ID_ASC',
   IdDesc = 'ID_DESC',
   IsSystemAsc = 'IS_SYSTEM_ASC',
   IsSystemDesc = 'IS_SYSTEM_DESC',
+  LastSyncedAtAsc = 'LAST_SYNCED_AT_ASC',
+  LastSyncedAtDesc = 'LAST_SYNCED_AT_DESC',
   NameAsc = 'NAME_ASC',
   NameDesc = 'NAME_DESC',
   Natural = 'NATURAL',
@@ -3708,10 +3891,16 @@ export enum ToolsOrderBy {
   PrimaryKeyDesc = 'PRIMARY_KEY_DESC',
   SchemaAsc = 'SCHEMA_ASC',
   SchemaDesc = 'SCHEMA_DESC',
+  SchemaHashAsc = 'SCHEMA_HASH_ASC',
+  SchemaHashDesc = 'SCHEMA_HASH_DESC',
+  SourceAsc = 'SOURCE_ASC',
+  SourceDesc = 'SOURCE_DESC',
   UpdatedAtAsc = 'UPDATED_AT_ASC',
   UpdatedAtDesc = 'UPDATED_AT_DESC',
   UserIdAsc = 'USER_ID_ASC',
-  UserIdDesc = 'USER_ID_DESC'
+  UserIdDesc = 'USER_ID_DESC',
+  VersionAsc = 'VERSION_ASC',
+  VersionDesc = 'VERSION_DESC'
 }
 
 /** All input for the `updateAccountById` mutation. */
@@ -4454,6 +4643,57 @@ export type UpdateWorkflowPayloadWorkflowEdgeArgs = {
   orderBy?: InputMaybe<Array<WorkflowsOrderBy>>;
 };
 
+/** All input for the `updateWorkflowProposalById` mutation. */
+export type UpdateWorkflowProposalByIdInput = {
+  /**
+   * An arbitrary string value with no semantic meaning. Will be included in the
+   * payload verbatim. May be used to track mutations by the client.
+   */
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['UUID']['input'];
+  /** An object where the defined keys will be set on the `WorkflowProposal` being updated. */
+  workflowProposalPatch: WorkflowProposalPatch;
+};
+
+/** All input for the `updateWorkflowProposal` mutation. */
+export type UpdateWorkflowProposalInput = {
+  /**
+   * An arbitrary string value with no semantic meaning. Will be included in the
+   * payload verbatim. May be used to track mutations by the client.
+   */
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+  /** The globally unique `ID` which will identify a single `WorkflowProposal` to be updated. */
+  nodeId: Scalars['ID']['input'];
+  /** An object where the defined keys will be set on the `WorkflowProposal` being updated. */
+  workflowProposalPatch: WorkflowProposalPatch;
+};
+
+/** The output of our update `WorkflowProposal` mutation. */
+export type UpdateWorkflowProposalPayload = {
+  __typename?: 'UpdateWorkflowProposalPayload';
+  /**
+   * The exact same `clientMutationId` that was provided in the mutation input,
+   * unchanged and unused. May be used by a client to track mutations.
+   */
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  /** Our root query field type. Allows us to run any query from our mutation payload. */
+  query?: Maybe<Query>;
+  /** Reads a single `Workflow` that is related to this `WorkflowProposal`. */
+  workflowByWorkflowId?: Maybe<Workflow>;
+  /** The `WorkflowProposal` that was updated by this mutation. */
+  workflowProposal?: Maybe<WorkflowProposal>;
+  /** An edge for our `WorkflowProposal`. May be used by Relay 1. */
+  workflowProposalEdge?: Maybe<WorkflowProposalsEdge>;
+  /** Reads a single `WorkflowVersion` that is related to this `WorkflowProposal`. */
+  workflowVersionByBaseVersionId?: Maybe<WorkflowVersion>;
+};
+
+
+/** The output of our update `WorkflowProposal` mutation. */
+export type UpdateWorkflowProposalPayloadWorkflowProposalEdgeArgs = {
+  orderBy?: InputMaybe<Array<WorkflowProposalsOrderBy>>;
+};
+
 /** All input for the `updateWorkflowRunById` mutation. */
 export type UpdateWorkflowRunByIdInput = {
   /**
@@ -4971,8 +5211,10 @@ export type Workflow = Node & {
   createdAt: Scalars['Datetime']['output'];
   deletedAt?: Maybe<Scalars['Datetime']['output']>;
   description?: Maybe<Scalars['String']['output']>;
+  descriptionSource: Scalars['String']['output'];
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
+  nameSource: Scalars['String']['output'];
   /** A globally unique identifier. Can be used in various places throughout the system to identify this single value. */
   nodeId: Scalars['ID']['output'];
   updatedAt: Scalars['Datetime']['output'];
@@ -4981,6 +5223,8 @@ export type Workflow = Node & {
   userId: Scalars['String']['output'];
   /** Reads and enables pagination through a set of `WorkflowChatMessage`. */
   workflowChatMessagesByWorkflowId: WorkflowChatMessagesConnection;
+  /** Reads and enables pagination through a set of `WorkflowProposal`. */
+  workflowProposalsByWorkflowId: WorkflowProposalsConnection;
   /** Reads and enables pagination through a set of `WorkflowVersion`. */
   workflowVersionsByWorkflowId: WorkflowVersionsConnection;
 };
@@ -4994,6 +5238,17 @@ export type WorkflowWorkflowChatMessagesByWorkflowIdArgs = {
   last?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
   orderBy?: InputMaybe<Array<WorkflowChatMessagesOrderBy>>;
+};
+
+
+export type WorkflowWorkflowProposalsByWorkflowIdArgs = {
+  after?: InputMaybe<Scalars['Cursor']['input']>;
+  before?: InputMaybe<Scalars['Cursor']['input']>;
+  condition?: InputMaybe<WorkflowProposalCondition>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Array<WorkflowProposalsOrderBy>>;
 };
 
 
@@ -5127,10 +5382,14 @@ export type WorkflowCondition = {
   deletedAt?: InputMaybe<Scalars['Datetime']['input']>;
   /** Checks for equality with the object’s `description` field. */
   description?: InputMaybe<Scalars['String']['input']>;
+  /** Checks for equality with the object’s `descriptionSource` field. */
+  descriptionSource?: InputMaybe<Scalars['String']['input']>;
   /** Checks for equality with the object’s `id` field. */
   id?: InputMaybe<Scalars['UUID']['input']>;
   /** Checks for equality with the object’s `name` field. */
   name?: InputMaybe<Scalars['String']['input']>;
+  /** Checks for equality with the object’s `nameSource` field. */
+  nameSource?: InputMaybe<Scalars['String']['input']>;
   /** Checks for equality with the object’s `updatedAt` field. */
   updatedAt?: InputMaybe<Scalars['Datetime']['input']>;
   /** Checks for equality with the object’s `userId` field. */
@@ -5142,8 +5401,10 @@ export type WorkflowInput = {
   createdAt?: InputMaybe<Scalars['Datetime']['input']>;
   deletedAt?: InputMaybe<Scalars['Datetime']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
+  descriptionSource?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['UUID']['input']>;
   name: Scalars['String']['input'];
+  nameSource?: InputMaybe<Scalars['String']['input']>;
   updatedAt?: InputMaybe<Scalars['Datetime']['input']>;
   userId: Scalars['String']['input'];
 };
@@ -5153,11 +5414,130 @@ export type WorkflowPatch = {
   createdAt?: InputMaybe<Scalars['Datetime']['input']>;
   deletedAt?: InputMaybe<Scalars['Datetime']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
+  descriptionSource?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['UUID']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+  nameSource?: InputMaybe<Scalars['String']['input']>;
   updatedAt?: InputMaybe<Scalars['Datetime']['input']>;
   userId?: InputMaybe<Scalars['String']['input']>;
 };
+
+export type WorkflowProposal = Node & {
+  __typename?: 'WorkflowProposal';
+  baseVersionId?: Maybe<Scalars['UUID']['output']>;
+  createdAt: Scalars['Datetime']['output'];
+  expiresAt: Scalars['Datetime']['output'];
+  id: Scalars['UUID']['output'];
+  modelId?: Maybe<Scalars['String']['output']>;
+  /** A globally unique identifier. Can be used in various places throughout the system to identify this single value. */
+  nodeId: Scalars['ID']['output'];
+  proposedDag: Scalars['JSON']['output'];
+  toolCalls: Scalars['JSON']['output'];
+  userMessage: Scalars['String']['output'];
+  /** Reads a single `Workflow` that is related to this `WorkflowProposal`. */
+  workflowByWorkflowId?: Maybe<Workflow>;
+  workflowId: Scalars['UUID']['output'];
+  /** Reads a single `WorkflowVersion` that is related to this `WorkflowProposal`. */
+  workflowVersionByBaseVersionId?: Maybe<WorkflowVersion>;
+};
+
+/**
+ * A condition to be used against `WorkflowProposal` object types. All fields are
+ * tested for equality and combined with a logical ‘and.’
+ */
+export type WorkflowProposalCondition = {
+  /** Checks for equality with the object’s `baseVersionId` field. */
+  baseVersionId?: InputMaybe<Scalars['UUID']['input']>;
+  /** Checks for equality with the object’s `createdAt` field. */
+  createdAt?: InputMaybe<Scalars['Datetime']['input']>;
+  /** Checks for equality with the object’s `expiresAt` field. */
+  expiresAt?: InputMaybe<Scalars['Datetime']['input']>;
+  /** Checks for equality with the object’s `id` field. */
+  id?: InputMaybe<Scalars['UUID']['input']>;
+  /** Checks for equality with the object’s `modelId` field. */
+  modelId?: InputMaybe<Scalars['String']['input']>;
+  /** Checks for equality with the object’s `proposedDag` field. */
+  proposedDag?: InputMaybe<Scalars['JSON']['input']>;
+  /** Checks for equality with the object’s `toolCalls` field. */
+  toolCalls?: InputMaybe<Scalars['JSON']['input']>;
+  /** Checks for equality with the object’s `userMessage` field. */
+  userMessage?: InputMaybe<Scalars['String']['input']>;
+  /** Checks for equality with the object’s `workflowId` field. */
+  workflowId?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+/** An input for mutations affecting `WorkflowProposal` */
+export type WorkflowProposalInput = {
+  baseVersionId?: InputMaybe<Scalars['UUID']['input']>;
+  createdAt?: InputMaybe<Scalars['Datetime']['input']>;
+  expiresAt: Scalars['Datetime']['input'];
+  id?: InputMaybe<Scalars['UUID']['input']>;
+  modelId?: InputMaybe<Scalars['String']['input']>;
+  proposedDag: Scalars['JSON']['input'];
+  toolCalls: Scalars['JSON']['input'];
+  userMessage: Scalars['String']['input'];
+  workflowId: Scalars['UUID']['input'];
+};
+
+/** Represents an update to a `WorkflowProposal`. Fields that are set will be updated. */
+export type WorkflowProposalPatch = {
+  baseVersionId?: InputMaybe<Scalars['UUID']['input']>;
+  createdAt?: InputMaybe<Scalars['Datetime']['input']>;
+  expiresAt?: InputMaybe<Scalars['Datetime']['input']>;
+  id?: InputMaybe<Scalars['UUID']['input']>;
+  modelId?: InputMaybe<Scalars['String']['input']>;
+  proposedDag?: InputMaybe<Scalars['JSON']['input']>;
+  toolCalls?: InputMaybe<Scalars['JSON']['input']>;
+  userMessage?: InputMaybe<Scalars['String']['input']>;
+  workflowId?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+/** A connection to a list of `WorkflowProposal` values. */
+export type WorkflowProposalsConnection = {
+  __typename?: 'WorkflowProposalsConnection';
+  /** A list of edges which contains the `WorkflowProposal` and cursor to aid in pagination. */
+  edges: Array<WorkflowProposalsEdge>;
+  /** A list of `WorkflowProposal` objects. */
+  nodes: Array<Maybe<WorkflowProposal>>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+  /** The count of *all* `WorkflowProposal` you could get from the connection. */
+  totalCount: Scalars['Int']['output'];
+};
+
+/** A `WorkflowProposal` edge in the connection. */
+export type WorkflowProposalsEdge = {
+  __typename?: 'WorkflowProposalsEdge';
+  /** A cursor for use in pagination. */
+  cursor?: Maybe<Scalars['Cursor']['output']>;
+  /** The `WorkflowProposal` at the end of the edge. */
+  node?: Maybe<WorkflowProposal>;
+};
+
+/** Methods to use when ordering `WorkflowProposal`. */
+export enum WorkflowProposalsOrderBy {
+  BaseVersionIdAsc = 'BASE_VERSION_ID_ASC',
+  BaseVersionIdDesc = 'BASE_VERSION_ID_DESC',
+  CreatedAtAsc = 'CREATED_AT_ASC',
+  CreatedAtDesc = 'CREATED_AT_DESC',
+  ExpiresAtAsc = 'EXPIRES_AT_ASC',
+  ExpiresAtDesc = 'EXPIRES_AT_DESC',
+  IdAsc = 'ID_ASC',
+  IdDesc = 'ID_DESC',
+  ModelIdAsc = 'MODEL_ID_ASC',
+  ModelIdDesc = 'MODEL_ID_DESC',
+  Natural = 'NATURAL',
+  PrimaryKeyAsc = 'PRIMARY_KEY_ASC',
+  PrimaryKeyDesc = 'PRIMARY_KEY_DESC',
+  ProposedDagAsc = 'PROPOSED_DAG_ASC',
+  ProposedDagDesc = 'PROPOSED_DAG_DESC',
+  ToolCallsAsc = 'TOOL_CALLS_ASC',
+  ToolCallsDesc = 'TOOL_CALLS_DESC',
+  UserMessageAsc = 'USER_MESSAGE_ASC',
+  UserMessageDesc = 'USER_MESSAGE_DESC',
+  WorkflowIdAsc = 'WORKFLOW_ID_ASC',
+  WorkflowIdDesc = 'WORKFLOW_ID_DESC'
+}
 
 export type WorkflowRun = Node & {
   __typename?: 'WorkflowRun';
@@ -5300,7 +5680,7 @@ export enum WorkflowRunsOrderBy {
 export type WorkflowVersion = Node & {
   __typename?: 'WorkflowVersion';
   createdAt: Scalars['Datetime']['output'];
-  /** JSONB structure: { steps: [{ id, name, instruction, tools: string[], dependsOn: string[] }] } */
+  /** JSONB structure: { steps: [{ id, name, instruction, tools: [{ id, name, version }], dependsOn: string[] }] } */
   dag: Scalars['JSON']['output'];
   id: Scalars['UUID']['output'];
   /** A globally unique identifier. Can be used in various places throughout the system to identify this single value. */
@@ -5310,8 +5690,21 @@ export type WorkflowVersion = Node & {
   /** Reads a single `Workflow` that is related to this `WorkflowVersion`. */
   workflowByWorkflowId?: Maybe<Workflow>;
   workflowId: Scalars['UUID']['output'];
+  /** Reads and enables pagination through a set of `WorkflowProposal`. */
+  workflowProposalsByBaseVersionId: WorkflowProposalsConnection;
   /** Reads and enables pagination through a set of `WorkflowRun`. */
   workflowRunsByWorkflowVersionId: WorkflowRunsConnection;
+};
+
+
+export type WorkflowVersionWorkflowProposalsByBaseVersionIdArgs = {
+  after?: InputMaybe<Scalars['Cursor']['input']>;
+  before?: InputMaybe<Scalars['Cursor']['input']>;
+  condition?: InputMaybe<WorkflowProposalCondition>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Array<WorkflowProposalsOrderBy>>;
 };
 
 
@@ -5347,7 +5740,7 @@ export type WorkflowVersionCondition = {
 /** An input for mutations affecting `WorkflowVersion` */
 export type WorkflowVersionInput = {
   createdAt?: InputMaybe<Scalars['Datetime']['input']>;
-  /** JSONB structure: { steps: [{ id, name, instruction, tools: string[], dependsOn: string[] }] } */
+  /** JSONB structure: { steps: [{ id, name, instruction, tools: [{ id, name, version }], dependsOn: string[] }] } */
   dag: Scalars['JSON']['input'];
   id?: InputMaybe<Scalars['UUID']['input']>;
   sourceDescription?: InputMaybe<Scalars['String']['input']>;
@@ -5358,7 +5751,7 @@ export type WorkflowVersionInput = {
 /** Represents an update to a `WorkflowVersion`. Fields that are set will be updated. */
 export type WorkflowVersionPatch = {
   createdAt?: InputMaybe<Scalars['Datetime']['input']>;
-  /** JSONB structure: { steps: [{ id, name, instruction, tools: string[], dependsOn: string[] }] } */
+  /** JSONB structure: { steps: [{ id, name, instruction, tools: [{ id, name, version }], dependsOn: string[] }] } */
   dag?: InputMaybe<Scalars['JSON']['input']>;
   id?: InputMaybe<Scalars['UUID']['input']>;
   sourceDescription?: InputMaybe<Scalars['String']['input']>;
@@ -5437,10 +5830,14 @@ export enum WorkflowsOrderBy {
   DeletedAtDesc = 'DELETED_AT_DESC',
   DescriptionAsc = 'DESCRIPTION_ASC',
   DescriptionDesc = 'DESCRIPTION_DESC',
+  DescriptionSourceAsc = 'DESCRIPTION_SOURCE_ASC',
+  DescriptionSourceDesc = 'DESCRIPTION_SOURCE_DESC',
   IdAsc = 'ID_ASC',
   IdDesc = 'ID_DESC',
   NameAsc = 'NAME_ASC',
   NameDesc = 'NAME_DESC',
+  NameSourceAsc = 'NAME_SOURCE_ASC',
+  NameSourceDesc = 'NAME_SOURCE_DESC',
   Natural = 'NATURAL',
   PrimaryKeyAsc = 'PRIMARY_KEY_ASC',
   PrimaryKeyDesc = 'PRIMARY_KEY_DESC',

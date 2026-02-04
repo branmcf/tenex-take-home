@@ -7,8 +7,26 @@ import {
 import { ResourceError } from '../../errors';
 import { postGraphileRequest } from '../../lib/postGraphile';
 import {
-    GetUserWorkflowsQuery
+    CreateWorkflowMutation
+    , CreateWorkflowMutationVariables
+    , CreateWorkflowVersionMutation
+    , CreateWorkflowVersionMutationVariables
+    , DeleteWorkflowMutation
+    , DeleteWorkflowMutationVariables
+    , GetLatestWorkflowVersionQuery
+    , GetLatestWorkflowVersionQueryVariables
+    , GetUserWorkflowsQuery
     , GetUserWorkflowsQueryVariables
+    , GetWorkflowByIdQuery
+    , GetWorkflowByIdQueryVariables
+    , GetWorkflowMetadataQuery
+    , GetWorkflowMetadataQueryVariables
+    , GetWorkflowOwnershipQuery
+    , GetWorkflowOwnershipQueryVariables
+    , UpdateWorkflowMetadataMutation
+    , UpdateWorkflowMetadataMutationVariables
+    , UpdateWorkflowMutation
+    , UpdateWorkflowMutationVariables
 } from './workflows.service.generatedTypes';
 import {
     GetWorkflowsFailed
@@ -17,94 +35,6 @@ import {
     , UpdateWorkflowFailed
     , DeleteWorkflowFailed
 } from './workflows.errors';
-
-// types for get workflow by id
-interface GetWorkflowByIdQueryVariables {
-    workflowId: string;
-}
-
-interface GetWorkflowByIdQuery {
-    __typename: 'Query';
-    workflowById?: {
-        __typename: 'Workflow';
-        id: string;
-        name: string;
-        description?: string | null;
-        createdAt: string;
-        updatedAt: string;
-        deletedAt?: string | null;
-        workflowVersionsByWorkflowId: {
-            __typename: 'WorkflowVersionsConnection';
-            nodes: Array<{
-                __typename: 'WorkflowVersion';
-                versionNumber: number;
-                dag: unknown;
-            } | null>;
-        };
-    } | null;
-}
-
-// types for create workflow
-interface CreateWorkflowMutationVariables {
-    userId: string;
-    name: string;
-    description?: string | null;
-}
-
-interface CreateWorkflowMutation {
-    __typename: 'Mutation';
-    createWorkflow?: {
-        __typename: 'CreateWorkflowPayload';
-        workflow?: {
-            __typename: 'Workflow';
-            id: string;
-            name: string;
-            description?: string | null;
-            createdAt: string;
-            updatedAt: string;
-        } | null;
-    } | null;
-}
-
-// types for update workflow
-interface UpdateWorkflowMutationVariables {
-    workflowId: string;
-    workflowPatch: {
-        name?: string;
-        description?: string;
-    };
-}
-
-interface UpdateWorkflowMutation {
-    __typename: 'Mutation';
-    updateWorkflowById?: {
-        __typename: 'UpdateWorkflowPayload';
-        workflow?: {
-            __typename: 'Workflow';
-            id: string;
-            name: string;
-            description?: string | null;
-            updatedAt: string;
-        } | null;
-    } | null;
-}
-
-// types for delete workflow
-interface DeleteWorkflowMutationVariables {
-    workflowId: string;
-}
-
-interface DeleteWorkflowMutation {
-    __typename: 'Mutation';
-    updateWorkflowById?: {
-        __typename: 'UpdateWorkflowPayload';
-        workflow?: {
-            __typename: 'Workflow';
-            id: string;
-            deletedAt?: string | null;
-        } | null;
-    } | null;
-}
 
 /**
  * get all workflows for a user from the database
@@ -188,6 +118,8 @@ export const getWorkflowById = async (
                 id
                 name
                 description
+                nameSource
+                descriptionSource
                 createdAt
                 updatedAt
                 deletedAt
@@ -196,6 +128,7 @@ export const getWorkflowById = async (
                     first: 1
                 ) {
                     nodes {
+                        id
                         versionNumber
                         dag
                     }
@@ -239,6 +172,116 @@ export const getWorkflowById = async (
 };
 
 /**
+ * get workflow metadata (name/description sources) by id
+ *
+ * @param workflowId - the workflow id
+ * @returns Either<ResourceError, metadata> - workflow metadata
+ */
+export const getWorkflowMetadata = async (
+    workflowId: string
+): Promise<Either<ResourceError, { id: string; name: string; description: string | null; nameSource: 'auto' | 'user'; descriptionSource: 'auto' | 'user' }>> => {
+
+    // create the graphql query
+    const GET_WORKFLOW_METADATA = gql`
+        query getWorkflowMetadata($workflowId: UUID!) {
+            workflowById(id: $workflowId) {
+                id
+                name
+                description
+                nameSource
+                descriptionSource
+            }
+        }
+    `;
+
+    // execute the graphql query
+    const result = await postGraphileRequest<GetWorkflowMetadataQuery, GetWorkflowMetadataQueryVariables>(
+        {
+            query: GET_WORKFLOW_METADATA
+            , variables: { workflowId }
+        }
+    );
+
+    // check for error
+    if ( result.isError() ) {
+
+        // return the error
+        return error( result.value );
+    }
+
+    // check for workflow
+    if ( !result.value.workflowById ) {
+
+        // return custom error
+        return error( new WorkflowNotFound() );
+    }
+
+    // return success
+    return success( {
+        id: result.value.workflowById.id
+        , name: result.value.workflowById.name
+        , description: result.value.workflowById.description ?? null
+        , nameSource: ( result.value.workflowById.nameSource ?? 'auto' ) as 'auto' | 'user'
+        , descriptionSource: ( result.value.workflowById.descriptionSource ?? 'auto' ) as 'auto' | 'user'
+    } );
+
+};
+
+/**
+ * update workflow metadata fields
+ *
+ * @param workflowId - the workflow id
+ * @param workflowPatch - metadata patch
+ * @returns Either<ResourceError, { id }>\n */
+export const updateWorkflowMetadata = async (
+    workflowId: string
+    , workflowPatch: { name?: string; description?: string; nameSource?: 'auto' | 'user'; descriptionSource?: 'auto' | 'user' }
+): Promise<Either<ResourceError, { id: string }>> => {
+
+    // create the graphql mutation
+    const UPDATE_WORKFLOW_METADATA = gql`
+        mutation updateWorkflowMetadata($workflowId: UUID!, $workflowPatch: WorkflowPatch!) {
+            updateWorkflowById(input: { id: $workflowId, workflowPatch: $workflowPatch }) {
+                workflow {
+                    id
+                }
+            }
+        }
+    `;
+
+    // execute the graphql mutation
+    const result = await postGraphileRequest<UpdateWorkflowMetadataMutation, UpdateWorkflowMetadataMutationVariables>(
+        {
+            mutation: UPDATE_WORKFLOW_METADATA
+            , variables: {
+                workflowId
+                , workflowPatch
+            }
+        }
+    );
+
+    // check for error
+    if ( result.isError() ) {
+
+        // return the error
+        return error( result.value );
+    }
+
+    // check for falsy updateWorkflowById
+    if ( !result.value.updateWorkflowById?.workflow ) {
+
+        // return custom error
+        return error( new UpdateWorkflowFailed() );
+    }
+
+    // return success
+    return success( {
+        id: result.value.updateWorkflowById.workflow.id
+    } );
+
+};
+
+/**
  * create a new workflow in the database
  *
  * @param params - the workflow parameters
@@ -258,12 +301,16 @@ export const createWorkflow = async (
             $userId: String!
             $name: String!
             $description: String
+            $nameSource: String
+            $descriptionSource: String
         ) {
             createWorkflow(input: {
                 workflow: {
                     userId: $userId
                     name: $name
                     description: $description
+                    nameSource: $nameSource
+                    descriptionSource: $descriptionSource
                 }
             }) {
                 workflow {
@@ -285,6 +332,8 @@ export const createWorkflow = async (
                 userId: params.userId
                 , name: params.name
                 , description: params.description ?? null
+                , nameSource: 'auto'
+                , descriptionSource: 'auto'
             }
         }
     );
@@ -324,12 +373,14 @@ export const updateWorkflow = async (
 
     // build the patch object with only provided fields
     // omitting fields entirely (vs passing null) preserves existing values in PostGraphile
-    const workflowPatch: { name?: string; description?: string } = {};
+    const workflowPatch: { name?: string; description?: string; nameSource?: string; descriptionSource?: string } = {};
     if ( params.name !== undefined ) {
         workflowPatch.name = params.name;
+        workflowPatch.nameSource = 'user';
     }
     if ( params.description !== undefined ) {
         workflowPatch.description = params.description;
+        workflowPatch.descriptionSource = 'user';
     }
 
     // create the graphql mutation using JSON scalar for the patch
@@ -443,5 +494,183 @@ export const deleteWorkflow = async (
 
     // return success
     return success( { success: true } );
+
+};
+
+/**
+ * get the latest workflow version for a workflow
+ *
+ * @param workflowId - workflow id
+ * @returns Either<ResourceError, { id, versionNumber, dag } | null>\n */
+export const getLatestWorkflowVersion = async (
+    workflowId: string
+): Promise<Either<ResourceError, { id: string; versionNumber: number; dag: unknown } | null>> => {
+
+    const GET_LATEST_WORKFLOW_VERSION = gql`
+        query getLatestWorkflowVersion($workflowId: UUID!) {
+            workflowById(id: $workflowId) {
+                id
+                workflowVersionsByWorkflowId(orderBy: VERSION_NUMBER_DESC, first: 1) {
+                    nodes {
+                        id
+                        versionNumber
+                        dag
+                    }
+                }
+            }
+        }
+    `;
+
+    const result = await postGraphileRequest<GetLatestWorkflowVersionQuery, GetLatestWorkflowVersionQueryVariables>(
+        {
+            query: GET_LATEST_WORKFLOW_VERSION
+            , variables: { workflowId }
+        }
+    );
+
+    if ( result.isError() ) {
+        return error( result.value );
+    }
+
+    if ( !result.value.workflowById ) {
+        return error( new WorkflowNotFound() );
+    }
+
+    const latestNode = result.value.workflowById.workflowVersionsByWorkflowId.nodes[ 0 ] ?? null;
+
+    if ( !latestNode ) {
+        return success( null );
+    }
+
+    return success( {
+        id: latestNode.id
+        , versionNumber: latestNode.versionNumber
+        , dag: latestNode.dag
+    } );
+
+};
+
+/**
+ * create a new workflow version
+ *
+ * @param workflowId - workflow id
+ * @param dag - workflow dag
+ * @returns Either<ResourceError, { id, versionNumber, dag }>\n */
+export const createWorkflowVersion = async (
+    workflowId: string
+    , dag: unknown
+): Promise<Either<ResourceError, { id: string; versionNumber: number; dag: unknown }>> => {
+
+    // get the latest version to increment
+    const latestResult = await getLatestWorkflowVersion( workflowId );
+
+    if ( latestResult.isError() ) {
+        return error( latestResult.value );
+    }
+
+    const nextVersionNumber = ( latestResult.value?.versionNumber ?? 0 ) + 1;
+
+    // create the graphql mutation
+    const CREATE_WORKFLOW_VERSION = gql`
+        mutation createWorkflowVersion($workflowId: UUID!, $versionNumber: Int!, $dag: JSON!) {
+            createWorkflowVersion(input: {
+                workflowVersion: {
+                    workflowId: $workflowId
+                    versionNumber: $versionNumber
+                    dag: $dag
+                }
+            }) {
+                workflowVersion {
+                    id
+                    versionNumber
+                    dag
+                    createdAt
+                }
+            }
+        }
+    `;
+
+    const result = await postGraphileRequest<CreateWorkflowVersionMutation, CreateWorkflowVersionMutationVariables>(
+        {
+            mutation: CREATE_WORKFLOW_VERSION
+            , variables: {
+                workflowId
+                , versionNumber: nextVersionNumber
+                , dag
+            }
+        }
+    );
+
+    if ( result.isError() ) {
+        return error( result.value );
+    }
+
+    if ( !result.value.createWorkflowVersion?.workflowVersion ) {
+        return error( new UpdateWorkflowFailed() );
+    }
+
+    return success( {
+        id: result.value.createWorkflowVersion.workflowVersion.id
+        , versionNumber: result.value.createWorkflowVersion.workflowVersion.versionNumber
+        , dag: result.value.createWorkflowVersion.workflowVersion.dag
+    } );
+
+};
+
+/**
+ * get workflow ownership info by workflow id
+ *
+ * @param workflowId - the workflow id
+ * @returns Either<ResourceError, { id, userId }> - the workflow with userId
+ */
+export const getWorkflowOwnership = async (
+    workflowId: GetWorkflowOwnershipQueryVariables['workflowId']
+): Promise<Either<ResourceError, { id: string; userId: string }>> => {
+
+    // create the graphql query
+    const GET_WORKFLOW_OWNERSHIP = gql`
+        query getWorkflowOwnership($workflowId: UUID!) {
+            workflowById(id: $workflowId) {
+                id
+                userId
+                deletedAt
+            }
+        }
+    `;
+
+    // execute the graphql query
+    const result = await postGraphileRequest<GetWorkflowOwnershipQuery, GetWorkflowOwnershipQueryVariables>(
+        {
+            query: GET_WORKFLOW_OWNERSHIP
+            , variables: { workflowId }
+        }
+    );
+
+    // check for error
+    if ( result.isError() ) {
+
+        // return the error
+        return error( result.value );
+    }
+
+    // check for workflow
+    if ( !result.value.workflowById ) {
+
+        // return custom error
+        return error( new WorkflowNotFound() );
+    }
+
+    // check if workflow is deleted
+    if ( result.value.workflowById.deletedAt ) {
+
+        // return not found error for deleted workflows
+        return error( new WorkflowNotFound() );
+    }
+
+    // return success
+    return success( {
+        id: result.value.workflowById.id
+        , userId: result.value.workflowById.userId
+    } );
 
 };

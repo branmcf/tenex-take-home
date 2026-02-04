@@ -114,6 +114,86 @@ function WorkflowChatMessage({
   );
 }
 
+function ProposedChangesPanel({
+  proposal,
+  onApply,
+  onReject,
+  isApplying,
+}: {
+  proposal: {
+    proposalId: string;
+    toolCalls: unknown;
+    previewSteps: Array<{ id: string; name: string }>;
+  };
+  onApply: () => void;
+  onReject: () => void;
+  isApplying: boolean;
+}) {
+  const toolCalls = Array.isArray(proposal.toolCalls) ? proposal.toolCalls : [];
+
+  const renderToolCall = (call: any) => {
+    const name = call?.name ?? call?.toolName ?? "unknown";
+    const args = call?.args ?? call?.input ?? {};
+
+    if (name === "add_step") {
+      return `Add step: ${args.name ?? "Untitled Step"}`;
+    }
+    if (name === "update_step") {
+      return `Update step: ${args.stepId ?? "unknown"}`;
+    }
+    if (name === "delete_step") {
+      return `Delete step: ${args.stepId ?? "unknown"}`;
+    }
+    if (name === "reorder_steps") {
+      return `Reorder step: ${args.stepId ?? "unknown"}`;
+    }
+    return `Change: ${name}`;
+  };
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-sm font-semibold">Proposed Changes</h3>
+          <p className="text-xs text-muted-foreground">
+            {proposal.previewSteps.length} step{proposal.previewSteps.length !== 1 ? "s" : ""} in preview
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onReject}
+            disabled={isApplying}
+          >
+            Reject
+          </Button>
+          <Button
+            size="sm"
+            onClick={onApply}
+            disabled={isApplying}
+          >
+            {isApplying ? "Applying..." : "Apply Changes"}
+          </Button>
+        </div>
+      </div>
+
+      {toolCalls.length > 0 && (
+        <div className="space-y-2">
+          {toolCalls.map((call, index) => (
+            <div
+              key={`${proposal.proposalId}-${index}`}
+              className="text-xs text-muted-foreground"
+            >
+              - {renderToolCall(call)}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function WorkflowChat({ className }: WorkflowChatProps) {
   const {
     workflowChatMessages,
@@ -122,6 +202,10 @@ export function WorkflowChat({ className }: WorkflowChatProps) {
     sendWorkflowChatMessage,
     isWorkflowChatLoading,
     selectedWorkflow,
+    pendingProposal,
+    applyWorkflowProposal,
+    rejectWorkflowProposal,
+    isApplyingProposal,
   } = useWorkflowContext();
   const { models } = useChatContext();
 
@@ -177,6 +261,15 @@ export function WorkflowChat({ className }: WorkflowChatProps) {
                   className="text-muted-foreground"
                 />
               </div>
+            )}
+
+            {pendingProposal && (
+              <ProposedChangesPanel
+                proposal={pendingProposal}
+                onApply={applyWorkflowProposal}
+                onReject={rejectWorkflowProposal}
+                isApplying={isApplyingProposal}
+              />
             )}
           </div>
         </ChatContainerContent>

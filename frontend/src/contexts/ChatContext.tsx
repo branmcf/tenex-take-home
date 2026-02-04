@@ -202,6 +202,7 @@ export function ChatProvider({
           content: content.trim(),
           modelId: selectedModel.id,
           userId: user.id,
+          workflowId: selectedWorkflow ?? null,
         });
 
         // Check if the response has an error (partial success - LLM failed but user message saved)
@@ -269,7 +270,7 @@ export function ChatProvider({
         isSendingNewChatRef.current = false;
       }
     },
-    [isLoading, currentChatId, selectedModel, user, triggerRefetch]
+    [isLoading, currentChatId, selectedModel, selectedWorkflow, user, triggerRefetch]
   );
 
   const value = React.useMemo(

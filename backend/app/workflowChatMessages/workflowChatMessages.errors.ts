@@ -51,3 +51,29 @@ export class WorkflowChatLLMRequestFailed extends ResourceError {
         } );
     }
 }
+
+export class WorkflowProposalVersionMismatch extends ResourceError {
+    public constructor () {
+        const clientMessage = `Workflow has changed since the proposal was created.`;
+        const code = 'WORKFLOW_PROPOSAL_VERSION_MISMATCH';
+        const statusCode = 409;
+        super( {
+            clientMessage
+            , statusCode
+            , code
+        } );
+    }
+}
+
+export class WorkflowProposalApplyFailed extends ResourceError {
+    public constructor () {
+        const clientMessage = `Failed to apply workflow proposal.`;
+        const code = 'WORKFLOW_PROPOSAL_APPLY_FAILED';
+        const statusCode = 500;
+        super( {
+            clientMessage
+            , statusCode
+            , code
+        } );
+    }
+}

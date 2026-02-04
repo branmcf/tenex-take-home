@@ -44,6 +44,7 @@ export interface WorkflowToolResponse {
     id: string;
     name: string;
     description?: string;
+    version?: string;
 }
 
 /**

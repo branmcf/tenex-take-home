@@ -1,0 +1,239 @@
+import type { WorkflowDAG, WorkflowToolRef } from '../workflowDags';
+
+const formatSteps = ( dag?: WorkflowDAG ) => {
+    if ( !dag || !Array.isArray( dag.steps ) || dag.steps.length === 0 ) {
+        return 'No steps yet.';
+    }
+
+    return dag.steps.map( ( step, index ) => {
+        const dependsOn = step.dependsOn && step.dependsOn.length > 0
+            ? `depends on: ${ step.dependsOn.join( ', ' ) }`
+            : 'depends on: none';
+
+        const tools = step.tools && step.tools.length > 0
+            ? `tools: ${ step.tools.map( tool => `${ tool.name ?? tool.id } (${ tool.id }@${ tool.version ?? 'unknown' })` ).join( ', ' ) }`
+            : 'tools: none';
+
+        return `${ index + 1 }. "${ step.name }" (id: ${ step.id })\n   - instruction: ${ step.instruction }\n   - ${ dependsOn }\n   - ${ tools }`;
+    } ).join( '\n' );
+};
+
+const formatTools = ( tools: WorkflowToolRef[] ) => {
+    if ( tools.length === 0 ) {
+        return 'No tools available.';
+    }
+
+    return tools.map( tool => {
+        const name = tool.name ?? tool.id;
+        const version = tool.version ?? 'unknown';
+        return `- ${ name } (id: ${ tool.id }, version: ${ version })`;
+    } ).join( '\n' );
+};
+
+const formatCandidateSteps = ( steps: WorkflowDAG['steps'] ) => {
+    if ( !steps || steps.length === 0 ) {
+        return 'No candidate steps.';
+    }
+
+    return steps.map( ( step, index ) => {
+        const dependsOn = step.dependsOn && step.dependsOn.length > 0
+            ? `depends on: ${ step.dependsOn.join( ', ' ) }`
+            : 'depends on: none';
+
+        return `${ index + 1 }. "${ step.name }" (id: ${ step.id })\n   - instruction: ${ step.instruction }\n   - ${ dependsOn }`;
+    } ).join( '\n' );
+};
+
+export const buildWorkflowIntentPrompt = (
+    params: {
+        userMessage: string;
+        workflowName: string;
+        workflowDescription: string | null;
+        dag?: WorkflowDAG;
+        availableTools: WorkflowToolRef[];
+        conversationContext?: string | null;
+    }
+): string => {
+
+    const conversationBlock = params.conversationContext
+        ? `\nConversation history:\n${ params.conversationContext }\n`
+        : '';
+
+    return `You are a workflow builder assistant for a product where workflows are deterministic, reusable procedures.
+Workflows are DAGs of steps. Each step is a prompt instruction and outputs are piped to downstream steps (like n8n).
+Users select a workflow in chat and submit a message; that message is the workflow input and starting context.
+Your job here is to help AUTHOR workflows, not execute them or answer the user directly.
+
+Workflow runtime model:
+1) User selects a workflow in chat and submits a message. That message is the input to the workflow.
+2) Steps run in dependency order. Each step can read the user input plus outputs from upstream steps.
+3) Outputs are passed forward to dependent steps. No steps are skipped.
+4) The final step produces the workflow's response to the user.
+
+Current workflow name: ${ params.workflowName }
+Current workflow description: ${ params.workflowDescription ?? 'none' }
+
+Current steps:
+${ formatSteps( params.dag ) }
+
+Available tools:
+${ formatTools( params.availableTools ) }
+
+${ conversationBlock }
+User request:
+${ params.userMessage }
+
+Decide the intent. Output ONLY valid JSON with this exact shape:
+{
+  "intent": "modify_workflow" | "ask_clarifying" | "answer_only",
+  "assistantMessage": string,
+  "clarificationQuestion": string | null
+}
+
+Rules:
+- If the user is creating or editing a workflow, choose "modify_workflow".
+- If the user is asking a question unrelated to editing the workflow, choose "answer_only".
+- If required details are missing, choose "ask_clarifying" and provide a single short question.
+- Prefer "modify_workflow" when the request clearly implies new steps or changes.
+- Use plain English for assistantMessage and clarificationQuestion.
+- Never answer the user's request as if you are running the workflow.
+- Output JSON on a single line and escape any newlines as \\n.
+- Do not wrap the JSON in backticks or code fences.
+- Do not include any extra keys or text outside the JSON.`;
+
+};
+
+export const buildWorkflowToolCallPrompt = (
+    params: {
+        userMessage: string;
+        workflowName: string;
+        workflowDescription: string | null;
+        dag?: WorkflowDAG;
+        availableTools: WorkflowToolRef[];
+        conversationContext?: string | null;
+    }
+): string => {
+
+    const conversationBlock = params.conversationContext
+        ? `\nConversation history:\n${ params.conversationContext }\n`
+        : '';
+
+    return `You are a workflow builder assistant. You must use tool calls to change the workflow.
+Workflows are deterministic procedures: each step is a prompt instruction whose output is piped to downstream steps.
+Users will run these workflows later; you are editing the workflow definition now.
+The workflow input is the user's chat message when they select this workflow.
+
+Current workflow name: ${ params.workflowName }
+Current workflow description: ${ params.workflowDescription ?? 'none' }
+
+Current steps:
+${ formatSteps( params.dag ) }
+
+Available tools:
+${ formatTools( params.availableTools ) }
+
+${ conversationBlock }
+User request:
+${ params.userMessage }
+
+Guidelines:
+- If the request requires a change, call one or more tools.
+- Always use tool calls to add, update, delete, or reorder steps.
+- Use the tool ids and versions exactly as listed.
+- If you add a step and need to reference it later in this request, include tempId.
+- Step instructions should be concise, actionable, and assume outputs from dependencies are available.
+- Prefer adding prompt-only steps; tools are optional and handled separately.
+- Step instructions should explicitly reference either the user input or a prior step output when relevant.
+- Do not answer the user's question; only describe changes to the workflow definition.
+
+After tool calls, respond with a short, user-facing summary of the changes.`;
+
+};
+
+export const buildWorkflowToolUsagePrompt = (
+    params: {
+        userMessage: string;
+        workflowName: string;
+        workflowDescription: string | null;
+        steps: WorkflowDAG['steps'];
+        availableTools: WorkflowToolRef[];
+        conversationContext?: string | null;
+    }
+): string => {
+
+    const conversationBlock = params.conversationContext
+        ? `\nConversation history:\n${ params.conversationContext }\n`
+        : '';
+
+    return `You are a workflow tool usage classifier.
+Workflows are deterministic procedures; steps are prompts whose outputs are piped to downstream steps.
+Default to prompt-only steps. Only attach tools if explicitly requested or if a tool clearly improves reliability or adds required external data.
+The workflow input is the user's chat message when they select this workflow.
+
+Workflow name: ${ params.workflowName }
+Workflow description: ${ params.workflowDescription ?? 'none' }
+
+${ conversationBlock }
+User request:
+${ params.userMessage }
+
+Candidate steps to classify:
+${ formatCandidateSteps( params.steps ) }
+
+Available tools:
+${ formatTools( params.availableTools ) }
+
+Decision rules:
+- Default to no tools.
+- Only choose tools if the user explicitly requested a tool OR the step requires external data, side effects, or higher reliability.
+- If you choose tools, include tool id and version exactly as listed above.
+- Output JSON with the exact shape:
+{"steps":[{"stepId":"string","useTools":true,"tools":[{"id":"string","version":"string"}]}]}
+- Include every candidate step exactly once.
+- If useTools is false, tools must be an empty array.
+- Output JSON on a single line, no backticks, no extra text.`;
+
+};
+
+export const buildWorkflowStepPlanPrompt = (
+    params: {
+        userMessage: string;
+        workflowName: string;
+        workflowDescription: string | null;
+        dag?: WorkflowDAG;
+        conversationContext?: string | null;
+    }
+): string => {
+
+    const conversationBlock = params.conversationContext
+        ? `\nConversation history:\n${ params.conversationContext }\n`
+        : '';
+
+    return `You are a workflow planner.
+Workflows are deterministic, reusable procedures. Each step is a prompt instruction and outputs are piped to downstream steps.
+The workflow input is the user's chat message when they select this workflow.
+You are authoring steps, not executing them.
+
+Workflow name: ${ params.workflowName }
+Workflow description: ${ params.workflowDescription ?? 'none' }
+
+Current steps:
+${ formatSteps( params.dag ) }
+
+${ conversationBlock }
+User request:
+${ params.userMessage }
+
+Plan new steps to satisfy the user request.
+Output JSON with the exact shape:
+{"steps":[{"name":"string","instruction":"string"}]}
+
+Rules:
+- Include only steps that should be added.
+- Keep instructions concise and actionable.
+- Do not include tools or dependencies.
+- Step instructions should assume they will receive outputs from earlier steps.
+- Step instructions should reference the user input or upstream outputs where appropriate.
+- Output JSON on a single line, no backticks, no extra text.`;
+
+};

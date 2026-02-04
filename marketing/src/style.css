@@ -1,0 +1,81 @@
+/*
+ * Minimal custom styles that complement the Webflow CSS
+ * DO NOT add styles that override Webflow classes - let the CDN handle those
+ */
+
+/* Fade up animation for scroll reveal */
+.fade-up {
+  opacity: 0;
+  transform: translateY(1.5rem);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.fade-up.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Feature tabs accordion - JS controlled max-height */
+.feature-tabs-menu-item {
+  cursor: pointer;
+}
+
+.feature-tabs-menu-item-bottom {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+}
+
+.feature-tabs-menu-item.is-active .feature-tabs-menu-item-top {
+  opacity: 1;
+}
+
+.feature-tabs-menu-item:not(.is-active) .feature-tabs-menu-item-top {
+  opacity: 0.6;
+}
+
+/* Feature image visibility toggle */
+.feature-image-wrapper {
+  display: none;
+}
+
+.feature-image-wrapper.active {
+  display: block;
+}
+
+/* Mobile menu toggle */
+.menu-close {
+  display: none;
+}
+
+.nav-menu.is-open .menu-open {
+  display: none;
+}
+
+.nav-menu.is-open .menu-close {
+  display: block;
+}
+
+/* Webflow class detection */
+.w-mod-js * {
+  box-sizing: border-box;
+}
+
+/* Video responsive */
+video {
+  max-width: 100%;
+}
+
+/* Testimonials Slider - only functional styles, Webflow CSS handles visual styling */
+.fs-slider_slide {
+  display: none;
+}
+
+.fs-slider_slide:first-child {
+  display: block;
+}
+
+/* Ensure pagination bullets are clickable */
+.fs-slider_pagination_bullet {
+  cursor: pointer;
+}
