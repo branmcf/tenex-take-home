@@ -45,8 +45,8 @@ export const buildAuthOptions = (): BetterAuthOptions => {
         , secret: process.env.AUTH_SECRET ?? ''
         , trustedOrigins: [
             'http://localhost:3026'
-            , 'https://api.mondayfortuesday.com'
             , 'http://localhost:3000'
+            , 'https://api.hardwire.branmcf.com'
         ]
     };
 };

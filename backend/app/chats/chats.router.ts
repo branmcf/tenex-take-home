@@ -2,21 +2,34 @@ import express from 'express';
 import {
     requestHandlerErrorWrapper
     , requestValidator
+    , chatOwnershipValidator
 } from '../../middleware';
-import { getUserChatsHandler, deleteChatHandler } from './chats.ctrl';
+import { deleteChatHandler } from './chats.ctrl';
+import { messagesRouter } from '../messages';
+import { workflowRunsRouter } from '../workflowRuns';
 
 // create an express router
 export const chatsRouter = express.Router( { mergeParams: true } );
 
 // define the routes of the express router
 chatsRouter
-    .get(
-        '/users/:userId/chats'
-        , requestValidator( 'GET_USER_CHATS' )
-        , requestHandlerErrorWrapper( getUserChatsHandler )
-    )
     .delete(
-        '/chats/:chatId'
+        '/:chatId'
         , requestValidator( 'DELETE_CHAT' )
+        , chatOwnershipValidator
         , requestHandlerErrorWrapper( deleteChatHandler )
     );
+
+// nested chat message routes - ownership validated for all nested routes
+chatsRouter.use(
+    '/:chatId/messages'
+    , chatOwnershipValidator
+    , messagesRouter
+);
+
+// workflow runs - ownership validated for all nested routes
+chatsRouter.use(
+    '/:chatId/workflow-runs'
+    , chatOwnershipValidator
+    , workflowRunsRouter
+);

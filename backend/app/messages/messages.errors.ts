@@ -90,3 +90,16 @@ export class ChatAccessForbidden extends ResourceError {
         } );
     }
 }
+
+export class WorkflowRunInProgress extends ResourceError {
+    public constructor () {
+        const clientMessage = 'A workflow is currently running for this chat. Please wait for it to finish.';
+        const code = 'WORKFLOW_RUN_IN_PROGRESS';
+        const statusCode = 409;
+        super( {
+            clientMessage
+            , statusCode
+            , code
+        } );
+    }
+}

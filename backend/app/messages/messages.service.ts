@@ -154,6 +154,7 @@ export const createMessage = async (
         role: 'user' | 'assistant' | 'system';
         content: string;
         modelId?: string;
+        workflowRunId?: string;
     }
 ): Promise<Either<ResourceError, { id: string; createdAt: string }>> => {
 
@@ -172,6 +173,7 @@ export const createMessage = async (
             $role: MessageRole!
             $content: String!
             $modelId: String
+            $workflowRunId: UUID
         ) {
             createMessage(input: {
                 message: {
@@ -179,6 +181,7 @@ export const createMessage = async (
                     role: $role
                     content: $content
                     modelId: $modelId
+                    workflowRunId: $workflowRunId
                 }
             }) {
                 message {
@@ -198,6 +201,7 @@ export const createMessage = async (
                 , role: graphqlRole
                 , content: params.content
                 , modelId: params.modelId ?? null
+                , workflowRunId: params.workflowRunId ?? null
             }
         }
     );

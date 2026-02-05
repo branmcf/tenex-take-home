@@ -1,0 +1,88 @@
+[
+    {
+        "id": "tool_web_search",
+        "name": "web_search",
+        "description": "Search the web for information",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "query": { "type": "string" },
+                "limit": { "type": "number" }
+            },
+            "required": [ "query" ],
+            "additionalProperties": false
+        },
+        "version": "1.0.0",
+        "tags": [ "search" ]
+    },
+    {
+        "id": "tool_read_url",
+        "name": "read_url",
+        "description": "Fetch a URL and extract readable text content",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "url": { "type": "string" },
+                "maxChars": { "type": "number" }
+            },
+            "required": [ "url" ],
+            "additionalProperties": false
+        },
+        "version": "1.0.0",
+        "tags": [ "fetch" ]
+    },
+    {
+        "id": "tool_http_request",
+        "name": "http_request",
+        "description": "Make an HTTP API request",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "url": { "type": "string" },
+                "method": { "type": "string" },
+                "headers": { "type": "object" },
+                "body": { "type": [ "object", "string", "number", "boolean", "array", "null" ] },
+                "timeoutMs": { "type": "number" }
+            },
+            "required": [ "url", "method" ],
+            "additionalProperties": false
+        },
+        "version": "1.0.0",
+        "tags": [ "http" ]
+    },
+    {
+        "id": "tool_summarize",
+        "name": "summarize",
+        "description": "Summarize a block of text into a shorter form",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "text": { "type": "string" },
+                "maxWords": { "type": "number" }
+            },
+            "required": [ "text" ],
+            "additionalProperties": false
+        },
+        "version": "1.0.0",
+        "tags": [ "text" ]
+    },
+    {
+        "id": "tool_extract_json",
+        "name": "extract_json",
+        "description": "Extract a JSON object or array from text",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "text": { "type": "string" },
+                "fields": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                }
+            },
+            "required": [ "text" ],
+            "additionalProperties": false
+        },
+        "version": "1.0.0",
+        "tags": [ "json" ]
+    }
+]

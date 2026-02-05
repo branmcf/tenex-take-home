@@ -15,8 +15,10 @@ import {
     , MessageResponse
 } from './messages.types';
 import { generateLLMResponse, generateAndUpdateChatTitle, generateFallbackChatTitle } from './messages.helper';
+import { runWorkflow } from '../../lib/workflowRunner';
 import { streamLLMText } from '../../lib/llm';
-import { ChatAccessForbidden } from './messages.errors';
+import { ChatAccessForbidden, WorkflowRunInProgress } from './messages.errors';
+import { getRunningWorkflowRunByChatId } from '../workflowRuns/workflowRuns.service';
 
 /**
  * @title Create Message Handler
@@ -33,7 +35,7 @@ export const createMessageHandler = async (
     const { chatId } = req.params;
 
     // get the message content, modelId, and userId from the body
-    const { content, modelId, userId } = req.body;
+    const { content, modelId, userId, workflowId } = req.body;
 
     // check if chat exists
     const getChatByIdResult = await getChatById( chatId );
@@ -76,6 +78,22 @@ export const createMessageHandler = async (
         }
     }
 
+    // block new messages when a workflow is already running
+    const runningWorkflowResult = await getRunningWorkflowRunByChatId( chatId );
+
+    if ( runningWorkflowResult.isError() ) {
+        return res
+            .status( runningWorkflowResult.value.statusCode )
+            .json( runningWorkflowResult.value );
+    }
+
+    if ( runningWorkflowResult.value ) {
+        const error = new WorkflowRunInProgress();
+        return res
+            .status( error.statusCode )
+            .json( error );
+    }
+
     // create the user message
     const createUserMessageResult = await createMessage( {
         chatId
@@ -96,14 +114,207 @@ export const createMessageHandler = async (
     // store the user message data
     const userMessageData = createUserMessageResult.value;
 
+    // if a workflow is selected, start it asynchronously and return workflow run id
+    if ( workflowId ) {
+
+        // create a promise to resolve when the workflow run is created
+        let resolveRunId: ( workflowRunId: string ) => void = () => undefined;
+        let rejectRunId: ( err: ResourceError ) => void = () => undefined;
+
+        const workflowRunIdPromise = new Promise<string>( ( resolve, reject ) => {
+            resolveRunId = resolve;
+            rejectRunId = reject as ( err: ResourceError ) => void;
+        } );
+
+        let runIdResolved = false;
+        let workflowRunIdValue: string | null = null;
+
+        // kick off workflow execution in the background
+        const workflowExecutionPromise = runWorkflow( {
+            workflowId
+            , chatId
+            , triggerMessageId: userMessageData.id
+            , userMessage: content
+            , modelId
+            , callbacks: {
+                onRunCreated: ( workflowRunId: string ) => {
+                    runIdResolved = true;
+                    workflowRunIdValue = workflowRunId;
+                    resolveRunId( workflowRunId );
+                }
+            }
+        } );
+
+        // handle workflow completion asynchronously
+        workflowExecutionPromise
+            .then( async result => {
+                if ( result.isError() ) {
+
+                    // reject the run id promise if the workflow failed before creating a run
+                    if ( !runIdResolved ) {
+                        rejectRunId( result.value );
+                    }
+
+                    // if the workflow failed, create a system message
+                    const systemMessageContent = 'Workflow execution failed. Please review the steps and try again.';
+
+                    await createMessage( {
+                        chatId
+                        , role: 'system'
+                        , content: systemMessageContent
+                        , modelId
+                        , workflowRunId: workflowRunIdValue ?? undefined
+                    } );
+
+                    // if this is a new chat, generate fallback title
+                    if ( isNewChat ) {
+                        await generateFallbackChatTitle( {
+                            chatId
+                            , userMessage: content
+                        } );
+                    }
+
+                    return;
+                }
+
+                // create the assistant message with workflow output
+                const createAssistantMessageResult = await createMessage( {
+                    chatId
+                    , role: 'assistant'
+                    , content: result.value.content
+                    , modelId
+                    , workflowRunId: result.value.workflowRunId
+                } );
+
+                // check for errors creating assistant message
+                if ( createAssistantMessageResult.isError() ) {
+                    // eslint-disable-next-line no-console
+                    console.error( 'Failed to store workflow assistant message', createAssistantMessageResult.value );
+
+                    await createMessage( {
+                        chatId
+                        , role: 'system'
+                        , content: 'Workflow completed, but the response failed to save. Please retry.'
+                        , modelId
+                        , workflowRunId: result.value.workflowRunId
+                    } );
+                    return;
+                }
+
+                // if this is a new chat, generate and update the title
+                if ( isNewChat ) {
+                    generateAndUpdateChatTitle( {
+                        chatId
+                        , userMessage: content
+                        , modelId
+                    } ).catch( err => {
+                        // eslint-disable-next-line no-console
+                        console.error( '[Chat Title] Failed to generate title:', err );
+                    } );
+                }
+            } )
+            .catch( err => {
+                // eslint-disable-next-line no-console
+                console.error( 'Workflow execution failed:', err );
+
+                // reject the run id promise if the workflow failed before creating a run
+                if ( !runIdResolved ) {
+                    rejectRunId( new ResourceError( {
+                        message: 'Workflow execution failed.'
+                        , clientMessage: 'Workflow execution failed.'
+                    } ) );
+                }
+            } );
+
+        // wait for the workflow run id or timeout
+        let workflowRunId: string;
+
+        let timeoutId: NodeJS.Timeout | null = null;
+
+        try {
+            const timeoutPromise = new Promise<string>( ( _, reject ) => {
+                timeoutId = setTimeout( () => {
+                    reject( new ResourceError( {
+                        message: 'Timed out waiting for workflow run.'
+                        , clientMessage: 'Timed out waiting for workflow run.'
+                    } ) );
+                }, 5000 );
+            } );
+
+            workflowRunId = await Promise.race( [ workflowRunIdPromise, timeoutPromise ] );
+
+            if ( timeoutId ) {
+                clearTimeout( timeoutId );
+            }
+        } catch ( err ) {
+            // ensure timeout is cleared
+            // (timeoutId may not be set if promise resolved immediately)
+            if ( timeoutId ) {
+                clearTimeout( timeoutId );
+            }
+
+            const error = err as ResourceError;
+
+            // store a system message so the user sees the failure in chat
+            const systemMessageContent = 'Failed to start the selected workflow. Your message has been saved — please try again.';
+
+            await createMessage( {
+                chatId
+                , role: 'system'
+                , content: systemMessageContent
+                , modelId
+            } );
+
+            // if this is a new chat, generate fallback title
+            if ( isNewChat ) {
+                await generateFallbackChatTitle( {
+                    chatId
+                    , userMessage: content
+                } );
+            }
+
+            const userMessage: MessageResponse = {
+                id: userMessageData.id
+                , role: 'user'
+                , content
+                , createdAt: userMessageData.createdAt
+            };
+
+            return res.status( 201 ).json( {
+                userMessage
+                , assistantMessage: null
+                , chatId
+                , error: {
+                    message: error.message ?? 'Workflow start failed'
+                    , code: 'WORKFLOW_RUN_FAILED'
+                }
+            } );
+        }
+
+        // map the user message to response format
+        const userMessage: MessageResponse = {
+            id: userMessageData.id
+            , role: 'user'
+            , content
+            , createdAt: userMessageData.createdAt
+        };
+
+        // return response with workflow run id (assistant message will arrive later)
+        return res.status( 201 ).json( {
+            userMessage
+            , assistantMessage: null
+            , chatId
+            , workflowRunId
+        } );
+    }
+
     // generate LLM response
     const generateLLMResponseResult = await generateLLMResponse( {
         userMessage: content
         , modelId
     } );
 
-    // check for errors
-    if ( generateLLMResponseResult.isError() ) {
+    if ( generateLLMResponseResult && generateLLMResponseResult.isError() ) {
 
         // if this is a new chat, store a system message and generate fallback title
         // so the user can see what happened and retry
@@ -153,13 +364,15 @@ export const createMessageHandler = async (
     }
 
     // store the LLM response data
-    const llmResponseData = generateLLMResponseResult.value;
+    const llmResponseData = generateLLMResponseResult ? generateLLMResponseResult.value : null;
 
     // create the assistant message
+    const assistantContent = llmResponseData?.content ?? '';
+
     const createAssistantMessageResult = await createMessage( {
         chatId
         , role: 'assistant'
-        , content: llmResponseData.content
+        , content: assistantContent
         , modelId
     } );
 
@@ -176,27 +389,25 @@ export const createMessageHandler = async (
     const assistantMessageData = createAssistantMessageResult.value;
 
     // create message sources for the assistant message
-    const sourcePromises = llmResponseData.sources.map( ( source, index ) =>
-        createMessageSource( {
-            messageId: assistantMessageData.id
-            , url: source.url
-            , title: source.title
-            , description: source.description
-            , position: index
-        } )
-    );
+    if ( llmResponseData ) {
+        const sourcePromises = llmResponseData.sources.map( ( source, index ) =>
+            createMessageSource( {
+                messageId: assistantMessageData.id
+                , url: source.url
+                , title: source.title
+                , description: source.description
+                , position: index
+            } )
+        );
 
-    // wait for all sources to be created
-    const sourceResults = await Promise.all( sourcePromises );
+        const sourceResults = await Promise.all( sourcePromises );
 
-    // check if any source creation failed
-    for ( const sourceResult of sourceResults ) {
-        if ( sourceResult.isError() ) {
-
-            // return the error
-            return res
-                .status( sourceResult.value.statusCode )
-                .json( sourceResult.value );
+        for ( const sourceResult of sourceResults ) {
+            if ( sourceResult.isError() ) {
+                return res
+                    .status( sourceResult.value.statusCode )
+                    .json( sourceResult.value );
+            }
         }
     }
 
@@ -226,9 +437,9 @@ export const createMessageHandler = async (
     const assistantMessage: MessageResponse = {
         id: assistantMessageData.id
         , role: 'assistant'
-        , content: llmResponseData.content
+        , content: assistantContent
         , createdAt: assistantMessageData.createdAt
-        , sources: llmResponseData.sources
+        , sources: llmResponseData ? llmResponseData.sources : undefined
     };
 
     // return success

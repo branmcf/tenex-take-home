@@ -11,6 +11,7 @@ import { ScrollButton } from "@/components/ui/scroll-button";
 import { Loader } from "@/components/ui/loader";
 import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
+import { WorkflowRunPanel } from "./WorkflowRunPanel";
 import type { ChatContainerProps } from "./types";
 import { useChatContext } from "@/contexts";
 
@@ -25,8 +26,11 @@ export function ChatContainer({ className }: ChatContainerProps) {
     workflows,
     selectedModel,
     setSelectedModel,
+    isModelPreferenceLoaded,
     selectedWorkflow,
     setSelectedWorkflow,
+    workflowRuns,
+    isWorkflowRunning,
   } = useChatContext();
 
   const isNewChat = messages.length === 0 && !isLoading;
@@ -41,15 +45,34 @@ export function ChatContainer({ className }: ChatContainerProps) {
         <ChatContainerRoot className="relative flex-1 min-h-0 overflow-hidden">
           <ChatContainerContent className="mx-auto w-full max-w-3xl px-4 py-8">
             <div className="space-y-8">
-              {messages.map((message, index) => (
-                <ChatMessage
-                  key={message.id}
-                  message={message}
-                  isLast={index === messages.length - 1 && !isLoading}
-                />
-              ))}
+              {messages.map((message, index) => {
+                const isLast = index === messages.length - 1 && !isLoading;
+                const anchoredRuns = workflowRuns.filter(
+                  (run) => run.anchorMessageId === message.id
+                );
 
-              {isLoading && (
+                return (
+                  <React.Fragment key={message.id}>
+                    <ChatMessage message={message} isLast={isLast} />
+                    {anchoredRuns.map((run) => (
+                      <WorkflowRunPanel key={run.id} run={run} />
+                    ))}
+                  </React.Fragment>
+                );
+              })}
+
+              {workflowRuns
+                .filter(
+                  (run) =>
+                    !messages.some(
+                      (message) => message.id === run.anchorMessageId
+                    )
+                )
+                .map((run) => (
+                  <WorkflowRunPanel key={run.id} run={run} />
+                ))}
+
+              {isLoading && !isWorkflowRunning && (
                 <div className="flex items-center py-2">
                   <Loader
                     variant="pulse-dot"
@@ -97,6 +120,7 @@ export function ChatContainer({ className }: ChatContainerProps) {
             onChange={setInput}
             onSubmit={handleSubmit}
             isLoading={isLoading}
+            disabled={isWorkflowRunning}
             models={models}
             workflows={workflows}
             selectedModel={selectedModel?.id ?? models[0]?.id}
@@ -105,6 +129,7 @@ export function ChatContainer({ className }: ChatContainerProps) {
               setSelectedModel(model);
             }}
             selectedWorkflow={selectedWorkflow}
+            isModelLoading={!isModelPreferenceLoaded}
           />
           {!isNewChat && (
             <p className="mt-4 text-center text-xs uppercase tracking-wider text-muted-foreground font-mono">

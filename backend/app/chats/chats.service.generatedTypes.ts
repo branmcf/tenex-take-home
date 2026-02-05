@@ -16,3 +16,10 @@ export type DeleteChatMutationVariables = Types.Exact<{
 
 
 export type DeleteChatMutation = { __typename: 'Mutation', updateChatById?: { __typename: 'UpdateChatPayload', chat?: { __typename: 'Chat', id: any, deletedAt?: any | null } | null } | null };
+
+export type GetChatOwnershipQueryVariables = Types.Exact<{
+  chatId: Types.Scalars['UUID']['input'];
+}>;
+
+
+export type GetChatOwnershipQuery = { __typename: 'Query', chatById?: { __typename: 'Chat', id: any, userId: string, deletedAt?: any | null } | null };

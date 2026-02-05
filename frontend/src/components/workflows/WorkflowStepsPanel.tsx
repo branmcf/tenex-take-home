@@ -50,8 +50,8 @@ function WorkflowStepItem({ step, stepNumber, defaultOpen = false }: WorkflowSte
               <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
                 Prompt
               </h4>
-              <div className="rounded-md bg-background border border-border p-3">
-                <p className="text-sm text-foreground whitespace-pre-wrap">
+              <div className="rounded-md bg-background border border-border p-3 overflow-hidden">
+                <p className="text-sm text-foreground whitespace-pre-wrap break-words">
                   {step.prompt}
                 </p>
               </div>

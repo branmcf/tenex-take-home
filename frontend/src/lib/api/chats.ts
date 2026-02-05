@@ -70,16 +70,39 @@ export interface MessageResponse {
     sources?: Source[];
 }
 
+export interface WorkflowRunStepResponse {
+    id: string;
+    name: string;
+    status: "QUEUED" | "RUNNING" | "PASSED" | "FAILED" | "CANCELLED";
+    startedAt?: string | null;
+    completedAt?: string | null;
+    output?: string | null;
+    error?: string | null;
+    logs?: unknown | null;
+    toolCalls?: unknown | null;
+}
+
+export interface WorkflowRunHistoryItemResponse {
+    id: string;
+    status: "RUNNING" | "PASSED" | "FAILED" | "CANCELLED";
+    startedAt: string;
+    completedAt?: string | null;
+    triggerMessageId: string;
+    steps: WorkflowRunStepResponse[];
+}
+
 interface CreateMessageRequest {
     content: string;
     modelId: string;
     userId: string;
+    workflowId?: string | null;
 }
 
 interface CreateMessageResponse {
     userMessage: MessageResponse;
     assistantMessage: MessageResponse | null;
     chatId: string;
+    workflowRunId?: string;
     error?: {
         message: string;
         code: string;
@@ -88,6 +111,10 @@ interface CreateMessageResponse {
 
 interface GetMessagesResponse {
     messages: MessageResponse[];
+}
+
+interface GetWorkflowRunsResponse {
+    workflowRuns: WorkflowRunHistoryItemResponse[];
 }
 
 /**
@@ -117,4 +144,18 @@ export async function getMessages(chatId: string): Promise<MessageResponse[]> {
         `/api/chats/${chatId}/messages`
     );
     return response.data.messages;
+}
+
+/**
+ * Fetches workflow runs for a chat.
+ * @param chatId - The chat ID
+ * @returns Array of workflow runs
+ */
+export async function getWorkflowRuns(
+    chatId: string
+): Promise<WorkflowRunHistoryItemResponse[]> {
+    const response = await apiClient.get<GetWorkflowRunsResponse>(
+        `/api/chats/${chatId}/workflow-runs`
+    );
+    return response.data.workflowRuns;
 }

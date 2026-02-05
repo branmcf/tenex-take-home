@@ -26,6 +26,7 @@ export interface CreateMessageRequest extends Request {
         content: string;
         modelId: string;
         userId: string;
+        workflowId?: string | null;
     };
 }
 
@@ -34,6 +35,7 @@ export interface CreateMessageResponse {
     userMessage: MessageResponse;
     assistantMessage: MessageResponse | null;
     chatId: string;
+    workflowRunId?: string;
     error?: {
         message: string;
         code: string;

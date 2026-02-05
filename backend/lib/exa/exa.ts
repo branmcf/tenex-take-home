@@ -9,22 +9,7 @@ import type {
     ExaSearchParams
     , ExaSearchResult
 } from './exa.types';
-
-/**
- * custom error for Exa search failures
- */
-class ExaSearchFailed extends ResourceError {
-    public constructor () {
-        const clientMessage = `Failed to search with Exa.`;
-        const code = 'EXA_SEARCH_FAILED';
-        const statusCode = 500;
-        super( {
-            clientMessage
-            , statusCode
-            , code
-        } );
-    }
-}
+import { ExaSearchFailed } from './exa.errors';
 
 /**
  * search the web using Exa's neural search
@@ -54,7 +39,7 @@ export const searchWeb = async (
 
         // log search attempt
         // eslint-disable-next-line no-console
-        console.log( `[Exa] Searching for: "${params.query}"` );
+        console.log( `[Exa] Searching for: "${ params.query }"` );
 
         // initialize Exa client
         const exa = new Exa( exaApiKey );
@@ -74,7 +59,7 @@ export const searchWeb = async (
 
         // log successful search
         // eslint-disable-next-line no-console
-        console.log( `[Exa] Found ${searchResult.results.length} results` );
+        console.log( `[Exa] Found ${ searchResult.results.length } results` );
 
         // map Exa results to our format
         const results: ExaSearchResult[] = searchResult.results

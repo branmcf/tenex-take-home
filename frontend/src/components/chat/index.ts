@@ -5,4 +5,15 @@ export { WelcomeScreen } from "./WelcomeScreen";
 export { ChatList, type ChatListItemData } from "./ChatList";
 export { ModelSelector } from "./ModelSelector";
 export { WorkflowSelector } from "./WorkflowSelector";
-export type { Message, Model, Workflow, Source, ChatContainerProps } from "./types";
+export { WorkflowRunPanel } from "./WorkflowRunPanel";
+export type {
+  Message,
+  Model,
+  Workflow,
+  Source,
+  ChatContainerProps,
+  WorkflowRunState,
+  WorkflowRunStep,
+  WorkflowRunStatus,
+  WorkflowStepStatus,
+} from "./types";

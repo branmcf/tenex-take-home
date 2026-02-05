@@ -1,0 +1,130 @@
+# Site metadata
+site_name: HardWire API Documentation
+site_description: 'API documentation for HardWire - Workflows and Chat Platform'
+site_url: 'https://docs.hardwire.dev'
+repo_name: 'hardwire/docs'
+repo_url: 'https://github.com/hardwire/docs'
+copyright: Copyright &copy; 2026 Brandon McFarland
+
+# Directory configuration
+docs_dir: 'site/content'
+site_dir: 'build'
+
+# Custom CSS
+extra_css:
+  - stylesheets/extra.css
+
+# Social links
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/hardwire
+
+# Navigation structure
+nav:
+  - Home: index.md
+  - Documentation:
+    - Introduction: docs/introduction.md
+    - Getting Started:
+      - Authentication: docs/getting-started/authentication.md
+      - Making API Calls: docs/getting-started/api-calls.md
+    - Backend API:
+      - Overview: docs/endpoints/backend/overview.md
+      - Liveness:
+        - Health Check: docs/endpoints/backend/liveness/health-check.md
+      - Models:
+        - Get Models: docs/endpoints/backend/models/get-models.md
+      - Users:
+        - Get User Chats: docs/endpoints/backend/users/get-user-chats.md
+        - Get User Workflows: docs/endpoints/backend/users/get-user-workflows.md
+        - Get Model Preference: docs/endpoints/backend/users/get-model-preference.md
+        - Update Model Preference: docs/endpoints/backend/users/update-model-preference.md
+      - Chats:
+        - Delete Chat: docs/endpoints/backend/chats/delete-chat.md
+      - Messages:
+        - Create Message: docs/endpoints/backend/messages/create-message.md
+        - Create Message Stream: docs/endpoints/backend/messages/create-message-stream.md
+        - Get Messages: docs/endpoints/backend/messages/get-messages.md
+      - Workflows:
+        - Get Workflow: docs/endpoints/backend/workflows/get-workflow.md
+        - Create Workflow: docs/endpoints/backend/workflows/create-workflow.md
+        - Update Workflow: docs/endpoints/backend/workflows/update-workflow.md
+        - Delete Workflow: docs/endpoints/backend/workflows/delete-workflow.md
+      - Workflow Chat Messages:
+        - Get Messages: docs/endpoints/backend/workflow-chat-messages/get-messages.md
+        - Create Message: docs/endpoints/backend/workflow-chat-messages/create-message.md
+        - Apply Proposal: docs/endpoints/backend/workflow-chat-messages/apply-proposal.md
+        - Reject Proposal: docs/endpoints/backend/workflow-chat-messages/reject-proposal.md
+      - Workflow Runs:
+        - Get Workflow Runs: docs/endpoints/backend/workflow-runs/get-workflow-runs.md
+        - Stream Workflow Run: docs/endpoints/backend/workflow-runs/stream-workflow-run.md
+      - Tools:
+        - Get Tools: docs/endpoints/backend/tools/get-tools.md
+        - Search Tools: docs/endpoints/backend/tools/search-tools.md
+        - Get Tool by ID: docs/endpoints/backend/tools/get-tool-by-id.md
+    - MCP Tools Server:
+      - Overview: docs/endpoints/mcp-tools-server/overview.md
+      - MCP Request: docs/endpoints/mcp-tools-server/mcp-request.md
+
+# Theme configuration
+theme:
+  name: material
+  custom_dir: site/overrides
+  palette:
+    - scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Noto Sans
+    code: Roboto Mono
+  logo: assets/images/logo.svg
+  favicon: assets/images/logo.svg
+  language: en
+  features:
+    - navigation.tabs
+    - navigation.instant
+    - navigation.path
+    - navigation.sections
+    - search.suggest
+    - search.highlight
+    - content.code.annotate
+    - content.code.copy
+    - content.tabs.link
+
+# Markdown extensions
+markdown_extensions:
+  - admonition
+  - meta
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - footnotes
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+# Plugins
+plugins:
+  - search
+
+# Watch settings for development
+watch:
+  - site/overrides

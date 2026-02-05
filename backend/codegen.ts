@@ -4,14 +4,6 @@ import { CodegenConfig } from '@graphql-codegen/cli';
 const config: CodegenConfig = {
     schema: { 'http://localhost:3026/graphql': { headers: {} } }
     , overwrite: true
-    , documents: [
-
-        // 'lib/postGraphile/**/*/!(*.generated*).ts'
-
-        // , 'factory/**/**!(*.generated*).ts'
-
-        'app/**/**!(*.generated*).ts'
-    ]
     , generates: {
         'lib/postGraphile/postGraphile.generatedTypes.ts': {
             plugins: [ { add: { content: '/* eslint-disable */' } }, 'typescript' ]
@@ -32,6 +24,7 @@ const config: CodegenConfig = {
                 extension: '.generatedTypes.ts'
                 , baseTypesPath: 'postGraphile.generatedTypes.ts'
             }
+            , documents: [ 'lib/postGraphile/**/**!(*.generated*).ts' ]
             , plugins: [ { add: { content: '/* eslint-disable */' } }, 'typescript-operations' ]
             , config: {
                 scalars: {
@@ -51,6 +44,27 @@ const config: CodegenConfig = {
                 extension: '.generatedTypes.ts'
                 , baseTypesPath: '../lib/postGraphile/postGraphile.generatedTypes.ts'
             }
+            , documents: [ 'app/**/**!(*.generated*).ts' ]
+            , plugins: [ { add: { content: '/* eslint-disable */' } }, 'typescript-operations' ]
+            , config: {
+                scalars: {
+                    Int: 'number'
+                    , date: 'string'
+                    , jsonb: 'any'
+                    , numeric: 'number'
+                    , time: 'string'
+                    , timestamptz: 'string'
+                }
+                , nonOptionalTypename: true
+            }
+        }
+        , lib: {
+            preset: 'near-operation-file'
+            , presetConfig: {
+                extension: '.generatedTypes.ts'
+                , baseTypesPath: 'postGraphile/postGraphile.generatedTypes.ts'
+            }
+            , documents: [ 'lib/workflowProposals/**/**!(*.generated*).ts' ]
             , plugins: [ { add: { content: '/* eslint-disable */' } }, 'typescript-operations' ]
             , config: {
                 scalars: {
@@ -70,6 +84,7 @@ const config: CodegenConfig = {
                 extension: '.generatedTypes.ts'
                 , baseTypesPath: '../lib/postGraphile/postGraphile.generatedTypes.ts'
             }
+            , documents: [ 'factory/**/**!(*.generated*).ts' ]
             , plugins: [ { add: { content: '/* eslint-disable */' } }, 'typescript-operations' ]
             , config: {
                 scalars: {

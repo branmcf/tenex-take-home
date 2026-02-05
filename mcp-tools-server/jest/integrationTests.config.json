@@ -1,0 +1,32 @@
+{
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "rootDir": "../",
+    "testPathIgnorePatterns": [
+        "<rootDir>/dist",
+        "<rootDir>/node_modules"
+    ],
+    "testMatch": [
+        "<rootDir>/tests/**/*.test.ts"
+    ],
+    "setupFiles": [
+        "<rootDir>/jest/integrationTestsEnvSetup.ts"
+    ],
+    "transform": {
+        "^.+\\.tsx?$": [
+            "ts-jest",
+            {
+                "isolatedModules": true
+            }
+        ]
+    },
+    "collectCoverage": false,
+    "coverageReporters": [
+        "html"
+    ],
+    "coverageDirectory": "<rootDir>/jest/coverage/integrationTests",
+    "testTimeout": 30000,
+    "maxWorkers": 4,
+    "silent": false,
+    "clearMocks": true
+}

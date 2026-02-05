@@ -20,7 +20,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
@@ -98,12 +97,12 @@ export function AppSidebar() {
     }
   }, [deleteChat, currentChatId, startNewChat]);
 
-  return (
-    <Sidebar variant="inset">
-      {/* Fixed Header - Logo and Navigation */}
-      <SidebarHeader className="pb-0">
-        <div className="flex items-center justify-between px-2 py-1">
-          {isCollapsed ? (
+  // When collapsed, only show the toggle icon
+  if (isCollapsed) {
+    return (
+      <Sidebar variant="inset" collapsible="icon">
+        <SidebarHeader className="pb-0">
+          <div className="flex items-center justify-center px-2 py-1">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -119,34 +118,41 @@ export function AppSidebar() {
               </TooltipTrigger>
               <TooltipContent side="right">Open sidebar</TooltipContent>
             </Tooltip>
-          ) : (
-            <>
-              <Link
-                href="/"
-                className="flex items-center gap-2 font-medium"
+          </div>
+        </SidebarHeader>
+      </Sidebar>
+    );
+  }
+
+  return (
+    <Sidebar variant="inset" collapsible="icon">
+      {/* Fixed Header - Logo and Navigation */}
+      <SidebarHeader className="pb-0">
+        <div className="flex items-center justify-between px-2 py-1">
+          <Link
+            href="/"
+            className="flex items-center gap-2 font-medium"
+          >
+            <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
+              <Stack className="size-4" weight="bold" />
+            </div>
+            B-Plex
+          </Link>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={toggleSidebar}
               >
-                <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
-                  <Stack className="size-4" weight="bold" />
-                </div>
-                B-Plex
-              </Link>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={toggleSidebar}
-                  >
-                    <SidebarSimple className="size-4" />
-                    <span className="sr-only">Close sidebar</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="right">Close sidebar</TooltipContent>
-              </Tooltip>
-            </>
-          )}
+                <SidebarSimple className="size-4" />
+                <span className="sr-only">Close sidebar</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">Close sidebar</TooltipContent>
+          </Tooltip>
         </div>
         <SidebarMenu>
           {navItems.map((item) => (
@@ -211,13 +217,11 @@ export function AppSidebar() {
                   </div>
                 </div>
               </SidebarMenuButton>
-              {!isCollapsed && <ThemeToggle />}
+              <ThemeToggle />
             </div>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
-
-      <SidebarRail />
     </Sidebar>
   );
 }

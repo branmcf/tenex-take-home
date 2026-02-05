@@ -1,0 +1,717 @@
+/* =============================================================================
+   HardWire Documentation - Swiss-Modernist Technical Blueprint Style
+   Based on DESIGN-SYSTEM.md and DESIGN-RULES.md
+
+   Key Rules:
+   - NO border-radius (all corners squared)
+   - NO shadows
+   - 1px hairline borders only
+   - Spacing: 8/16/24/32/48px scale
+   - Labels: uppercase, 0.1em letter-spacing, monospace
+   ============================================================================= */
+
+/* -----------------------------------------------------------------------------
+   CSS Custom Properties
+   ----------------------------------------------------------------------------- */
+:root {
+  /* Primary colors from design system */
+  --hw-background: #ECEBEB;
+  --hw-foreground: #141414;
+  --hw-card: #FFFFFF;
+  --hw-primary: #2D6225;
+  --hw-primary-foreground: #FFFFFF;
+  --hw-secondary: #9D9A97;
+  --hw-muted: #BABABA;
+  --hw-accent: #5ED04A;
+  --hw-accent-foreground: #141414;
+  --hw-destructive: #946864;
+  --hw-border: #BABABA;
+
+  /* Marketing green variants */
+  --hw-green-1: #0AA67D;
+  --hw-green-2: #82c38c;
+  --hw-green-3: #105c48;
+
+  /* Typography */
+  --hw-font-sans: "Noto Sans", "Inter", system-ui, sans-serif;
+  --hw-font-mono: "JetBrains Mono", "Fira Code", "SF Mono", Consolas, monospace;
+
+  /* MkDocs Material overrides */
+  --md-default-bg-color: #ECEBEB;
+  --md-primary-fg-color: #2D6225;
+  --md-primary-fg-color--light: #5ED04A;
+  --md-primary-fg-color--dark: #1a3d15;
+  --md-accent-fg-color: #5ED04A;
+  --md-typeset-a-color: #0AA67D;
+}
+
+/* Dark mode - Blueprint aesthetic */
+[data-md-color-scheme="slate"] {
+  --hw-background: #040404;
+  --hw-foreground: #ECEBEB;
+  --hw-card: #141414;
+  --hw-primary: #3B3D3A;
+  --hw-primary-foreground: #ECEBEB;
+  --hw-secondary: #395F4B;
+  --hw-muted: #203D30;
+  --hw-accent: #5ED04A;
+  --hw-accent-foreground: #040404;
+  --hw-destructive: #A27574;
+  --hw-border: #4C4C4C;
+
+  --md-default-bg-color: #040404;
+  --md-primary-fg-color: #3B3D3A;
+  --md-primary-fg-color--light: #5ED04A;
+  --md-primary-fg-color--dark: #2a2c29;
+  --md-accent-fg-color: #5ED04A;
+  --md-typeset-a-color: #82c38c;
+}
+
+/* -----------------------------------------------------------------------------
+   Global Resets - Remove all border-radius and shadows
+   ----------------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  border-radius: 0 !important;
+}
+
+/* Extra specific overrides for stubborn Material components */
+.md-search__form,
+.md-search__output,
+.md-search__inner,
+.md-search-result,
+.md-search-result__link,
+.md-search-result__meta,
+.md-typeset code,
+.md-typeset pre,
+.md-typeset pre > code,
+.md-typeset kbd,
+.md-typeset mark,
+.md-clipboard,
+.md-dialog,
+.md-tooltip,
+.md-annotation,
+.md-tag,
+.md-status,
+.md-button,
+.md-input,
+input,
+button,
+select,
+textarea,
+.highlight span.filename,
+.highlighttable,
+.codehilite,
+.codehilitetable {
+  border-radius: 0 !important;
+}
+
+/* Remove all shadows */
+.md-header,
+.md-header[data-md-state="shadow"],
+.md-tabs,
+.md-search__form,
+.md-search__output,
+.md-dialog,
+.md-tooltip,
+.md-content,
+.md-sidebar,
+.md-sidebar__scrollwrap,
+.md-nav,
+.md-nav__title,
+.md-nav__link,
+.md-typeset .admonition,
+.md-typeset details,
+.md-typeset .md-typeset__scrollwrap,
+[class*="shadow"],
+[class*="elevation"] {
+  box-shadow: none !important;
+}
+
+/* -----------------------------------------------------------------------------
+   Body & Background
+   ----------------------------------------------------------------------------- */
+body {
+  background-color: var(--hw-background);
+  font-family: var(--hw-font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+[data-md-color-scheme="slate"] body {
+  background-color: #040404;
+}
+
+/* -----------------------------------------------------------------------------
+   Header
+   ----------------------------------------------------------------------------- */
+.md-header {
+  background-color: var(--hw-card);
+  border-bottom: 1px solid var(--hw-border);
+  color: var(--hw-foreground);
+}
+
+[data-md-color-scheme="slate"] .md-header {
+  background-color: #141414;
+  border-bottom-color: #4C4C4C;
+}
+
+.md-header__button.md-logo {
+  color: var(--hw-foreground);
+}
+
+.md-header__title {
+  color: var(--hw-foreground);
+  font-weight: 500;
+}
+
+/* -----------------------------------------------------------------------------
+   Navigation Tabs
+   ----------------------------------------------------------------------------- */
+.md-tabs {
+  background-color: var(--hw-card);
+  border-bottom: 1px solid var(--hw-border);
+}
+
+[data-md-color-scheme="slate"] .md-tabs {
+  background-color: #141414;
+  border-bottom-color: #4C4C4C;
+}
+
+.md-tabs__link {
+  color: var(--hw-foreground);
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  font-family: var(--hw-font-mono);
+}
+
+.md-tabs__link--active,
+.md-tabs__link:hover {
+  color: var(--hw-green-1);
+}
+
+/* -----------------------------------------------------------------------------
+   Sidebar
+   ----------------------------------------------------------------------------- */
+.md-sidebar {
+  background-color: var(--hw-background);
+}
+
+[data-md-color-scheme="slate"] .md-sidebar {
+  background-color: #040404;
+}
+
+.md-nav__title {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-family: var(--hw-font-mono);
+  color: var(--hw-muted);
+}
+
+.md-nav__link {
+  color: var(--hw-foreground);
+}
+
+.md-nav__link:hover {
+  color: var(--hw-green-1);
+}
+
+.md-nav__link--active {
+  color: var(--hw-green-1);
+  font-weight: 600;
+}
+
+.md-nav__item--active > .md-nav__link {
+  color: var(--hw-green-1);
+}
+
+/* -----------------------------------------------------------------------------
+   Main Content Area
+   ----------------------------------------------------------------------------- */
+.md-main {
+  background-color: var(--hw-background);
+}
+
+[data-md-color-scheme="slate"] .md-main {
+  background-color: #040404;
+}
+
+.md-content {
+  background-color: var(--hw-card);
+  border: 1px solid var(--hw-border);
+  margin: 16px;
+  padding: 24px;
+}
+
+[data-md-color-scheme="slate"] .md-content {
+  background-color: #141414;
+  border-color: #4C4C4C;
+}
+
+/* -----------------------------------------------------------------------------
+   Typography
+   ----------------------------------------------------------------------------- */
+.md-typeset h1 {
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--hw-foreground);
+}
+
+.md-typeset h2 {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--hw-foreground);
+  border-bottom: 1px solid var(--hw-border);
+  padding-bottom: 8px;
+}
+
+.md-typeset h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--hw-foreground);
+}
+
+.md-typeset h4 {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--hw-foreground);
+}
+
+.md-typeset {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--hw-foreground);
+}
+
+/* Links */
+.md-typeset a {
+  color: var(--hw-green-1);
+  text-decoration: none;
+}
+
+.md-typeset a:hover {
+  text-decoration: underline;
+}
+
+/* -----------------------------------------------------------------------------
+   Code Blocks
+   ----------------------------------------------------------------------------- */
+.md-typeset code {
+  background-color: rgba(10, 166, 125, 0.1);
+  color: var(--hw-green-3);
+  padding: 2px 8px;
+  font-family: var(--hw-font-mono);
+  font-size: 13px;
+  border: 1px solid var(--hw-border);
+}
+
+[data-md-color-scheme="slate"] .md-typeset code {
+  background-color: rgba(94, 208, 74, 0.1);
+  color: var(--hw-green-2);
+  border-color: #4C4C4C;
+}
+
+.md-typeset pre {
+  background-color: #141414;
+  border: 1px solid var(--hw-border);
+  padding: 16px;
+}
+
+.md-typeset pre code,
+.md-typeset pre code *,
+.highlight code,
+.highlight code * {
+  background-color: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  color: #ECEBEB;
+  box-shadow: none !important;
+}
+
+/* Syntax highlighting colors inside code blocks */
+.md-typeset pre code .p,
+.md-typeset pre code .punctuation,
+.highlight code .p {
+  color: #ECEBEB;
+}
+
+.md-typeset pre code .nt,
+.highlight code .nt {
+  color: #82c38c;
+}
+
+.md-typeset pre code .s2,
+.md-typeset pre code .s1,
+.highlight code .s2,
+.highlight code .s1 {
+  color: #5ED04A;
+}
+
+.md-typeset pre code .w,
+.highlight code .w {
+  color: transparent;
+}
+
+/* -----------------------------------------------------------------------------
+   Tables
+   ----------------------------------------------------------------------------- */
+.md-typeset table:not([class]) {
+  border: 1px solid var(--hw-border);
+  border-collapse: collapse;
+}
+
+.md-typeset table:not([class]) th {
+  background-color: var(--hw-background);
+  border: 1px solid var(--hw-border);
+  padding: 8px 16px;
+  font-weight: 600;
+  text-align: left;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.md-typeset table:not([class]) td {
+  border: 1px solid var(--hw-border);
+  padding: 8px 16px;
+}
+
+[data-md-color-scheme="slate"] .md-typeset table:not([class]) th {
+  background-color: #1a1a1a;
+  border-color: #4C4C4C;
+}
+
+[data-md-color-scheme="slate"] .md-typeset table:not([class]) td {
+  border-color: #4C4C4C;
+}
+
+/* -----------------------------------------------------------------------------
+   Admonitions (Info boxes)
+   ----------------------------------------------------------------------------- */
+.md-typeset .admonition,
+.md-typeset details {
+  border: 1px solid var(--hw-border);
+  background-color: var(--hw-card);
+}
+
+.md-typeset .admonition-title,
+.md-typeset summary {
+  background-color: var(--hw-background);
+  border-bottom: 1px solid var(--hw-border);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.md-typeset .admonition.tip,
+.md-typeset details.tip {
+  border-color: var(--hw-green-1);
+}
+
+.md-typeset .tip > .admonition-title,
+.md-typeset .tip > summary {
+  background-color: rgba(10, 166, 125, 0.1);
+}
+
+.md-typeset .admonition.warning,
+.md-typeset details.warning {
+  border-color: #f0a030;
+}
+
+.md-typeset .admonition.note,
+.md-typeset details.note {
+  border-color: var(--hw-green-2);
+}
+
+.md-typeset .note > .admonition-title,
+.md-typeset .note > summary {
+  background-color: rgba(130, 195, 140, 0.1);
+}
+
+/* Remove default icons - use clean design */
+.md-typeset .admonition-title::before,
+.md-typeset summary::before {
+  display: none;
+}
+
+/* -----------------------------------------------------------------------------
+   Search
+   ----------------------------------------------------------------------------- */
+.md-search__form {
+  background-color: var(--hw-background);
+  border: 1px solid var(--hw-border);
+}
+
+[data-md-color-scheme="slate"] .md-search__form {
+  background-color: #1a1a1a;
+  border-color: #4C4C4C;
+}
+
+.md-search__input {
+  color: var(--hw-foreground);
+  font-family: var(--hw-font-sans);
+}
+
+.md-search__input::placeholder {
+  color: var(--hw-muted);
+}
+
+/* -----------------------------------------------------------------------------
+   Footer
+   ----------------------------------------------------------------------------- */
+.md-footer {
+  background-color: var(--hw-card);
+  border-top: 1px solid var(--hw-border);
+}
+
+[data-md-color-scheme="slate"] .md-footer {
+  background-color: #141414;
+  border-top-color: #4C4C4C;
+}
+
+/* -----------------------------------------------------------------------------
+   Custom Article Title
+   ----------------------------------------------------------------------------- */
+.article-title {
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--hw-foreground);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* -----------------------------------------------------------------------------
+   HTTP Method Badges
+   ----------------------------------------------------------------------------- */
+.badge-get,
+.badge-post,
+.badge-put,
+.badge-patch,
+.badge-delete {
+  display: inline-block;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: var(--hw-font-mono);
+  border: 1px solid;
+}
+
+.badge-get {
+  background-color: rgba(10, 166, 125, 0.1);
+  color: var(--hw-green-1);
+  border-color: var(--hw-green-1);
+}
+
+.badge-post {
+  background-color: rgba(45, 98, 255, 0.1);
+  color: #2d62ff;
+  border-color: #2d62ff;
+}
+
+.badge-put {
+  background-color: rgba(240, 160, 48, 0.1);
+  color: #f0a030;
+  border-color: #f0a030;
+}
+
+.badge-patch {
+  background-color: rgba(168, 85, 247, 0.1);
+  color: #a855f7;
+  border-color: #a855f7;
+}
+
+.badge-delete {
+  background-color: rgba(148, 104, 100, 0.1);
+  color: var(--hw-destructive);
+  border-color: var(--hw-destructive);
+}
+
+/* -----------------------------------------------------------------------------
+   Hero Section (Home Page)
+   ----------------------------------------------------------------------------- */
+.tx-hero-wrapper {
+  background-color: var(--hw-background);
+  min-height: calc(100vh - 96px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+[data-md-color-scheme="slate"] .tx-hero-wrapper {
+  background-color: #040404;
+}
+
+.tx-hero {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 48px 24px;
+  text-align: left;
+}
+
+.tx-hero h1 {
+  font-size: 48px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--hw-foreground);
+  margin-bottom: 24px;
+  line-height: 1.1;
+}
+
+[data-md-color-scheme="slate"] .tx-hero h1 {
+  color: #ECEBEB;
+}
+
+.tx-hero p {
+  font-size: 16px;
+  color: var(--hw-secondary);
+  margin-bottom: 32px;
+  line-height: 1.6;
+  max-width: 600px;
+}
+
+/* Primary button - matches design system */
+.tx-hero__button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: var(--hw-green-1);
+  color: #FFFFFF !important;
+  border: none;
+  font-weight: 500;
+  font-size: 14px;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: var(--hw-font-mono);
+  transition: opacity 150ms ease-out;
+}
+
+.tx-hero__button:hover {
+  opacity: 0.9;
+  text-decoration: none;
+}
+
+.tx-hero__button::after {
+  content: '→';
+}
+
+/* Label styling */
+.tx-hero__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-family: var(--hw-font-mono);
+  color: var(--hw-green-1);
+  margin-bottom: 16px;
+}
+
+.tx-hero__label::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background-color: var(--hw-green-1);
+}
+
+/* -----------------------------------------------------------------------------
+   Tabs (Content tabs)
+   ----------------------------------------------------------------------------- */
+.md-typeset .tabbed-labels {
+  border-bottom: 1px solid var(--hw-border);
+}
+
+.md-typeset .tabbed-labels > label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: var(--hw-font-mono);
+  color: var(--hw-muted);
+  border-bottom: 2px solid transparent;
+  padding: 8px 16px;
+}
+
+.md-typeset .tabbed-labels > label:hover {
+  color: var(--hw-foreground);
+}
+
+.md-typeset input.tabbed-set:checked + label {
+  color: var(--hw-green-1);
+  border-bottom-color: var(--hw-green-1);
+}
+
+/* -----------------------------------------------------------------------------
+   Utility Classes
+   ----------------------------------------------------------------------------- */
+.mono {
+  font-family: var(--hw-font-mono);
+}
+
+.uppercase {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-family: var(--hw-font-mono);
+  color: var(--hw-muted);
+}
+
+/* Green square accent marker */
+.green-square {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background-color: var(--hw-green-1);
+  margin-right: 8px;
+}
+
+/* -----------------------------------------------------------------------------
+   Focus States - Visible ring, no shadows
+   ----------------------------------------------------------------------------- */
+*:focus {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: 1px solid var(--hw-accent);
+  outline-offset: 2px;
+}
+
+/* -----------------------------------------------------------------------------
+   Scrollbar Styling
+   ----------------------------------------------------------------------------- */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--hw-background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--hw-muted);
+  border: 1px solid var(--hw-border);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--hw-secondary);
+}

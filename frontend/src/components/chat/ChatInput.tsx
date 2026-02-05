@@ -26,6 +26,7 @@ interface ChatInputProps {
   selectedModel: string;
   onModelChange: (modelId: string) => void;
   selectedWorkflow: string | undefined;
+  isModelLoading?: boolean;
 }
 
 export function ChatInput({
@@ -40,6 +41,7 @@ export function ChatInput({
   selectedModel,
   onModelChange,
   selectedWorkflow,
+  isModelLoading = false,
 }: ChatInputProps) {
   const canSubmit = value.trim().length > 0 && !isLoading && !disabled;
 
@@ -59,12 +61,18 @@ export function ChatInput({
         />
         <PromptInputActions className="flex items-center justify-between gap-2 px-3 pb-3">
           <div className="flex items-center gap-2">
-            <ModelSelector
-              models={models}
-              value={selectedModel}
-              onChange={onModelChange}
-              disabled={isLoading}
-            />
+            {isModelLoading ? (
+              <div className="flex h-8 w-[180px] items-center justify-center rounded-md border border-border bg-muted/40">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground/60 border-t-transparent" />
+              </div>
+            ) : (
+              <ModelSelector
+                models={models}
+                value={selectedModel}
+                onChange={onModelChange}
+                disabled={isLoading}
+              />
+            )}
             <WorkflowSelector
               workflows={workflows}
               value={selectedWorkflow}

@@ -8,7 +8,11 @@ import {
     , clientErrorHandler
 } from './server.helper';
 import { Log } from '../utils';
-import { requestLogger } from '../middleware';
+import {
+    requestLogger
+    , rateLimiter
+    , RATE_LIMIT_PRESETS
+} from '../middleware';
 import { auth } from '../lib/betterAuth/auth';
 import { toNodeHandler } from 'better-auth/node';
 import { apiRouter }  from '../app';
@@ -71,6 +75,38 @@ if ( process.env.NODE_ENV !== 'production' ) {
     expressApp.post( '/graphql', graphqlMiddleware );
     expressApp.post( '/graphiql', graphqlMiddleware );
 }
+
+/**
+ * Rate Limiting
+ *
+ * Applied globally to all API routes with different limits per endpoint type:
+ * - Auth endpoints: 10 requests/minute (stricter to prevent brute force)
+ * - Standard API: 100 requests/minute
+ */
+
+// Stricter rate limit for auth endpoints
+expressApp.use(
+    '/api/auth'
+    , rateLimiter( {
+        ...RATE_LIMIT_PRESETS.auth
+        , skip: ( req ) => {
+            // Skip rate limiting in test/development if needed
+            return process.env.SKIP_RATE_LIMIT === 'true';
+        }
+    } )
+);
+
+// Standard rate limit for all other API endpoints
+expressApp.use(
+    '/api'
+    , rateLimiter( {
+        ...RATE_LIMIT_PRESETS.standard
+        , skip: ( req ) => {
+            // Skip rate limiting in test/development if needed
+            return process.env.SKIP_RATE_LIMIT === 'true';
+        }
+    } )
+);
 
 /**
  * Routes

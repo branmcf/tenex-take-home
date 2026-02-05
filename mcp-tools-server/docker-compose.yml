@@ -1,0 +1,16 @@
+# MCP Tools Server docker-compose
+# NOTE: the `version:` field is removed (deprecated in Compose v2).
+
+services:
+  mcp-tools-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4010:4010"
+    env_file:
+      - .env
+    environment:
+      PORT: 4010
+      MCP_TOOLS_API_KEY: local_mcp_tools_key
+    restart: unless-stopped

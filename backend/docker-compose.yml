@@ -1,19 +1,36 @@
-# Docker Compose for Railway production deployment
+# Backend docker-compose for API + database
 # NOTE: the `version:` field is removed (deprecated in Compose v2).
 
-services:  
-  postgres:                                                                 # PostgreSQL 16 (tracks latest 16.x patch; matches RDS 16.9‑R1)
-    image: postgres:16                                                      # official Postgres image
-    restart: unless-stopped                                                 # restarts unless explicitly stopped
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres                                               # superuser username
-      POSTGRES_PASSWORD: postgrespassword                                   # superuser password
-      POSTGRES_DB: app                                                      # default DB created at startup
-      PGDATA: /var/lib/postgresql/data/pgdata                               # specify subdirectory for data
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: app
+      PGDATA: /var/lib/postgresql/data/pgdata
     ports:
-      - "5433:5432"                                                         # map host 5433 -> container 5432 
+      - "5433:5432"
     volumes:
-      - db_data:/var/lib/postgresql/data/pgdata                             # persist PG data between runs
+      - db_data:/var/lib/postgresql/data/pgdata
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3026:3026"
+    env_file:
+      - .env
+    environment:
+      PORT: 3026
+      DATABASE_URL: postgres://postgres:postgrespassword@postgres:5432/app
+      MCP_TOOLS_URL: http://host.docker.internal:4010
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - postgres
 
 volumes:
-  db_data:                                                                  # named volume storing Postgres data persistently
+  db_data:

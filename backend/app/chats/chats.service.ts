@@ -11,6 +11,8 @@ import {
     , GetUserChatsQueryVariables
     , DeleteChatMutation
     , DeleteChatMutationVariables
+    , GetChatOwnershipQuery
+    , GetChatOwnershipQueryVariables
 } from './chats.service.generatedTypes';
 import {
     UserChatsNotFound
@@ -159,5 +161,63 @@ export const deleteChat = async (
 
     // return success
     return success( { success: true } );
+
+};
+
+/**
+ * get chat ownership info by chat id
+ *
+ * @param chatId - the chat id
+ * @returns Either<ResourceError, { id, userId }> - the chat with userId
+ */
+export const getChatOwnership = async (
+    chatId: GetChatOwnershipQueryVariables['chatId']
+): Promise<Either<ResourceError, { id: string; userId: string }>> => {
+
+    // create the graphql query
+    const GET_CHAT_OWNERSHIP = gql`
+        query getChatOwnership($chatId: UUID!) {
+            chatById(id: $chatId) {
+                id
+                userId
+                deletedAt
+            }
+        }
+    `;
+
+    // execute the graphql query
+    const result = await postGraphileRequest<GetChatOwnershipQuery, GetChatOwnershipQueryVariables>(
+        {
+            query: GET_CHAT_OWNERSHIP
+            , variables: { chatId }
+        }
+    );
+
+    // check for error
+    if ( result.isError() ) {
+
+        // return the error
+        return error( result.value );
+    }
+
+    // check for chat
+    if ( !result.value.chatById ) {
+
+        // return custom error
+        return error( new ChatNotFound() );
+    }
+
+    // check if chat is deleted
+    if ( result.value.chatById.deletedAt ) {
+
+        // return not found error for deleted chats
+        return error( new ChatNotFound() );
+    }
+
+    // return success
+    return success( {
+        id: result.value.chatById.id
+        , userId: result.value.chatById.userId
+    } );
 
 };

@@ -33,3 +33,41 @@ export const CREATE_WORKFLOW_CHAT_MESSAGE = Joi.object( {
         .required()
         .options( { presence: 'required' } )
 } );
+
+export const APPLY_WORKFLOW_PROPOSAL = Joi.object( {
+    params: Joi.object( {
+        workflowId: Joi.string()
+            .trim()
+            .uuid()
+            .required()
+    } )
+        .required()
+        .options( { presence: 'required' } )
+    , body: Joi.object( {
+        proposalId: Joi.string()
+            .trim()
+            .uuid()
+            .required()
+    } )
+        .required()
+        .options( { presence: 'required' } )
+} );
+
+export const REJECT_WORKFLOW_PROPOSAL = Joi.object( {
+    params: Joi.object( {
+        workflowId: Joi.string()
+            .trim()
+            .uuid()
+            .required()
+    } )
+        .required()
+        .options( { presence: 'required' } )
+    , body: Joi.object( {
+        proposalId: Joi.string()
+            .trim()
+            .uuid()
+            .required()
+    } )
+        .required()
+        .options( { presence: 'required' } )
+} );
