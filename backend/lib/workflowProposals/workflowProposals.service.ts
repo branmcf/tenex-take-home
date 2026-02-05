@@ -15,8 +15,8 @@ import {
 import {
     CreateWorkflowProposalMutation
     , CreateWorkflowProposalMutationVariables
-    , DeleteWorkflowProposalMutation
-    , DeleteWorkflowProposalMutationVariables
+    , DeleteWorkflowProposalByIdMutation
+    , DeleteWorkflowProposalByIdMutationVariables
     , GetWorkflowProposalByIdQuery
     , GetWorkflowProposalByIdQueryVariables
 } from './workflowProposals.service.generatedTypes';
@@ -301,7 +301,7 @@ export const deleteWorkflowProposalById = async (
     `;
 
     // execute the mutation
-    const result = await postGraphileRequest<DeleteWorkflowProposalMutation, DeleteWorkflowProposalMutationVariables>( {
+    const result = await postGraphileRequest<DeleteWorkflowProposalByIdMutation, DeleteWorkflowProposalByIdMutationVariables>( {
         mutation: DELETE_WORKFLOW_PROPOSAL
         , variables: { proposalId }
     } );

@@ -2,6 +2,7 @@ import {
     tool
     , jsonSchema
 } from 'ai';
+import type { JSONSchema7 } from 'json-schema';
 
 const emptyOutputSchema = jsonSchema( {
     type: 'object'
@@ -9,7 +10,7 @@ const emptyOutputSchema = jsonSchema( {
     , additionalProperties: false
 } );
 
-const toolRefSchema = {
+const toolRefSchema: JSONSchema7 = {
     type: 'object'
     , properties: {
         id: { type: 'string' }

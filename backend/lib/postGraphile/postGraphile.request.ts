@@ -10,10 +10,9 @@ import {
     , success
 } from '../../types';
 import { ResourceError } from '../../errors';
-import { WithTypename } from './postGraphile.types';
 
 export const postGraphileRequest = async <
-    TData extends WithTypename, TVariables extends OperationVariables
+    TData, TVariables extends OperationVariables
 >(
     options: QueryOptions<TVariables> | MutationOptions<TData, TVariables>
 ): Promise<Either<ResourceError, TData>> => {

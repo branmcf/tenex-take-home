@@ -7,6 +7,7 @@ import {
     , SearchToolsResponse
     , GetToolByIdRequest
     , GetToolByIdResponse
+    , ToolResponse
 } from './tools.types';
 import {
     getCachedTools
@@ -18,15 +19,25 @@ const mapToolResponse = ( tool: {
     id: string;
     name: string;
     description?: string | null;
-    schema?: Record<string, unknown> | null;
-    source: string;
+    source: 'mcp' | 'local';
     version?: string | null;
-} ) => ( {
+} ): ToolResponse => ( {
     id: tool.id
     , name: tool.name
     , description: tool.description ?? null
     , version: tool.version ?? null
     , source: tool.source === 'mcp' ? 'mcp' : 'local'
+} );
+
+const mapToolWithSchemaResponse = ( tool: {
+    id: string;
+    name: string;
+    description?: string | null;
+    schema?: Record<string, unknown> | null;
+    source: 'mcp' | 'local';
+    version?: string | null;
+} ): GetToolByIdResponse['tool'] => ( {
+    ...mapToolResponse( tool )
     , schema: tool.schema ?? null
 } );
 
@@ -54,13 +65,7 @@ export const getToolsHandler = async (
     }
 
     // map tools to response
-    const tools = toolsResult.value.map( tool => ( {
-        id: tool.id
-        , name: tool.name
-        , description: tool.description ?? null
-        , version: tool.version ?? null
-        , source: tool.source === 'mcp' ? 'mcp' : 'local'
-    } ) );
+    const tools = toolsResult.value.map( mapToolResponse );
 
     return res.status( 200 ).json( { tools } );
 
@@ -87,13 +92,7 @@ export const searchToolsHandler = async (
             .json( searchResult.value );
     }
 
-    const tools = searchResult.value.map( tool => ( {
-        id: tool.id
-        , name: tool.name
-        , description: tool.description ?? null
-        , version: tool.version ?? null
-        , source: tool.source === 'mcp' ? 'mcp' : 'local'
-    } ) );
+    const tools = searchResult.value.map( mapToolResponse );
 
     return res.status( 200 ).json( { tools } );
 
@@ -120,7 +119,7 @@ export const getToolByIdHandler = async (
             .json( toolResult.value );
     }
 
-    const tool = mapToolResponse( toolResult.value );
+    const tool = mapToolWithSchemaResponse( toolResult.value );
 
     return res.status( 200 ).json( { tool } );
 

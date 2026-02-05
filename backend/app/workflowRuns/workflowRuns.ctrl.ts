@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { NextFunction, Response } from 'express';
 import { ResourceError } from '../../errors';
 import {
     buildWorkflowRunSnapshot
@@ -32,7 +32,8 @@ const isTerminalStatus = ( status: string ) => {
 export const streamWorkflowRunHandler = async (
     req: StreamWorkflowRunRequest
     , res: Response<ResourceError>
-): Promise<Response<ResourceError> | void> => {
+    , _next: NextFunction
+): Promise<Response<ResourceError>> => {
 
     // get params
     const { chatId, workflowRunId } = req.params;
@@ -156,7 +157,7 @@ export const streamWorkflowRunHandler = async (
         clearInterval( interval );
     } );
 
-    return undefined;
+    return res;
 
 };
 

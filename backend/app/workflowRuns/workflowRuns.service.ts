@@ -7,7 +7,11 @@ import {
 import { ResourceError } from '../../errors';
 import { postGraphileRequest } from '../../lib/postGraphile';
 import { WorkflowRunNotFound } from './workflowRuns.errors';
-import type { WorkflowRunSnapshotResponse, WorkflowRunHistoryItem } from './workflowRuns.types';
+import type {
+    WorkflowRunSnapshotResponse
+    , WorkflowRunHistoryItem
+    , WorkflowRunMessageResponse
+} from './workflowRuns.types';
 import {
     sortWorkflowDagSteps
     , WorkflowStep
@@ -158,7 +162,13 @@ export const getWorkflowRunSnapshotData = async (
 };
 
 export interface WorkflowRunSnapshotSource {
-    workflowRun: NonNullable<WorkflowRunSnapshotQueryResult['workflowRunById']>;
+    workflowRun: {
+        id: string;
+        chatId?: string;
+        status: 'RUNNING' | 'PASSED' | 'FAILED' | 'CANCELLED';
+        startedAt: string;
+        completedAt?: string | null;
+    };
     dag: unknown;
     stepRuns: Array<NonNullable<NonNullable<WorkflowRunSnapshotQueryResult['workflowRunById']>['stepRunsByWorkflowRunId']['nodes'][number]>>;
     messages: Array<NonNullable<NonNullable<WorkflowRunSnapshotQueryResult['workflowRunById']>['messagesByWorkflowRunId']['nodes'][number]>>;
@@ -175,17 +185,25 @@ export const normalizeWorkflowRunSnapshotSource = (
 ): WorkflowRunSnapshotSource => {
 
     // extract the workflow run record
-    const workflowRun = result.workflowRunById as NonNullable<WorkflowRunSnapshotQueryResult['workflowRunById']>;
+    const workflowRunRecord = result.workflowRunById as NonNullable<WorkflowRunSnapshotQueryResult['workflowRunById']>;
+
+    const workflowRun = {
+        id: workflowRunRecord.id
+        , chatId: workflowRunRecord.chatId
+        , status: workflowRunRecord.status
+        , startedAt: workflowRunRecord.startedAt
+        , completedAt: workflowRunRecord.completedAt ?? null
+    };
 
     // extract dag
-    const dag = workflowRun.workflowVersionByWorkflowVersionId?.dag ?? { steps: [] };
+    const dag = workflowRunRecord.workflowVersionByWorkflowVersionId?.dag ?? { steps: [] };
 
     // normalize step runs
-    const stepRuns = ( workflowRun.stepRunsByWorkflowRunId?.nodes ?? [] )
+    const stepRuns = ( workflowRunRecord.stepRunsByWorkflowRunId?.nodes ?? [] )
         .filter( ( stepRun ): stepRun is NonNullable<typeof stepRun> => stepRun !== null );
 
     // normalize messages
-    const messages = ( workflowRun.messagesByWorkflowRunId?.nodes ?? [] )
+    const messages = ( workflowRunRecord.messagesByWorkflowRunId?.nodes ?? [] )
         .filter( ( message ): message is NonNullable<typeof message> => message !== null );
 
     return {
@@ -266,7 +284,7 @@ export const buildWorkflowRunSnapshot = (
         ? source.messages[ source.messages.length - 1 ]
         : null;
 
-    const message = lastMessage
+    const message: WorkflowRunMessageResponse | null = lastMessage
         ? {
             id: lastMessage.id
             , role: lastMessage.role === 'USER'

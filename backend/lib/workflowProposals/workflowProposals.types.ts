@@ -1,7 +1,7 @@
 export interface WorkflowProposalRecord {
     id: string;
     workflowId: string;
-    baseVersionId: string | null;
+    baseVersionId?: string | null;
     userMessage: string;
     modelId?: string | null;
     toolCalls: unknown;

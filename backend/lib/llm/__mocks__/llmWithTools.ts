@@ -6,6 +6,7 @@ import {
     , generateWorkflowStepToolUsage as trueGenerateWorkflowStepToolUsage
     , generateWorkflowStepPlan as trueGenerateWorkflowStepPlan
 } from '../llmWithTools';
+import type { LLMToolCall } from '../../workflowDags/workflowDags.types';
 
 /**
  * WorkflowIntent result types
@@ -25,11 +26,6 @@ interface WorkflowToolUsageDecision {
 interface WorkflowStepPlan {
     name: string;
     instruction: string;
-}
-
-interface LLMToolCall {
-    name: string;
-    args: Record<string, unknown>;
 }
 
 /**

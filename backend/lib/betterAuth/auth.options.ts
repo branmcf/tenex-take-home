@@ -46,7 +46,7 @@ export const buildAuthOptions = (): BetterAuthOptions => {
         , trustedOrigins: [
             'http://localhost:3026'
             , 'http://localhost:3000'
-            , 'https://api.hardwire.branmcf.com'
+            , 'https://app.hardwire.branmcf.com'
         ]
     };
 };

@@ -10,6 +10,7 @@ import {
     , CreateWorkflowChatMessageRequest
     , CreateWorkflowChatMessageResponse
     , WorkflowChatMessageResponse
+    , WorkflowChatProposalHistoryItem
     , ApplyWorkflowProposalRequest
     , ApplyWorkflowProposalResponse
     , RejectWorkflowProposalRequest
@@ -39,17 +40,27 @@ import {
 } from '../../lib/workflowDags';
 import { getCachedTools } from '../tools/tools.helper';
 
+const normalizeProposalStatus = (
+    status?: string | null
+): WorkflowChatProposalHistoryItem['status'] => {
+    if ( status === 'applied' || status === 'rejected' || status === 'expired' ) {
+        return status;
+    }
+
+    return 'pending';
+};
+
 const buildPendingProposalResponse = (
     proposal: {
         id: string;
-        baseVersionId: string | null;
+        baseVersionId?: string | null;
         toolCalls: unknown;
         proposedDag: unknown;
         status?: string | null;
-        createdAt?: string;
+        createdAt: string;
         resolvedAt?: string | null;
     }
-) => {
+): WorkflowChatProposalHistoryItem => {
 
     // extract proposed steps from the stored dag payload
     const dag = proposal.proposedDag as {
@@ -72,12 +83,14 @@ const buildPendingProposalResponse = (
         } ) )
         : [];
 
+    const normalizedStatus = normalizeProposalStatus( proposal.status );
+
     return {
         proposalId: proposal.id
         , baseVersionId: proposal.baseVersionId ?? null
         , toolCalls: proposal.toolCalls
         , previewSteps
-        , status: proposal.status ?? 'pending'
+        , status: normalizedStatus
         , createdAt: proposal.createdAt
         , resolvedAt: proposal.resolvedAt ?? null
     };
@@ -137,7 +150,7 @@ export const getWorkflowChatMessagesHandler = async (
     // load proposal history to render in chat history
     const proposalsResult = await getWorkflowProposalsByWorkflowId( workflowId, 20 );
 
-    let proposals: GetWorkflowChatMessagesResponse['proposals'] = [];
+    let proposals: WorkflowChatProposalHistoryItem[] = [];
     let pendingProposal: GetWorkflowChatMessagesResponse['pendingProposal'] = null;
 
     if ( proposalsResult.isError() ) {

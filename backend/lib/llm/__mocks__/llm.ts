@@ -1,10 +1,12 @@
+import { ReadableStream } from 'stream/web';
 import { ResourceError } from '../../../errors';
 import { success, error } from '../../../types';
 import {
     generateLLMText as trueGenerateLLMText
     , streamLLMText as trueStreamLLMText
 } from '../llm';
-import type { LLMGenerateResult } from '../llm.types';
+import type { AsyncIterableStream } from 'ai';
+import type { LLMGenerateResult, LLMSource } from '../llm.types';
 
 /**
  * generateLLMText mock
@@ -65,16 +67,19 @@ interface StreamLLMTextMock extends jest.Mock<
     ReturnType<typeof trueStreamLLMText>
     , Parameters<typeof trueStreamLLMText>
 > {
-    mockResponseOnce( textStream?: AsyncIterable<string>, sources?: Array<{ url: string; title: string; description?: string }> ): this;
-    mockResponse( textStream?: AsyncIterable<string>, sources?: Array<{ url: string; title: string; description?: string }> ): this;
+    mockResponseOnce( textStream?: AsyncIterableStream<string>, sources?: LLMSource[] ): this;
+    mockResponse( textStream?: AsyncIterableStream<string>, sources?: LLMSource[] ): this;
 }
 
-const createMockTextStream = ( text: string ): AsyncIterable<string> => {
-    return {
-        async *[ Symbol.asyncIterator ]() {
-            yield text;
+const createMockTextStream = ( text: string ): AsyncIterableStream<string> => {
+    const stream = new ReadableStream<string>( {
+        start( controller ) {
+            controller.enqueue( text );
+            controller.close();
         }
-    };
+    } );
+
+    return stream as AsyncIterableStream<string>;
 };
 
 const streamLLMTextMock = jest.fn<

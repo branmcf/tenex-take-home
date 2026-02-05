@@ -28,12 +28,34 @@ export interface ToolRecord {
     name: string;
     description?: string | null;
     schema?: Record<string, unknown> | null;
-    source: string;
+    source: 'mcp' | 'local';
     externalId?: string | null;
     version?: string | null;
     schemaHash?: string | null;
     lastSyncedAt?: string | null;
 }
+
+const normalizeToolRecord = ( tool: {
+    id: string;
+    name: string;
+    description?: string | null;
+    schema?: Record<string, unknown> | null;
+    source: string;
+    externalId?: string | null;
+    version?: string | null;
+    schemaHash?: string | null;
+    lastSyncedAt?: string | null;
+} ): ToolRecord => ( {
+    id: tool.id
+    , name: tool.name
+    , description: tool.description ?? null
+    , schema: tool.schema ?? null
+    , source: tool.source === 'mcp' ? 'mcp' : 'local'
+    , externalId: tool.externalId ?? null
+    , version: tool.version ?? null
+    , schemaHash: tool.schemaHash ?? null
+    , lastSyncedAt: tool.lastSyncedAt ?? null
+} );
 
 /**
  * get all tools from the database
@@ -67,7 +89,8 @@ export const getTools = async (): Promise<Either<ResourceError, ToolRecord[]>> =
     }
 
     const tools = result.value.allTools?.nodes
-        .filter( ( tool ): tool is NonNullable<typeof tool> => tool !== null ) ?? [];
+        .filter( ( tool ): tool is NonNullable<typeof tool> => tool !== null )
+        .map( normalizeToolRecord ) ?? [];
 
     return success( tools );
 
@@ -110,7 +133,7 @@ export const getToolById = async (
         return error( new ToolNotFound() );
     }
 
-    return success( result.value.toolById );
+    return success( normalizeToolRecord( result.value.toolById ) );
 
 };
 
@@ -150,7 +173,8 @@ export const getToolByExternalId = async (
     }
 
     const tools = result.value.allTools?.nodes
-        .filter( ( tool ): tool is NonNullable<typeof tool> => tool !== null ) ?? [];
+        .filter( ( tool ): tool is NonNullable<typeof tool> => tool !== null )
+        .map( normalizeToolRecord ) ?? [];
 
     return success( tools[ 0 ] ?? null );
 
@@ -195,7 +219,7 @@ export const createTool = async (
         return error( new ToolsFetchFailed() );
     }
 
-    return success( result.value.createTool.tool );
+    return success( normalizeToolRecord( result.value.createTool.tool ) );
 
 };
 
@@ -240,6 +264,6 @@ export const updateToolById = async (
         return error( new ToolsFetchFailed() );
     }
 
-    return success( result.value.updateToolById.tool );
+    return success( normalizeToolRecord( result.value.updateToolById.tool ) );
 
 };
