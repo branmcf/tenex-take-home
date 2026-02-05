@@ -23,7 +23,7 @@ The `context/` directory is the **canonical source of truth for all project docu
 
 ---
 
-## Reviewer Notes (2 minutes)
+## Reviewer Notes
 
 - **Start with:** `BRIEF.md` — Complete product overview with architecture diagrams and tech stack
 - **Understand the product:** `PRD.md` — Functional requirements and core concepts

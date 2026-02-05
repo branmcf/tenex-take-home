@@ -33,10 +33,10 @@ Each prompt outputs **only the section content** in Markdown under the specified
 
 ---
 
-## Reviewer Notes (2 minutes) → fastest path to evaluate the code
+## Reviewer Notes → fastest path to evaluate the code
 
 **Prompt**
-> You are writing the `## Reviewer Notes (2 minutes)` section.
+> You are writing the `## Reviewer Notes` section.
 >
 > Goal: make a busy reviewer successful in 60–120 seconds.
 >
@@ -55,7 +55,7 @@ Each prompt outputs **only the section content** in Markdown under the specified
 > - Every file path must exist.
 > - If something is missing (tests, mocks, docs), say “Not found in repo.”
 >
-> Output only Markdown under `## Reviewer Notes (2 minutes)`.
+> Output only Markdown under `## Reviewer Notes`.
 
 ---
 

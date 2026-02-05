@@ -27,7 +27,7 @@ The `docs/` directory contains the **MkDocs Material documentation site** for th
 
 ---
 
-## Reviewer Notes (2 minutes)
+## Reviewer Notes
 
 - **Run:** `mkdocs serve` (requires Python venv activation)
 - **Build:** `mkdocs build`
