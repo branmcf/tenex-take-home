@@ -1,4 +1,4 @@
-# B-Plex Design Rules
+# HardWire Design Rules
 
 ## DO / DON'T Guidelines
 

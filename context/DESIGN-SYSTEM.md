@@ -1,4 +1,4 @@
-# B-Plex Design System
+# HardWire Design System
 
 ## Swiss-Modernist Technical Blueprint
 

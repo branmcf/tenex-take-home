@@ -1,8 +1,8 @@
-# B-PLEX: Deterministic Workflow Chat Platform
+# HardWire: Deterministic Workflow Chat Platform
 
 ## Executive Summary
 
-**B-PLEX** is a next-generation AI chat application that fundamentally reimagines how professionals interact with Large Language Models. Unlike conventional chat interfaces that devolve into unpredictable, free-form conversations, B-PLEX enforces **deterministic, user-defined workflows** that transform LLM queries into structured, auditable, and reproducible processes.
+**HardWire** is a next-generation AI chat application that fundamentally reimagines how professionals interact with Large Language Models. Unlike conventional chat interfaces that devolve into unpredictable, free-form conversations, HardWire enforces **deterministic, user-defined workflows** that transform LLM queries into structured, auditable, and reproducible processes.
 
 The platform enables users to define workflows in natural language, which are then compiled into executable **Directed Acyclic Graphs (DAGs)**. Every query can optionally run through these workflows, with execution rendered inline as a **CI-style pipeline visualization**, complete with step-by-step logs, tool invocation transparency, and fail-fast error handling.
 
@@ -22,7 +22,7 @@ Traditional LLM chat interfaces suffer from several critical failures:
 4. **Lack of Reproducibility**: Workflows cannot be saved, versioned, or reliably re-executed.
 5. **Tool Invocation Blindness**: When models use tools, users have no visibility into what was called or why.
 
-### The B-PLEX Hypothesis
+### The HardWire Hypothesis
 
 If workflows are treated as **first-class, deterministic execution graphs**—with strict ordering, explicit tool usage, visible step execution, and fail-fast semantics—then AI-native professionals can reliably use LLMs for complex work without losing trust or debuggability.
 
@@ -561,7 +561,7 @@ components/
 
 ---
 
-## Design System: B-Plex
+## Design System: HardWire
 
 ### Visual Philosophy
 
@@ -600,9 +600,9 @@ components/
 
 ## Differentiation
 
-### What B-PLEX Is NOT
+### What HardWire Is NOT
 
-| Traditional Chat Apps | B-PLEX |
+| Traditional Chat Apps | HardWire |
 |----------------------|--------|
 | Free-form, unpredictable responses | Deterministic workflow execution |
 | Black-box processing | Transparent, inspectable pipelines |
@@ -765,7 +765,7 @@ These are intentional design decisions, not missing features:
 
 > **If workflows become brittle or non-deterministic, the product collapses into a normal chat app and fails.**
 
-This is the fundamental constraint that informs every architectural and product decision. B-PLEX succeeds only if users can trust that their workflows execute exactly as defined, every single time.
+This is the fundamental constraint that informs every architectural and product decision. HardWire succeeds only if users can trust that their workflows execute exactly as defined, every single time.
 
 ---
 
@@ -825,4 +825,4 @@ NEXT_PUBLIC_API_URL=http://localhost:3026
 
 ---
 
-*B-PLEX: Where AI follows your process, not the other way around.*
+*HardWire: Where AI follows your process, not the other way around.*

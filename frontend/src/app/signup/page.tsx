@@ -14,7 +14,7 @@ export default function SignUpPage() {
             <div className="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-md">
               <Stack className="size-5" weight="bold" />
             </div>
-            <span className="text-lg">B-PLEX</span>
+            <span className="text-lg">HardWire</span>
           </Link>
           <ThemeToggle />
         </div>

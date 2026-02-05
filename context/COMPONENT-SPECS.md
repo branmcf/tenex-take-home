@@ -2,7 +2,7 @@
 
 ## Screen-by-Screen Design Specifications
 
-This document provides detailed specifications for each screen in the B-Plex application.
+This document provides detailed specifications for each screen in the HardWire application.
 
 ---
 
