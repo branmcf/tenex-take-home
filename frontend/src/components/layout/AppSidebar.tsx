@@ -28,7 +28,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ChatList, type ChatListItemData } from "@/components/chat";
+import { ChatList } from "@/components/chat";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useChatContext, useChatRefetch, useModal } from "@/contexts";
 import { useChats, useAuth } from "@/hooks";

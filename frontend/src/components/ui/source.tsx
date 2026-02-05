@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import {
   Tooltip,
   TooltipContent,
@@ -77,9 +78,11 @@ function SourceTrigger({
       )}
     >
       {faviconUrl && (
-        <img
+        <Image
           src={faviconUrl}
           alt=""
+          width={12}
+          height={12}
           className="h-3 w-3"
           aria-hidden="true"
         />
@@ -97,9 +100,11 @@ function SourceTrigger({
       )}
     >
       {faviconUrl && (
-        <img
+        <Image
           src={faviconUrl}
           alt=""
+          width={12}
+          height={12}
           className="h-3 w-3"
           aria-hidden="true"
         />

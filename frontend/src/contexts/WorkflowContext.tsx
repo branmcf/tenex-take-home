@@ -119,7 +119,7 @@ export function WorkflowProvider({
 }: WorkflowProviderProps) {
   const { user } = useAuth();
   const [workflows, setWorkflows] = React.useState<WorkflowDetail[]>(initialWorkflows);
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [isLoading] = React.useState(false);
   // Start with no workflow selected, or load from URL if provided
   const [selectedWorkflow, setSelectedWorkflowState] = React.useState<WorkflowDetail | null>(() => {
     if (initialWorkflowId) {

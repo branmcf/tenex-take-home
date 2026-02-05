@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { getChats, deleteChat as apiDeleteChat, type ChatItem } from "@/lib/api";
+import { getChats, deleteChat as apiDeleteChat } from "@/lib/api";
 
 export interface SearchResultItemData {
     id: string;

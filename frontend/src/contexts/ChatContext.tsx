@@ -22,6 +22,50 @@ import { API_BASE_URL } from "@/lib/constants";
 import { useAuth } from "@/hooks";
 import { useChatRefetch } from "./ChatRefetchContext";
 
+type WorkflowRunStepPayload = {
+  id: string;
+  name?: string;
+  status: WorkflowRunStep["status"];
+  startedAt?: string | null;
+  completedAt?: string | null;
+  error?: string | null;
+  output?: string | null;
+  logs?: unknown | null;
+  toolCalls?: unknown | null;
+};
+
+type WorkflowStreamSnapshotPayload = {
+  type: "snapshot";
+  workflowRun: {
+    id: string;
+    status: WorkflowRunStatus;
+    startedAt?: string | null;
+    completedAt?: string | null;
+  };
+  steps?: WorkflowRunStepPayload[];
+  message?: {
+    id: string;
+    role: "user" | "assistant" | "system";
+    content: string;
+    createdAt: string;
+  };
+};
+
+type WorkflowStreamErrorPayload = {
+  type: "error";
+  error?: { message?: string };
+};
+
+type WorkflowStreamCompletePayload = {
+  type: "complete";
+};
+
+type WorkflowStreamPayload =
+  | WorkflowStreamSnapshotPayload
+  | WorkflowStreamErrorPayload
+  | WorkflowStreamCompletePayload
+  | { type: string; [key: string]: unknown };
+
 interface ChatContextValue {
   // Current chat state
   currentChatId: string | null;
@@ -95,7 +139,6 @@ export function ChatProvider({
   );
   const [preferredModelId, setPreferredModelId] = React.useState<string | null>(null);
   const [isModelPreferenceLoaded, setIsModelPreferenceLoaded] = React.useState(false);
-  const [hasUserSelectedModel, setHasUserSelectedModel] = React.useState(false);
   const [selectedWorkflow, setSelectedWorkflow] = React.useState<
     string | undefined
   >();
@@ -163,7 +206,6 @@ export function ChatProvider({
     (model: Model | undefined) => {
       setSelectedModelState(model);
       if (model) {
-        setHasUserSelectedModel(true);
         savePreferredModel(model.id);
       }
     },
@@ -191,10 +233,10 @@ export function ChatProvider({
       activeWorkflowRunIdRef.current = run.id;
 
       eventSource.onmessage = (event) => {
-        let payload: any;
+        let payload: WorkflowStreamPayload;
         try {
-          payload = JSON.parse(event.data);
-        } catch (err) {
+          payload = JSON.parse(event.data) as WorkflowStreamPayload;
+        } catch {
           return;
         }
 
@@ -208,7 +250,7 @@ export function ChatProvider({
 
           const steps = Array.isArray(payload.steps) ? payload.steps : [];
 
-          const mappedSteps: WorkflowRunStep[] = steps.map((step: any) => ({
+          const mappedSteps: WorkflowRunStep[] = steps.map((step) => ({
             id: step.id,
             name: step.name ?? step.id,
             status: step.status,
@@ -220,14 +262,7 @@ export function ChatProvider({
             toolCalls: step.toolCalls ?? null,
           }));
 
-          const messagePayload = payload.message as
-            | {
-                id: string;
-                role: "user" | "assistant" | "system";
-                content: string;
-                createdAt: string;
-              }
-            | undefined;
+          const messagePayload = payload.message;
 
           const streamMessage: Message | undefined = messagePayload
             ? {
@@ -434,7 +469,7 @@ export function ChatProvider({
       // If on a chat page with existing chat, update URL to root without remount
       window.history.replaceState(null, "", "/");
     }
-  }, [hasMessages, currentChatId, pathname, router]);
+  }, [hasMessages, currentChatId, pathname, router, closeWorkflowStream]);
 
   // Load an existing chat (navigates to chat page)
   const loadChat = React.useCallback((chatId: string) => {
@@ -495,6 +530,7 @@ export function ChatProvider({
         });
 
         if (response.workflowRunId) {
+          keepLoading = true;
 
           const serverUserMessage: Message = {
             ...response.userMessage,

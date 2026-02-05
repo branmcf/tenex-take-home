@@ -134,7 +134,16 @@ function ProposedChangesPanel({
   isActionable: boolean;
   stepLookup: Record<string, string>;
 }) {
-  const toolCalls = Array.isArray(proposal.toolCalls) ? proposal.toolCalls : [];
+  type ToolCall = {
+    name?: string;
+    toolName?: string;
+    args?: Record<string, unknown>;
+    input?: Record<string, unknown>;
+  };
+
+  const toolCalls = Array.isArray(proposal.toolCalls)
+    ? (proposal.toolCalls as ToolCall[])
+    : [];
   const isPending = proposal.status === "pending";
   const showActions = isPending && isActionable;
   const statusLabelMap: Record<typeof proposal.status, string> = {
@@ -157,7 +166,7 @@ function ProposedChangesPanel({
     return stepLookup[stepId] ?? stepId;
   };
 
-  const renderToolCall = (call: any) => {
+  const renderToolCall = (call: ToolCall) => {
     const name = call?.name ?? call?.toolName ?? "unknown";
     const args = call?.args ?? call?.input ?? {};
 

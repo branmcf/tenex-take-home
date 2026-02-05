@@ -28,7 +28,6 @@ export function ChatContainer({ className }: ChatContainerProps) {
     setSelectedModel,
     isModelPreferenceLoaded,
     selectedWorkflow,
-    setSelectedWorkflow,
     workflowRuns,
     isWorkflowRunning,
   } = useChatContext();
