@@ -136,7 +136,7 @@ export function AppSidebar() {
             <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
               <Stack className="size-4" weight="bold" />
             </div>
-            B-Plex
+            HardWire
           </Link>
           <Tooltip>
             <TooltipTrigger asChild>

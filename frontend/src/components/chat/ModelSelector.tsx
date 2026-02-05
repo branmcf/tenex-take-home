@@ -13,7 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { Model } from "./types";
 
-const STORAGE_KEY = "b-plex:selected-model";
+const STORAGE_KEY = "hardwire:selected-model";
 
 function groupModelsByProvider(models: Model[]): Map<string, Model[]> {
   const grouped = new Map<string, Model[]>();

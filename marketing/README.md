@@ -10,7 +10,7 @@ src="https://github.com/user-attachments/assets/0ed4ecc6-0d7d-462d-9ae1-c5d81553
 
 ## Overview
 
-Vite-based static marketing/landing page for the B-PLEX platform. Built as a pixel-perfect replication of a Webflow design, using external Webflow CSS and minimal custom JavaScript for interactions.
+Vite-based static marketing/landing page for the HardWire platform. Built as a pixel-perfect replication of a Webflow design, using external Webflow CSS and minimal custom JavaScript for interactions.
 
 - **Responsibilities**
   - Marketing landing page with hero, product features, testimonials, and CTAs

@@ -20,7 +20,7 @@ src="https://github.com/user-attachments/assets/7a6ad561-bbc7-49c5-b38f-ea8e586d
 
 ## Overview
 
-**Hardwire** (codename B-PLEX) is a full-stack AI chat platform that enforces **deterministic, user-defined workflows** instead of unpredictable free-form conversations. Users describe workflows in natural language, which compile into executable **Directed Acyclic Graphs (DAGs)**. Every workflow run renders inline as a CI-style pipeline with step-by-step logs, tool invocation transparency, and fail-fast semantics.
+**HardWire** is a full-stack AI chat platform that enforces **deterministic, user-defined workflows** instead of unpredictable free-form conversations. Users describe workflows in natural language, which compile into executable **Directed Acyclic Graphs (DAGs)**. Every workflow run renders inline as a CI-style pipeline with step-by-step logs, tool invocation transparency, and fail-fast semantics.
 
 **What makes it different:**
 - **Deterministic Execution** — Workflows follow strict topological order; no silent degradation to free-form chat

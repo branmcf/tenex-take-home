@@ -8,7 +8,7 @@
         width="100%">
 </p>
 
-The `context/` directory is the **canonical source of truth for all project documentation**, standards, and architectural decisions for the B-Plex deterministic workflow chat platform. It provides LLM-consumable context files that define product requirements, technical specifications, coding conventions, and design systems.
+The `context/` directory is the **canonical source of truth for all project documentation**, standards, and architectural decisions for the HardWire deterministic workflow chat platform. It provides LLM-consumable context files that define product requirements, technical specifications, coding conventions, and design systems.
 
 **Responsibilities:**
 - Product definition (PRD, BRIEF, PLAN)
@@ -155,7 +155,7 @@ context/
 ## System Context
 
 ### Provides
-- Authoritative product and technical specifications for the B-Plex platform
+- Authoritative product and technical specifications for the HardWire platform
 - Coding standards consumed by LLMs during development
 - Design tokens and component specs for frontend implementation
 

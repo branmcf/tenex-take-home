@@ -108,10 +108,10 @@ export function ChatContainer({ className }: ChatContainerProps) {
           {isNewChat && (
             <div className="mb-8 text-center">
               <h1 className="text-4xl font-bold tracking-tight text-foreground">
-                B-PLEX
+                HardWire
               </h1>
               <p className="mt-2 text-xs uppercase tracking-widest text-muted-foreground font-mono">
-                Intelligent Assistant
+                AI-Native Web Search with Deterministic Workflows
               </p>
             </div>
           )}

@@ -33,7 +33,7 @@ export function WelcomeScreen({
         </div>
 
         <h2 className="mb-2 text-xl font-semibold text-foreground">
-          Welcome to B-Plex
+          Welcome to HardWire
         </h2>
 
         <p className="mb-8 text-sm text-muted-foreground">

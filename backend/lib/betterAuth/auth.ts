@@ -15,11 +15,11 @@ export const auth = betterAuth( {
         , sendVerificationEmail: async ( { user, url } ) => {
             try {
                 const result = await resend.emails.send( {
-                    from: process.env.RESEND_FROM ?? 'Tenex Take-Home <onboarding@resend.dev>'
+                    from: process.env.RESEND_FROM ?? 'HardWire <onboarding@resend.dev>'
                     , to: user.email
                     , subject: 'Verify your email address'
                     , html: `
-                        <p>Thank you for signing up for B-Plex!</p>
+                        <p>Thank you for signing up for HardWire!</p>
                         <br/><br/>
                         <p>Please verify your email address <a href="${ url }">here</a> to log in and get started.</p>
                         <br/><br/>
@@ -27,7 +27,7 @@ export const auth = betterAuth( {
                         <br/><br/>
                         <p>All the best,</p>
                         <br/>
-                        <p>B-Plex Team</p>
+                        <p>HardWire Team</p>
                         
                     `
                 } );
