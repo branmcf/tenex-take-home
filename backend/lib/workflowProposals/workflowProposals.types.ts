@@ -8,6 +8,8 @@ export interface WorkflowProposalRecord {
     proposedDag: unknown;
     createdAt: string;
     expiresAt: string;
+    status?: 'pending' | 'applied' | 'rejected' | 'expired';
+    resolvedAt?: string | null;
 }
 
 export interface CreateWorkflowProposalParams {

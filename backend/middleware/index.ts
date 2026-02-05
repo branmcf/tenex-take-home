@@ -11,3 +11,5 @@ export * from './userIdValidator';
 export * from './chatOwnershipValidator';
 
 export * from './workflowOwnershipValidator';
+
+export * from './rateLimiter';

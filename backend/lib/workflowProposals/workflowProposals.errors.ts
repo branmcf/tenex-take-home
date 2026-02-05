@@ -43,3 +43,14 @@ export class DeleteWorkflowProposalFailed extends ResourceError {
         } );
     }
 }
+
+export class UpdateWorkflowProposalFailed extends ResourceError {
+    public constructor () {
+        super( {
+            message: 'Failed to update workflow proposal.'
+            , clientMessage: 'Failed to update workflow proposal.'
+            , statusCode: 500
+            , code: 'WORKFLOW_PROPOSAL_UPDATE_FAILED'
+        } );
+    }
+}

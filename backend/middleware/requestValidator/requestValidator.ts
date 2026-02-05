@@ -22,6 +22,16 @@ export const requestValidator = ( schemaName: SchemaName ) => {
         const content = buildRequestContent( req );
         const schema = SCHEMAS[ schemaName ];
 
+        if ( !schema ) {
+            const requestValidationError = new RequestValidationError(
+                schemaName as string
+                , `Validation schema not found: ${ schemaName }.`
+            );
+            return res
+                .status( requestValidationError.statusCode )
+                .json( requestValidationError );
+        }
+
         try {
             await schema.validateAsync( content, { abortEarly: false } );
             return next();

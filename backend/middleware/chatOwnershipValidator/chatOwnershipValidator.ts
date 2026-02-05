@@ -5,6 +5,7 @@ import {
 } from 'express';
 import { ResourceError } from '../../errors';
 import { validateChatOwnership } from './chatOwnershipValidator.helper';
+import { ChatNotFoundError } from './chatOwnershipValidator.errors';
 
 /**
  * Express middleware to validate that a chat belongs to the authenticated user
@@ -49,6 +50,18 @@ export const chatOwnershipValidator = async (
 
         // cast the error to ResourceError type
         const error = validationError as ResourceError;
+
+        // allow chat creation on message POSTs when chat does not exist yet
+        const isMessageCreate = req.method === 'POST'
+            && ( req.originalUrl?.endsWith( '/messages' ) || req.originalUrl?.endsWith( '/messages/stream' ) );
+
+        if ( isMessageCreate && error instanceof ChatNotFoundError ) {
+            const bodyUserId = typeof req.body?.userId === 'string' ? req.body.userId : null;
+
+            if ( bodyUserId && sessionUserId && bodyUserId === sessionUserId ) {
+                return next();
+            }
+        }
 
         // return error response with status code and error details
         return res

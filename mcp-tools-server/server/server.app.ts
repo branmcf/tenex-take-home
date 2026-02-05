@@ -18,9 +18,8 @@ expressApp.use( cors( {
     , credentials: true
 } ) );
 
-requestLogger( expressApp );
-
 expressApp.use( express.json() );
+requestLogger( expressApp );
 
 // routes
 expressApp.use( '/', serviceAuth, apiRouter );

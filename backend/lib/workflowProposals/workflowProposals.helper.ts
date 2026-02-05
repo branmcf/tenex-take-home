@@ -12,6 +12,8 @@ import {
     createWorkflowProposal
     , deleteWorkflowProposalById
     , getWorkflowProposalById
+    , getWorkflowProposalsByWorkflowId
+    , updateWorkflowProposalStatus
 } from './workflowProposals.service';
 import {
     WorkflowProposalExpired
@@ -61,7 +63,7 @@ export const getWorkflowProposal = async (
     }
 
     if ( isExpired( getResult.value.expiresAt ) ) {
-        await deleteWorkflowProposalById( proposalId );
+        await updateWorkflowProposalStatus( proposalId, 'expired', new Date().toISOString() );
         return error( new WorkflowProposalExpired() );
     }
 
@@ -86,5 +88,41 @@ export const removeWorkflowProposal = async (
     }
 
     return success( deleteResult.value );
+
+};
+
+/**
+ * get the latest unexpired workflow proposal for a workflow
+ *
+ * @param workflowId - workflow id
+ * @returns Either<ResourceError, WorkflowProposalRecord | null>
+ */
+export const getLatestWorkflowProposalForWorkflow = async (
+    workflowId: string
+): Promise<Either<ResourceError, WorkflowProposalRecord | null>> => {
+
+    // fetch recent proposals for the workflow
+    const proposalsResult = await getWorkflowProposalsByWorkflowId( workflowId, 5 );
+
+    if ( proposalsResult.isError() ) {
+        return error( proposalsResult.value );
+    }
+
+    // scan for the first unexpired proposal
+    for ( const proposal of proposalsResult.value ) {
+        if ( proposal.status && proposal.status !== 'pending' ) {
+            continue;
+        }
+
+        if ( isExpired( proposal.expiresAt ) ) {
+            await updateWorkflowProposalStatus( proposal.id, 'expired', new Date().toISOString() );
+            continue;
+        }
+
+        return success( proposal );
+    }
+
+    // no pending proposal found
+    return success( null );
 
 };

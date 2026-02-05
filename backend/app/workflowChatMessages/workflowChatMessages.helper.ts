@@ -22,6 +22,10 @@ import { getWorkflowById, getLatestWorkflowVersion } from '../workflows/workflow
 import { getWorkflowChatMessages } from './workflowChatMessages.service';
 import { getCachedTools } from '../tools/tools.helper';
 import { storeWorkflowProposal } from '../../lib/workflowProposals';
+import {
+    buildWorkflowHistorySummaryPrompt
+    , formatConversationHistoryForPrompt
+} from '../../utils/constants';
 
 const buildToolRefs = ( tools: Array<{ id: string; name: string; version?: string | null; externalId?: string | null }> ): WorkflowToolRef[] => {
     return tools.map( tool => ( {
@@ -272,16 +276,6 @@ const normalizeWorkflowHistory = (
     return normalized;
 };
 
-const formatConversationHistory = ( messages: WorkflowChatHistoryMessage[] ) => {
-    return messages.map( message => {
-        const label = message.role === 'user'
-            ? 'User'
-            : message.role === 'assistant'
-                ? 'Assistant'
-                : 'System';
-        return `${ label }: ${ message.content }`;
-    } ).join( '\n' );
-};
 
 const summarizeWorkflowHistory = async (
     params: {
@@ -295,13 +289,11 @@ const summarizeWorkflowHistory = async (
         return null;
     }
 
-    const prompt = `Summarize the workflow authoring conversation so far for future context.
-Workflow name: ${ params.workflowName }
-Include the user's goals, any workflow steps agreed on, constraints, and tool preferences.
-Keep it under ${ HISTORY_SUMMARY_MAX_WORDS } words.
-
-Conversation:
-${ formatConversationHistory( params.messages ) }`;
+    const prompt = buildWorkflowHistorySummaryPrompt( {
+        workflowName: params.workflowName
+        , conversationHistory: formatConversationHistoryForPrompt( params.messages )
+        , maxWords: HISTORY_SUMMARY_MAX_WORDS
+    } );
 
     const summaryResult = await generateLLMText( {
         modelId: params.modelId
@@ -328,7 +320,7 @@ const buildConversationContext = (
     }
 
     const recentBlock = recentMessages.length > 0
-        ? formatConversationHistory( recentMessages )
+        ? formatConversationHistoryForPrompt( recentMessages )
         : '';
 
     if ( summary && summary.length > 0 && recentBlock.length > 0 ) {
@@ -388,7 +380,7 @@ export const generateWorkflowChatResponse = async (
         userMessage: string;
         modelId: string;
     }
-): Promise<Either<ResourceError, { content: string; proposedChanges?: { proposalId: string; baseVersionId: string | null; toolCalls: unknown; previewSteps: WorkflowDAG['steps'] } }>> => {
+): Promise<Either<ResourceError, { content: string; proposedChanges?: { proposalId: string; baseVersionId: string | null; toolCalls: unknown; previewSteps: WorkflowDAG['steps']; status?: 'pending' | 'applied' | 'rejected' | 'expired'; createdAt?: string; resolvedAt?: string | null } }>> => {
 
     // get workflow details
     const workflowResult = await getWorkflowById( params.workflowId );
@@ -608,6 +600,9 @@ export const generateWorkflowChatResponse = async (
             , baseVersionId: latestVersion?.id ?? null
             , toolCalls: proposedToolCalls
             , previewSteps: finalizedDag.steps
+            , status: 'pending'
+            , createdAt: storeResult.value.createdAt
+            , resolvedAt: null
         }
     } );
 

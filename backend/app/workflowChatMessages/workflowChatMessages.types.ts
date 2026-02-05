@@ -33,6 +33,18 @@ export interface WorkflowChatProposedChanges {
         }>;
         dependsOn?: string[];
     }>;
+    status?: 'pending' | 'applied' | 'rejected' | 'expired';
+    createdAt?: string;
+    resolvedAt?: string | null;
+}
+
+/**
+ * proposal history item
+ */
+export interface WorkflowChatProposalHistoryItem extends WorkflowChatProposedChanges {
+    status: 'pending' | 'applied' | 'rejected' | 'expired';
+    createdAt: string;
+    resolvedAt?: string | null;
 }
 
 /**
@@ -49,6 +61,8 @@ export interface GetWorkflowChatMessagesRequest extends Request {
  */
 export interface GetWorkflowChatMessagesResponse {
     messages: WorkflowChatMessageResponse[];
+    pendingProposal?: WorkflowChatProposedChanges | null;
+    proposals?: WorkflowChatProposalHistoryItem[];
 }
 
 /**
@@ -91,10 +105,28 @@ export interface ApplyWorkflowProposalRequest extends Request {
 }
 
 /**
+ * request type for rejecting a workflow proposal
+ */
+export interface RejectWorkflowProposalRequest extends Request {
+    params: {
+        workflowId: string;
+    };
+    body: {
+        proposalId: string;
+    };
+}
+
+/**
  * response type for applying a workflow proposal
  */
 export interface ApplyWorkflowProposalResponse {
     success: boolean;
+    workflow: {
+        id: string;
+        name: string;
+        description: string | null;
+        updatedAt: string;
+    };
     workflowVersion: {
         id: string;
         versionNumber: number;
@@ -110,4 +142,11 @@ export interface ApplyWorkflowProposalResponse {
             order: number;
         }>;
     };
+}
+
+/**
+ * response type for rejecting a workflow proposal
+ */
+export interface RejectWorkflowProposalResponse {
+    success: boolean;
 }

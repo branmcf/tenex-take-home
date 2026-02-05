@@ -8,6 +8,7 @@ import { generateLLMText } from '../../lib/llm';
 import { LLMRequestFailed } from './messages.errors';
 import { SourceResponse } from './messages.types';
 import { updateChatTitle } from './messages.service';
+import { buildChatTitlePrompt } from '../../utils/constants';
 
 /**
  * generate a response from the LLM based on the user's message
@@ -58,7 +59,7 @@ export const generateAndUpdateChatTitle = async (
 ): Promise<Either<ResourceError, void>> => {
 
     // create a prompt to generate a concise chat title
-    const titlePrompt = `Generate a short, concise title (maximum 6 words) for a chat that starts with this message: "${ params.userMessage }". Only respond with the title, nothing else.`;
+    const titlePrompt = buildChatTitlePrompt( params.userMessage );
 
     // call the LLM to generate a title (without RAG to save time/cost)
     const result = await generateLLMText( {

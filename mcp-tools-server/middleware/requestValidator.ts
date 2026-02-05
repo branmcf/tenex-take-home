@@ -8,6 +8,7 @@ import { RequestValidationError } from './requestValidator.errors';
 import { buildErrorMessage, buildRequestContent } from './requestValidator.helper';
 import { SCHEMAS } from './requestValidator.schemas';
 import { SchemaName } from './requestValidator.types';
+import { Log } from '../utils';
 
 export const requestValidator = ( schemaName: SchemaName ) => {
     return async (
@@ -28,6 +29,8 @@ export const requestValidator = ( schemaName: SchemaName ) => {
             if ( validationError instanceof joi.ValidationError ) {
                 errorMessage = buildErrorMessage( validationError );
             }
+
+            Log.warn( '[MCP] Request validation failed', { message: errorMessage } );
 
             const requestValidationError = new RequestValidationError( errorMessage );
             return res

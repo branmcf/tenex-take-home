@@ -119,17 +119,43 @@ function ProposedChangesPanel({
   onApply,
   onReject,
   isApplying,
+  isActionable,
+  stepLookup,
 }: {
   proposal: {
     proposalId: string;
     toolCalls: unknown;
     previewSteps: Array<{ id: string; name: string }>;
+    status: "pending" | "applied" | "rejected" | "expired";
   };
   onApply: () => void;
   onReject: () => void;
   isApplying: boolean;
+  isActionable: boolean;
+  stepLookup: Record<string, string>;
 }) {
   const toolCalls = Array.isArray(proposal.toolCalls) ? proposal.toolCalls : [];
+  const isPending = proposal.status === "pending";
+  const showActions = isPending && isActionable;
+  const statusLabelMap: Record<typeof proposal.status, string> = {
+    pending: "Pending",
+    applied: "Accepted",
+    rejected: "Rejected",
+    expired: "Expired",
+  };
+  const statusToneMap: Record<typeof proposal.status, string> = {
+    pending: "border-orange-200 bg-orange-50 text-orange-700",
+    applied: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    rejected: "border-rose-200 bg-rose-50 text-rose-700",
+    expired: "border-slate-200 bg-slate-50 text-slate-600",
+  };
+
+  const resolveStepName = (stepId?: string) => {
+    if (!stepId) {
+      return "unknown";
+    }
+    return stepLookup[stepId] ?? stepId;
+  };
 
   const renderToolCall = (call: any) => {
     const name = call?.name ?? call?.toolName ?? "unknown";
@@ -139,42 +165,56 @@ function ProposedChangesPanel({
       return `Add step: ${args.name ?? "Untitled Step"}`;
     }
     if (name === "update_step") {
-      return `Update step: ${args.stepId ?? "unknown"}`;
+      return `Update step: ${resolveStepName(args.stepId)}`;
     }
     if (name === "delete_step") {
-      return `Delete step: ${args.stepId ?? "unknown"}`;
+      return `Delete step: ${resolveStepName(args.stepId)}`;
     }
     if (name === "reorder_steps") {
-      return `Reorder step: ${args.stepId ?? "unknown"}`;
+      return `Reorder step: ${resolveStepName(args.stepId)}`;
     }
     return `Change: ${name}`;
   };
 
   return (
     <div className="rounded-lg border border-border bg-card p-4 space-y-3">
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h3 className="text-sm font-semibold">Proposed Changes</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold">Proposed Changes</h3>
+            <span
+              className={cn(
+                "inline-flex items-center border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide rounded-none",
+                statusToneMap[proposal.status]
+              )}
+            >
+              {statusLabelMap[proposal.status]}
+            </span>
+          </div>
           <p className="text-xs text-muted-foreground">
             {proposal.previewSteps.length} step{proposal.previewSteps.length !== 1 ? "s" : ""} in preview
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onReject}
-            disabled={isApplying}
-          >
-            Reject
-          </Button>
-          <Button
-            size="sm"
-            onClick={onApply}
-            disabled={isApplying}
-          >
-            {isApplying ? "Applying..." : "Apply Changes"}
-          </Button>
+          {showActions && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onReject}
+                disabled={isApplying}
+              >
+                Reject
+              </Button>
+              <Button
+                size="sm"
+                onClick={onApply}
+                disabled={isApplying}
+              >
+                {isApplying ? "Applying..." : "Apply Changes"}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -197,6 +237,7 @@ function ProposedChangesPanel({
 export function WorkflowChat({ className }: WorkflowChatProps) {
   const {
     workflowChatMessages,
+    workflowChatProposals,
     workflowChatInput,
     setWorkflowChatInput,
     sendWorkflowChatMessage,
@@ -207,18 +248,129 @@ export function WorkflowChat({ className }: WorkflowChatProps) {
     rejectWorkflowProposal,
     isApplyingProposal,
   } = useWorkflowContext();
-  const { models } = useChatContext();
+  const { models, preferredModelId, savePreferredModel, isModelPreferenceLoaded } = useChatContext();
 
-  const [selectedModel, setSelectedModel] = React.useState(models[0]?.id ?? "");
+  const [selectedModel, setSelectedModel] = React.useState(
+    preferredModelId ?? ""
+  );
 
-  // Update selected model when models change
-  React.useEffect(() => {
-    if (models.length > 0 && !selectedModel) {
-      setSelectedModel(models[0].id);
+  const proposalStepLookup = React.useMemo(() => {
+    const lookup: Record<string, string> = {};
+
+    if (selectedWorkflow?.steps) {
+      selectedWorkflow.steps.forEach((step) => {
+        lookup[step.id] = step.name;
+      });
     }
-  }, [models, selectedModel]);
 
-  const canSubmit = workflowChatInput.trim().length > 0 && !isWorkflowChatLoading && selectedWorkflow !== null && selectedModel;
+    workflowChatProposals.forEach((proposal) => {
+      proposal.previewSteps.forEach((step) => {
+        lookup[step.id] = step.name;
+      });
+    });
+
+    if (pendingProposal && !workflowChatProposals.some((proposal) => proposal.proposalId === pendingProposal.proposalId)) {
+      pendingProposal.previewSteps.forEach((step) => {
+        lookup[step.id] = step.name;
+      });
+    }
+
+    return lookup;
+  }, [workflowChatProposals, selectedWorkflow?.steps, pendingProposal]);
+
+  const proposalsForDisplay = React.useMemo(() => {
+    if (!pendingProposal) {
+      return workflowChatProposals;
+    }
+
+    const exists = workflowChatProposals.some(
+      (proposal) => proposal.proposalId === pendingProposal.proposalId
+    );
+
+    if (exists) {
+      return workflowChatProposals;
+    }
+
+    return [...workflowChatProposals, pendingProposal];
+  }, [workflowChatProposals, pendingProposal]);
+
+  const chatItems = React.useMemo(() => {
+    const orderedMessages = [...workflowChatMessages].sort(
+      (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
+    );
+    const orderedProposals = [...proposalsForDisplay].sort(
+      (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
+    );
+
+    const items: Array<
+      | { type: "message"; message: typeof orderedMessages[number] }
+      | { type: "proposal"; proposal: typeof orderedProposals[number] }
+    > = orderedMessages.map((message) => ({
+      type: "message",
+      message,
+    }));
+
+    orderedProposals.forEach((proposal) => {
+      const anchorMessage = orderedMessages.find(
+        (message) =>
+          message.role === "assistant" &&
+          message.createdAt.getTime() >= proposal.createdAt.getTime()
+      );
+
+      if (!anchorMessage) {
+        items.push({ type: "proposal", proposal });
+        return;
+      }
+
+      const anchorIndex = items.findIndex(
+        (item) => item.type === "message" && item.message.id === anchorMessage.id
+      );
+
+      if (anchorIndex === -1) {
+        items.push({ type: "proposal", proposal });
+        return;
+      }
+
+      let insertIndex = anchorIndex;
+      while (items[insertIndex + 1]?.type === "proposal") {
+        insertIndex += 1;
+      }
+
+      items.splice(insertIndex + 1, 0, { type: "proposal", proposal });
+    });
+
+    return items;
+  }, [workflowChatMessages, proposalsForDisplay]);
+
+  const lastMessageId = React.useMemo(() => {
+    if (workflowChatMessages.length === 0) {
+      return null;
+    }
+
+    const orderedMessages = [...workflowChatMessages].sort(
+      (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
+    );
+
+    return orderedMessages.length > 0
+      ? orderedMessages[orderedMessages.length - 1].id
+      : null;
+  }, [workflowChatMessages]);
+
+  // Set model once the preference has loaded
+  React.useEffect(() => {
+    if (!isModelPreferenceLoaded || models.length === 0 || selectedModel) {
+      return;
+    }
+
+    const preferred = preferredModelId ?? models[0].id;
+    setSelectedModel(preferred);
+  }, [isModelPreferenceLoaded, models, preferredModelId, selectedModel]);
+
+  const canSubmit = workflowChatInput.trim().length > 0
+    && !isWorkflowChatLoading
+    && selectedWorkflow !== null
+    && selectedModel
+    && isModelPreferenceLoaded;
 
   const handleSubmit = React.useCallback(() => {
     if (selectedModel) {
@@ -245,13 +397,31 @@ export function WorkflowChat({ className }: WorkflowChatProps) {
       <ChatContainerRoot className="relative flex-1 min-h-0 overflow-hidden">
         <ChatContainerContent className="mx-auto w-full max-w-2xl px-4 py-8">
           <div className="space-y-8">
-            {workflowChatMessages.map((message, index) => (
-              <WorkflowChatMessage
-                key={message.id}
-                message={message}
-                isLast={index === workflowChatMessages.length - 1 && !isWorkflowChatLoading}
-              />
-            ))}
+            {chatItems.map((item) => {
+              if (item.type === "message") {
+                return (
+                  <WorkflowChatMessage
+                    key={item.message.id}
+                    message={item.message}
+                    isLast={item.message.id === lastMessageId && !isWorkflowChatLoading}
+                  />
+                );
+              }
+
+              const isActiveProposal = pendingProposal?.proposalId === item.proposal.proposalId;
+
+              return (
+                <ProposedChangesPanel
+                  key={item.proposal.proposalId}
+                  proposal={item.proposal}
+                  onApply={applyWorkflowProposal}
+                  onReject={rejectWorkflowProposal}
+                  isApplying={isApplyingProposal && isActiveProposal}
+                  isActionable={isActiveProposal}
+                  stepLookup={proposalStepLookup}
+                />
+              );
+            })}
 
             {isWorkflowChatLoading && (
               <div className="flex items-center py-2">
@@ -263,14 +433,6 @@ export function WorkflowChat({ className }: WorkflowChatProps) {
               </div>
             )}
 
-            {pendingProposal && (
-              <ProposedChangesPanel
-                proposal={pendingProposal}
-                onApply={applyWorkflowProposal}
-                onReject={rejectWorkflowProposal}
-                isApplying={isApplyingProposal}
-              />
-            )}
           </div>
         </ChatContainerContent>
         <ChatContainerScrollAnchor />
@@ -295,12 +457,21 @@ export function WorkflowChat({ className }: WorkflowChatProps) {
             />
             <PromptInputActions className="flex items-center justify-between gap-2 px-3 pb-3">
               <div className="flex items-center gap-2">
-                <ModelSelector
-                  models={models}
-                  value={selectedModel}
-                  onChange={setSelectedModel}
-                  disabled={isWorkflowChatLoading}
-                />
+                {isModelPreferenceLoaded ? (
+                  <ModelSelector
+                    models={models}
+                    value={selectedModel}
+                    onChange={(modelId) => {
+                      setSelectedModel(modelId);
+                      savePreferredModel(modelId);
+                    }}
+                    disabled={isWorkflowChatLoading}
+                  />
+                ) : (
+                  <div className="flex h-8 w-[180px] items-center justify-center rounded-md border border-border bg-muted/40">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground/60 border-t-transparent" />
+                  </div>
+                )}
                 {/* No WorkflowSelector here - that's the key difference */}
               </div>
               <PromptInputAction tooltip={isWorkflowChatLoading ? "Stop" : "Send message"}>

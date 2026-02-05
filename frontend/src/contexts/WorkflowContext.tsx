@@ -10,6 +10,7 @@ import {
   getWorkflowChatMessages,
   sendWorkflowChatMessage as sendWorkflowChatMessageApi,
   applyWorkflowChatProposal as applyWorkflowChatProposalApi,
+  rejectWorkflowChatProposal as rejectWorkflowChatProposalApi,
 } from "@/lib/api";
 import { useAuth } from "@/hooks";
 
@@ -31,6 +32,9 @@ interface WorkflowChatProposal {
     tools?: Array<{ id: string; name?: string; version?: string }>;
     dependsOn?: string[];
   }>;
+  status: "pending" | "applied" | "rejected" | "expired";
+  createdAt: Date;
+  resolvedAt?: Date | null;
 }
 
 interface WorkflowContextValue {
@@ -50,6 +54,7 @@ interface WorkflowContextValue {
 
   // Chat state for workflow authoring
   workflowChatMessages: ChatMessage[];
+  workflowChatProposals: WorkflowChatProposal[];
   workflowChatInput: string;
   setWorkflowChatInput: (value: string) => void;
   sendWorkflowChatMessage: (content: string, modelId: string) => void;
@@ -79,6 +84,34 @@ interface WorkflowProviderProps {
 // Prefix for draft workflow IDs (not yet persisted to DB)
 const DRAFT_ID_PREFIX = "draft-";
 
+const normalizeWorkflowProposal = (
+  proposal: WorkflowChatProposal | {
+    proposalId: string;
+    baseVersionId: string | null;
+    toolCalls: unknown;
+    previewSteps: Array<{
+      id: string;
+      name: string;
+      instruction: string;
+      tools?: Array<{ id: string; name?: string; version?: string }>;
+      dependsOn?: string[];
+    }>;
+    status?: "pending" | "applied" | "rejected" | "expired";
+    createdAt?: string;
+    resolvedAt?: string | null;
+  }
+): WorkflowChatProposal => {
+  return {
+    proposalId: proposal.proposalId,
+    baseVersionId: proposal.baseVersionId,
+    toolCalls: proposal.toolCalls,
+    previewSteps: proposal.previewSteps,
+    status: proposal.status ?? "pending",
+    createdAt: proposal.createdAt ? new Date(proposal.createdAt) : new Date(),
+    resolvedAt: proposal.resolvedAt ? new Date(proposal.resolvedAt) : null,
+  };
+};
+
 export function WorkflowProvider({
   children,
   initialWorkflows,
@@ -97,6 +130,7 @@ export function WorkflowProvider({
 
   // Chat state for workflow authoring
   const [workflowChatMessages, setWorkflowChatMessages] = React.useState<ChatMessage[]>([]);
+  const [workflowChatProposals, setWorkflowChatProposals] = React.useState<WorkflowChatProposal[]>([]);
   const [workflowChatInput, setWorkflowChatInput] = React.useState("");
   const [isWorkflowChatLoading, setIsWorkflowChatLoading] = React.useState(false);
   const [pendingProposal, setPendingProposal] = React.useState<WorkflowChatProposal | null>(null);
@@ -116,14 +150,17 @@ export function WorkflowProvider({
   // Load chat messages when a workflow is selected
   const loadWorkflowChatMessages = React.useCallback(async (workflowId: string, workflowName: string, stepCount: number) => {
     try {
-      const messages = await getWorkflowChatMessages(workflowId);
+      const response = await getWorkflowChatMessages(workflowId);
       if (activeWorkflowIdRef.current !== workflowId) {
         return;
       }
-      if (messages.length > 0) {
+      const proposals = response.proposals?.map(normalizeWorkflowProposal) ?? [];
+      setWorkflowChatProposals(proposals);
+      setPendingProposal(response.pendingProposal ? normalizeWorkflowProposal(response.pendingProposal) : null);
+      if (response.messages.length > 0) {
         // Convert API messages to ChatMessage format
         setWorkflowChatMessages(
-          messages.map((msg) => ({
+          response.messages.map((msg) => ({
             id: msg.id,
             role: msg.role,
             content: msg.content,
@@ -147,6 +184,8 @@ export function WorkflowProvider({
       if (activeWorkflowIdRef.current !== workflowId) {
         return;
       }
+      setPendingProposal(null);
+      setWorkflowChatProposals([]);
       setWorkflowChatMessages([
         {
           id: `init-${workflowId}`,
@@ -173,15 +212,25 @@ export function WorkflowProvider({
       activeWorkflowIdRef.current = null;
       setSelectedWorkflowState(null);
       setPendingProposal(null);
+      setWorkflowChatProposals([]);
       setWorkflowChatMessages([]);
+      setWorkflowChatInput("");
       // Update URL without triggering Next.js navigation (avoids remount)
       window.history.pushState(null, "", "/workflows");
       return;
     }
 
     // Set the active workflow ref immediately to track stale requests
+    const previousWorkflowId = activeWorkflowIdRef.current;
     activeWorkflowIdRef.current = workflow.id;
-    setPendingProposal(null);
+
+    // Clear chat state when switching workflows to prevent cross-workflow bleed
+    if (previousWorkflowId !== workflow.id) {
+      setPendingProposal(null);
+      setWorkflowChatProposals([]);
+      setWorkflowChatMessages([]);
+      setWorkflowChatInput("");
+    }
 
     // Update URL without triggering Next.js navigation (avoids remount)
     window.history.pushState(null, "", `/workflows/${workflow.id}`);
@@ -189,6 +238,20 @@ export function WorkflowProvider({
     // Load all data first, then batch state updates together
     try {
       let fullWorkflowDetail = workflow;
+
+      // Skip API fetch for draft workflows (not yet persisted)
+      if (workflow.id.startsWith(DRAFT_ID_PREFIX)) {
+        setSelectedWorkflowState(workflow);
+        setWorkflowChatMessages([
+          {
+            id: `init-${workflow.id}`,
+            role: "assistant" as const,
+            content: `This is a **new workflow**. It currently has 0 steps.\n\nWorkflows are reusable procedures. When a user selects this workflow in chat, their message is the input, and each step is a prompt whose output flows to the next.\n\nDescribe what you want this workflow to do and I'll propose steps. For example:\n- "Evaluate a startup idea by estimating TAM, listing competitors, and making a recommendation"\n- "Summarize a customer interview and extract action items"`,
+            createdAt: new Date(),
+          },
+        ]);
+        return;
+      }
 
       // Load full workflow details if steps are empty
       if (workflow.steps.length === 0) {
@@ -217,13 +280,17 @@ export function WorkflowProvider({
       // Load chat messages
       let chatMessages: ChatMessage[] = [];
       try {
-        const messages = await getWorkflowChatMessages(workflow.id);
+        const response = await getWorkflowChatMessages(workflow.id);
         if (activeWorkflowIdRef.current !== workflow.id) {
           return; // Stale request
         }
 
-        if (messages.length > 0) {
-          chatMessages = messages.map((msg) => ({
+        const proposals = response.proposals?.map(normalizeWorkflowProposal) ?? [];
+        setWorkflowChatProposals(proposals);
+        setPendingProposal(response.pendingProposal ? normalizeWorkflowProposal(response.pendingProposal) : null);
+
+        if (response.messages.length > 0) {
+          chatMessages = response.messages.map((msg) => ({
             id: msg.id,
             role: msg.role,
             content: msg.content,
@@ -245,6 +312,8 @@ export function WorkflowProvider({
         if (activeWorkflowIdRef.current !== workflow.id) {
           return; // Stale request
         }
+        setPendingProposal(null);
+        setWorkflowChatProposals([]);
         // Create welcome message as fallback
         chatMessages = [
           {
@@ -349,7 +418,7 @@ export function WorkflowProvider({
     const draftWorkflow: WorkflowDetail = {
       id: draftId,
       name: "New Workflow",
-      description: "Describe what this workflow does",
+      description: "Your workflow description will appear here",
       version: 1,
       steps: [],
       lastEditedAt: now,
@@ -361,6 +430,11 @@ export function WorkflowProvider({
 
     // Set selected workflow state directly
     setSelectedWorkflowState(draftWorkflow);
+
+    // Clear any previous proposals or pending state
+    setPendingProposal(null);
+    setWorkflowChatProposals([]);
+    setWorkflowChatInput("");
 
     // Initialize the chat for the new workflow
     setWorkflowChatMessages([
@@ -468,7 +542,16 @@ export function WorkflowProvider({
 
       // store proposal if present
       if (response.proposedChanges) {
-        setPendingProposal(response.proposedChanges);
+        const normalizedProposal = normalizeWorkflowProposal(response.proposedChanges);
+        setPendingProposal(normalizedProposal);
+        setWorkflowChatProposals((prev) => {
+          const withoutDuplicate = prev.filter(
+            (proposal) => proposal.proposalId !== normalizedProposal.proposalId
+          );
+          return [normalizedProposal, ...withoutDuplicate].sort(
+            (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
+          );
+        });
       }
     } catch (error) {
       console.error("Failed to send workflow chat message:", error);
@@ -499,6 +582,8 @@ export function WorkflowProvider({
 
       const updatedWorkflow: WorkflowDetail = {
         ...selectedWorkflow,
+        name: response.workflow.name,
+        description: response.workflow.description ?? "",
         version: response.workflowVersion.versionNumber,
         steps: response.workflowVersion.steps.map((step) => ({
           id: step.id,
@@ -507,7 +592,7 @@ export function WorkflowProvider({
           tools: step.tools,
           order: step.order,
         })),
-        lastEditedAt: new Date(),
+        lastEditedAt: new Date(response.workflow.updatedAt),
       };
 
       // update selected workflow and list
@@ -516,7 +601,20 @@ export function WorkflowProvider({
         prev.map((w) => (w.id === updatedWorkflow.id ? updatedWorkflow : w))
       );
 
-      // clear proposal after applying
+      // mark proposal as applied in history
+      setWorkflowChatProposals((prev) =>
+        prev.map((proposal) =>
+          proposal.proposalId === pendingProposal.proposalId
+            ? {
+                ...proposal,
+                status: "applied",
+                resolvedAt: new Date(),
+              }
+            : proposal
+        )
+      );
+
+      // clear pending proposal after applying
       setPendingProposal(null);
     } catch (error) {
       console.error("Failed to apply workflow proposal:", error);
@@ -525,9 +623,31 @@ export function WorkflowProvider({
     }
   }, [pendingProposal, selectedWorkflow]);
 
-  const rejectWorkflowProposalHandler = React.useCallback(() => {
-    setPendingProposal(null);
-  }, []);
+  const rejectWorkflowProposalHandler = React.useCallback(async () => {
+    if (!pendingProposal || !selectedWorkflow) return;
+
+    try {
+      await rejectWorkflowChatProposalApi(
+        selectedWorkflow.id,
+        pendingProposal.proposalId
+      );
+    } catch (error) {
+      console.error("Failed to reject workflow proposal:", error);
+    } finally {
+      setWorkflowChatProposals((prev) =>
+        prev.map((proposal) =>
+          proposal.proposalId === pendingProposal.proposalId
+            ? {
+                ...proposal,
+                status: "rejected",
+                resolvedAt: new Date(),
+              }
+            : proposal
+        )
+      );
+      setPendingProposal(null);
+    }
+  }, [pendingProposal, selectedWorkflow]);
 
   const value = React.useMemo(
     () => ({
@@ -540,6 +660,7 @@ export function WorkflowProvider({
       renameWorkflow: renameWorkflowHandler,
       createWorkflow: createWorkflowHandler,
       workflowChatMessages,
+      workflowChatProposals,
       workflowChatInput,
       setWorkflowChatInput,
       sendWorkflowChatMessage: sendWorkflowChatMessageHandler,
@@ -559,6 +680,7 @@ export function WorkflowProvider({
       renameWorkflowHandler,
       createWorkflowHandler,
       workflowChatMessages,
+      workflowChatProposals,
       workflowChatInput,
       sendWorkflowChatMessageHandler,
       isWorkflowChatLoading,

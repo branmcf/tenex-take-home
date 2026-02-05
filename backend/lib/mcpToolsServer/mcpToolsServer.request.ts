@@ -20,13 +20,25 @@ import {
     , MCPToolExecutionFailed
     , MCPToolsRequestFailed
 } from './mcpToolsServer.errors';
+import { Log } from '../../utils';
 
 const getBaseUrl = () => {
     return process.env.MCP_TOOLS_URL ?? 'http://localhost:4010';
 };
 
+const normalizeServiceKey = ( value: string ) => {
+    const trimmed = value.trim();
+    if ( trimmed.startsWith( '"' ) && trimmed.endsWith( '"' ) ) {
+        return trimmed.slice( 1, -1 );
+    }
+    if ( trimmed.startsWith( '\'' ) && trimmed.endsWith( '\'' ) ) {
+        return trimmed.slice( 1, -1 );
+    }
+    return trimmed;
+};
+
 const getServiceKey = () => {
-    return process.env.MCP_TOOLS_API_KEY ?? '';
+    return normalizeServiceKey( process.env.MCP_TOOLS_API_KEY ?? '' );
 };
 
 const axiosInstance = axios.create( {
@@ -59,10 +71,17 @@ const mcpToolsRequest = async <T>(
 
         return success( response.data.result );
     } catch ( err ) {
-        const response = ( err as AxiosError )?.response;
-        const errorCode = response?.data && typeof response.data === 'object'
-            ? ( response.data as { code?: string } ).code
+        const axiosError = err as AxiosError;
+        const response = axiosError?.response;
+        const responseData = response?.data;
+        const errorCode = responseData && typeof responseData === 'object'
+            ? ( responseData as { code?: string } ).code
             : undefined;
+        const errorMessage = responseData && typeof responseData === 'object'
+            ? ( responseData as { message?: string; clientMessage?: string } ).message
+                ?? ( responseData as { clientMessage?: string } ).clientMessage
+            : undefined;
+        const statusCode = response?.status;
 
         const errorCodesMap = new Map<string, ResourceError>( [
             [ 'MCP_METHOD_NOT_FOUND', new MCPMethodNotFound() ]
@@ -74,6 +93,26 @@ const mcpToolsRequest = async <T>(
 
         if ( mappedError ) {
             return error( mappedError );
+        }
+
+        Log.error( '[MCP] Request failed', {
+            method: payload.method
+            , baseUrl: getBaseUrl()
+            , statusCode
+            , errorCode
+            , errorMessage
+            , responseData
+            , message: axiosError?.message
+        } );
+
+        if ( errorCode || errorMessage ) {
+            return error( new ResourceError( {
+                message: errorMessage ?? `MCP tools request failed (${ errorCode ?? 'UNKNOWN' }).`
+                , clientMessage: errorMessage ?? `MCP tools request failed (${ errorCode ?? 'UNKNOWN' }).`
+                , statusCode: statusCode ?? 500
+                , code: errorCode ?? 'MCP_TOOLS_REQUEST_FAILED'
+                , error: responseData
+            } ) );
         }
 
         return error( new MCPToolsRequestFailed() );

@@ -1,0 +1,91 @@
+# Terraform Variables Example
+# Copy this file to terraform.tfvars and fill in your values
+# NEVER commit terraform.tfvars to version control!
+
+###############################################################################
+# Environment Configuration
+###############################################################################
+
+environment  = "prod"
+project_name = "tenex"
+aws_region   = "us-east-2"
+
+###############################################################################
+# Database Configuration
+###############################################################################
+
+db_instance_class        = "db.t3.small"
+db_allocated_storage     = 20
+db_max_allocated_storage = 100
+db_name                  = "app"
+db_username              = "tenex_admin"
+db_password              = "YOUR_SECURE_DATABASE_PASSWORD"  # Use a strong password!
+
+###############################################################################
+# Redis Configuration
+###############################################################################
+
+redis_node_type       = "cache.t3.micro"
+redis_num_cache_nodes = 1
+
+###############################################################################
+# App Runner Configuration
+###############################################################################
+
+# Create this connection manually in AWS Console first:
+# AWS Console > App Runner > GitHub connections > Create connection
+github_connection_arn = "arn:aws:apprunner:us-east-2:YOUR_ACCOUNT_ID:connection/YOUR_CONNECTION_NAME/YOUR_CONNECTION_ID"
+
+github_org            = "branmcf"
+github_repo_backend   = "tenex-take-home"
+github_repo_frontend  = "tenex-take-home"
+github_repo_mcp_tools = "tenex-take-home"
+
+backend_branch   = "main"
+frontend_branch  = "main"
+mcp_tools_branch = "main"
+
+# Resource sizing
+backend_cpu     = "1024"
+backend_memory  = "2048"
+frontend_cpu    = "1024"
+frontend_memory = "2048"
+mcp_tools_cpu   = "512"
+mcp_tools_memory = "1024"
+
+###############################################################################
+# Marketing Site Configuration (optional)
+###############################################################################
+
+# Leave empty to use CloudFront default domain
+marketing_domain          = ""
+marketing_certificate_arn = ""
+
+# Or configure a custom domain:
+# marketing_domain          = "www.example.com"
+# marketing_certificate_arn = "arn:aws:acm:us-east-1:YOUR_ACCOUNT_ID:certificate/YOUR_CERT_ID"
+
+###############################################################################
+# Documentation Site Configuration (optional)
+###############################################################################
+
+# Leave empty to use CloudFront default domain
+docs_domain          = ""
+docs_certificate_arn = ""
+
+# Or configure a custom domain:
+# docs_domain          = "docs.example.com"
+# docs_certificate_arn = "arn:aws:acm:us-east-1:YOUR_ACCOUNT_ID:certificate/YOUR_CERT_ID"
+
+###############################################################################
+# Secrets Configuration
+###############################################################################
+
+better_auth_secret = "YOUR_BETTER_AUTH_SECRET_KEY"  # Generate with: openssl rand -base64 32
+mcp_tools_api_key  = "YOUR_MCP_TOOLS_API_KEY"       # Generate a secure API key
+
+# Optional API keys (leave empty if not using)
+openai_api_key     = ""
+anthropic_api_key  = ""
+resend_api_key     = ""
+stripe_secret_key  = ""

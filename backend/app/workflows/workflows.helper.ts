@@ -10,21 +10,13 @@ import {
     getWorkflowMetadata
     , updateWorkflowMetadata
 } from './workflows.service';
+import { buildWorkflowMetadataPrompt } from '../../utils/constants';
 
 interface WorkflowMetadataResult {
     name: string;
     description: string;
 }
 
-const formatSteps = ( dag?: WorkflowDAG ) => {
-    if ( !dag || !Array.isArray( dag.steps ) || dag.steps.length === 0 ) {
-        return 'No steps yet.';
-    }
-
-    return dag.steps.map( ( step, index ) => {
-        return `${ index + 1 }. ${ step.name } - ${ step.instruction }`;
-    } ).join( '\n' );
-};
 
 const parseMetadataJson = ( raw: string ): WorkflowMetadataResult | null => {
     const start = raw.indexOf( '{' );
@@ -73,16 +65,10 @@ export const generateWorkflowMetadata = async (
     }
 ): Promise<Either<ResourceError, WorkflowMetadataResult>> => {
 
-    const prompt = `Generate a concise workflow name (2-6 words, title case) and a short description (1-2 sentences).
-
-User request:
-${ params.userMessage }
-
-Current steps:
-${ formatSteps( params.dag ) }
-
-Return ONLY valid JSON with this shape:
-{ "name": string, "description": string }`;
+    const prompt = buildWorkflowMetadataPrompt( {
+        userMessage: params.userMessage
+        , dag: params.dag
+    } );
 
     const result = await generateLLMText( {
         modelId: params.modelId

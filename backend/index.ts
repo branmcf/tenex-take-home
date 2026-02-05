@@ -1,3 +1,6 @@
+// must be first import — initializes OpenTelemetry for Langfuse tracing
+import { spanProcessor } from './lib/langfuse/instrumentation';
+
 import { app } from './server';
 import { Log } from './utils';
 import { closePostGraphile } from './lib/postGraphile';
@@ -17,6 +20,9 @@ const server = app.listen( port, () => {
 
 process.on( 'SIGINT', async () => {
 
+    // flush pending Langfuse traces
+    await spanProcessor.forceFlush();
+
     // cleanup PostGraphile connections
     await closePostGraphile();
 
@@ -25,6 +31,9 @@ process.on( 'SIGINT', async () => {
 } );
 
 process.on( 'SIGTERM', async () => {
+
+    // flush pending Langfuse traces
+    await spanProcessor.forceFlush();
 
     // cleanup PostGraphile connections
     await closePostGraphile();

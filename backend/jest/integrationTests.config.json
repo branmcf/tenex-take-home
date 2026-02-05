@@ -12,6 +12,14 @@
     "setupFiles": [
         "<rootDir>/jest/integrationTestsEnvSetup.ts"
     ],
+    "transform": {
+        "^.+\\.tsx?$": [
+            "ts-jest",
+            {
+                "isolatedModules": true
+            }
+        ]
+    },
     "collectCoverage": false,
     "coverageReporters": [
         "html"

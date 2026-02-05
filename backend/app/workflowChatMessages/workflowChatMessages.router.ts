@@ -7,6 +7,7 @@ import {
     getWorkflowChatMessagesHandler
     , createWorkflowChatMessageHandler
     , applyWorkflowProposalHandler
+    , rejectWorkflowProposalHandler
 } from './workflowChatMessages.ctrl';
 
 // create an express router
@@ -28,4 +29,9 @@ workflowChatMessagesRouter
         '/apply'
         , requestValidator( 'APPLY_WORKFLOW_PROPOSAL' )
         , requestHandlerErrorWrapper( applyWorkflowProposalHandler )
+    )
+    .post(
+        '/reject'
+        , requestValidator( 'REJECT_WORKFLOW_PROPOSAL' )
+        , requestHandlerErrorWrapper( rejectWorkflowProposalHandler )
     );

@@ -4,8 +4,13 @@ export class Log {
         console.log( message, meta ?? '' );
     }
 
-    static error ( error: unknown ) {
+    static warn ( message: string, meta?: unknown ) {
         // eslint-disable-next-line no-console
-        console.error( error );
+        console.warn( message, meta ?? '' );
+    }
+
+    static error ( messageOrError: string | unknown, meta?: unknown ) {
+        // eslint-disable-next-line no-console
+        console.error( messageOrError, meta ?? '' );
     }
 }

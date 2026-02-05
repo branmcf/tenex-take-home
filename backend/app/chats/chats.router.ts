@@ -6,6 +6,7 @@ import {
 } from '../../middleware';
 import { deleteChatHandler } from './chats.ctrl';
 import { messagesRouter } from '../messages';
+import { workflowRunsRouter } from '../workflowRuns';
 
 // create an express router
 export const chatsRouter = express.Router( { mergeParams: true } );
@@ -24,4 +25,11 @@ chatsRouter.use(
     '/:chatId/messages'
     , chatOwnershipValidator
     , messagesRouter
+);
+
+// workflow runs - ownership validated for all nested routes
+chatsRouter.use(
+    '/:chatId/workflow-runs'
+    , chatOwnershipValidator
+    , workflowRunsRouter
 );

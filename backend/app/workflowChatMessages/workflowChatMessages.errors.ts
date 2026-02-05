@@ -77,3 +77,16 @@ export class WorkflowProposalApplyFailed extends ResourceError {
         } );
     }
 }
+
+export class WorkflowProposalRejectFailed extends ResourceError {
+    public constructor () {
+        const clientMessage = `Failed to reject workflow proposal.`;
+        const code = 'WORKFLOW_PROPOSAL_REJECT_FAILED';
+        const statusCode = 500;
+        super( {
+            clientMessage
+            , statusCode
+            , code
+        } );
+    }
+}

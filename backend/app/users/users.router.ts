@@ -6,6 +6,7 @@ import {
 } from '../../middleware';
 import { getUserChatsHandler } from '../chats/chats.ctrl';
 import { getUserWorkflowsHandler } from '../workflows/workflows.ctrl';
+import { userModelPreferencesRouter } from './userModelPreferences';
 
 // create an express router
 export const usersRouter = express.Router( { mergeParams: true } );
@@ -23,4 +24,5 @@ usersRouter
         , requestValidator( 'GET_USER_WORKFLOWS' )
         , userIdValidator
         , requestHandlerErrorWrapper( getUserWorkflowsHandler )
-    );
+    )
+    .use( userModelPreferencesRouter );

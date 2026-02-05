@@ -108,6 +108,36 @@ interface DeleteWorkflowResponse {
  */
 interface GetWorkflowChatMessagesResponse {
     messages: WorkflowChatMessage[];
+    pendingProposal?: {
+        proposalId: string;
+        baseVersionId: string | null;
+        toolCalls: unknown;
+        previewSteps: Array<{
+            id: string;
+            name: string;
+            instruction: string;
+            tools?: Array<{ id: string; name?: string; version?: string }>;
+            dependsOn?: string[];
+        }>;
+        status?: "pending" | "applied" | "rejected" | "expired";
+        createdAt?: string;
+        resolvedAt?: string | null;
+    } | null;
+    proposals?: Array<{
+        proposalId: string;
+        baseVersionId: string | null;
+        toolCalls: unknown;
+        previewSteps: Array<{
+            id: string;
+            name: string;
+            instruction: string;
+            tools?: Array<{ id: string; name?: string; version?: string }>;
+            dependsOn?: string[];
+        }>;
+        status: "pending" | "applied" | "rejected" | "expired";
+        createdAt: string;
+        resolvedAt?: string | null;
+    }>;
 }
 
 /**
@@ -128,6 +158,9 @@ interface CreateWorkflowChatMessageResponse {
             tools?: Array<{ id: string; name?: string; version?: string }>;
             dependsOn?: string[];
         }>;
+        status?: "pending" | "applied" | "rejected" | "expired";
+        createdAt?: string;
+        resolvedAt?: string | null;
     };
     error?: {
         message: string;
@@ -137,11 +170,21 @@ interface CreateWorkflowChatMessageResponse {
 
 interface ApplyWorkflowProposalResponse {
     success: boolean;
+    workflow: {
+        id: string;
+        name: string;
+        description: string | null;
+        updatedAt: string;
+    };
     workflowVersion: {
         id: string;
         versionNumber: number;
         steps: WorkflowStep[];
     };
+}
+
+interface RejectWorkflowProposalResponse {
+    success: boolean;
 }
 
 /**
@@ -224,11 +267,11 @@ export async function deleteWorkflow(workflowId: string): Promise<boolean> {
  */
 export async function getWorkflowChatMessages(
     workflowId: string
-): Promise<WorkflowChatMessage[]> {
+): Promise<GetWorkflowChatMessagesResponse> {
     const response = await apiClient.get<GetWorkflowChatMessagesResponse>(
         `/api/workflows/${workflowId}/messages`
     );
-    return response.data.messages;
+    return response.data;
 }
 
 /**
@@ -263,6 +306,23 @@ export async function applyWorkflowChatProposal(
 ): Promise<ApplyWorkflowProposalResponse> {
     const response = await apiClient.post<ApplyWorkflowProposalResponse>(
         `/api/workflows/${workflowId}/messages/apply`,
+        { proposalId }
+    );
+    return response.data;
+}
+
+/**
+ * Rejects a workflow proposal.
+ * @param workflowId - The workflow ID
+ * @param proposalId - The proposal ID
+ * @returns Success status
+ */
+export async function rejectWorkflowChatProposal(
+    workflowId: string,
+    proposalId: string
+): Promise<RejectWorkflowProposalResponse> {
+    const response = await apiClient.post<RejectWorkflowProposalResponse>(
+        `/api/workflows/${workflowId}/messages/reject`,
         { proposalId }
     );
     return response.data;

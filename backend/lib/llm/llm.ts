@@ -12,6 +12,10 @@ import type {
     , LLMGenerateResult
     , LLMStreamParams
 } from './llm.types';
+import {
+    buildRAGAugmentedPrompt
+    , formatSourcesForRAGPrompt
+} from '../../utils/constants';
 
 /**
  * custom error for LLM request failures
@@ -52,18 +56,12 @@ export const generateLLMText = async (
         let augmentedPrompt = params.prompt;
 
         if ( sources.length > 0 ) {
-            const sourcesContext = sources.map( ( source, index ) => {
-                return `[${ index + 1 }] ${ source.title }\nURL: ${ source.url }\n${ source.description || '' }`;
-            } ).join( '\n\n' );
+            const sourcesContext = formatSourcesForRAGPrompt( sources );
 
-            augmentedPrompt = `You are a helpful assistant. Use the following web search results to answer the user's question. Cite sources when relevant.
-
-Web Search Results:
-${ sourcesContext }
-
-User Question: ${ params.prompt }
-
-Please provide a comprehensive answer based on the search results above.`;
+            augmentedPrompt = buildRAGAugmentedPrompt( {
+                userPrompt: params.prompt
+                , sourcesContext
+            } );
         }
 
         // generate text using the AI SDK
@@ -72,6 +70,15 @@ Please provide a comprehensive answer based on the search results above.`;
             , prompt: augmentedPrompt
             , maxOutputTokens: params.maxTokens ?? 2000
             , temperature: params.temperature ?? 0.7
+            , experimental_telemetry: {
+                isEnabled: true
+                , functionId: 'generateLLMText'
+                , metadata: {
+                    modelId: params.modelId
+                    , useRAG: String( useRAG )
+                    , sourcesCount: String( sources.length )
+                }
+            }
         } );
 
         // calculate total tokens
@@ -117,18 +124,12 @@ export const streamLLMText = async ( params: LLMStreamParams ) => {
     let augmentedPrompt = params.prompt;
 
     if ( sources.length > 0 ) {
-        const sourcesContext = sources.map( ( source, index ) => {
-            return `[${ index + 1 }] ${ source.title }\nURL: ${ source.url }\n${ source.description || '' }`;
-        } ).join( '\n\n' );
+        const sourcesContext = formatSourcesForRAGPrompt( sources );
 
-        augmentedPrompt = `You are a helpful assistant. Use the following web search results to answer the user's question. Cite sources when relevant.
-
-Web Search Results:
-${ sourcesContext }
-
-User Question: ${ params.prompt }
-
-Please provide a comprehensive answer based on the search results above.`;
+        augmentedPrompt = buildRAGAugmentedPrompt( {
+            userPrompt: params.prompt
+            , sourcesContext
+        } );
     }
 
     // stream text using the AI SDK
@@ -137,6 +138,15 @@ Please provide a comprehensive answer based on the search results above.`;
         , prompt: augmentedPrompt
         , maxOutputTokens: params.maxTokens ?? 2000
         , temperature: params.temperature ?? 0.7
+        , experimental_telemetry: {
+            isEnabled: true
+            , functionId: 'streamLLMText'
+            , metadata: {
+                modelId: params.modelId
+                , useRAG: String( useRAG )
+                , sourcesCount: String( sources.length )
+            }
+        }
     } );
 
     return {

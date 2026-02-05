@@ -22,6 +22,7 @@ export type CreateMessageMutationVariables = Types.Exact<{
   role: Types.MessageRole;
   content: Types.Scalars['String']['input'];
   modelId?: Types.InputMaybe<Types.Scalars['String']['input']>;
+  workflowRunId?: Types.InputMaybe<Types.Scalars['UUID']['input']>;
 }>;
 
 

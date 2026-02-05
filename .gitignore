@@ -11,3 +11,4 @@ jest/coverage
 .env
 .env.*
 .cache
+.claude

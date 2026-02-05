@@ -13,6 +13,7 @@ import {
     , LLMToolCall
 } from './workflowDags.types';
 import { validateWorkflowDag } from './dagValidator';
+import { sortWorkflowDagSteps } from './dagSorter';
 
 const cloneDag = ( dag: WorkflowDAG ): WorkflowDAG => ( {
     steps: dag.steps.map( step => ( {
@@ -239,6 +240,9 @@ export const applyToolCallsToDag = (
     if ( validationResult.isError() ) {
         return error( new WorkflowDagModificationFailed( validationResult.value.message ) );
     }
+
+    // order steps for stable downstream rendering
+    updatedDag.steps = sortWorkflowDagSteps( updatedDag.steps );
 
     // return the updated dag
     return success( updatedDag );

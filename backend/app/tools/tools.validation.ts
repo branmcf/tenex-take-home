@@ -4,8 +4,7 @@ export const GET_TOOLS = Joi.object( {
     query: Joi.object( {
         refresh: Joi.string().trim().optional()
     } )
-        .required()
-        .options( { presence: 'optional' } )
+        .optional()
 } );
 
 export const SEARCH_TOOLS = Joi.object( {

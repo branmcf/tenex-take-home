@@ -17,10 +17,26 @@ import {
     , WorkflowStep
     , WorkflowToolRef
 } from './workflowDags';
+import { buildWorkflowStepExecutionPrompt } from '../utils/constants';
 
 interface WorkflowRunResult {
     workflowRunId: string;
     content: string;
+}
+
+interface WorkflowRunCallbacks {
+    onRunCreated?: ( workflowRunId: string ) => void;
+}
+
+interface WorkflowToolLogEntry {
+    toolName: string;
+    input: Record<string, unknown>;
+    output?: unknown;
+    error?: string;
+    status: 'RUNNING' | 'PASSED' | 'FAILED';
+    startedAt: string;
+    completedAt?: string;
+    toolCallId?: string | null;
 }
 
 const buildToolKey = ( tool: WorkflowToolRef ) => {
@@ -59,35 +75,6 @@ const findMissingToolRefs = ( toolRefs: WorkflowToolRef[], lookup: Map<string, M
     } );
 };
 
-const buildStepPrompt = (
-    params: {
-        userMessage: string;
-        step: WorkflowStep;
-        upstreamOutputs: string[];
-        toolNames: string[];
-    }
-) => {
-    const upstreamBlock = params.upstreamOutputs.length > 0
-        ? params.upstreamOutputs.join( '\n\n' )
-        : 'None';
-
-    const toolsBlock = params.toolNames.length > 0
-        ? `Available tools for this step: ${ params.toolNames.join( ', ' ) }`
-        : 'No tools available for this step.';
-
-    return `Workflow input (user message):
-${ params.userMessage }
-
-Upstream outputs:
-${ upstreamBlock }
-
-${ toolsBlock }
-
-Current step: ${ params.step.name }
-Instruction: ${ params.step.instruction }
-
-Provide the step output only. If tools are available and helpful, use them.`;
-};
 
 const topologicalSortSteps = ( steps: WorkflowStep[] ) => {
     const stepMap = new Map( steps.map( step => [ step.id, step ] ) );
@@ -352,8 +339,10 @@ const updateStepRun = async (
 const buildRuntimeTools = (
     stepTools: WorkflowToolRef[]
     , toolLookup: Map<string, MCPTool>
+    , toolLogs: WorkflowToolLogEntry[]
 ) => {
-    const tools: Record<string, ReturnType<typeof tool>> = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tools: Record<string, ReturnType<typeof tool<any, any>>> = {};
     const toolNames: string[] = [];
 
     stepTools.forEach( toolRef => {
@@ -372,6 +361,16 @@ const buildRuntimeTools = (
             , inputSchema: jsonSchema( toolRecord.schema as Record<string, unknown> )
             , outputSchema: jsonSchema( { type: 'object', additionalProperties: true } )
             , execute: async ( input: Record<string, unknown> ) => {
+                const startedAt = new Date().toISOString();
+                const logEntry: WorkflowToolLogEntry = {
+                    toolName
+                    , input
+                    , status: 'RUNNING'
+                    , startedAt
+                };
+
+                toolLogs.push( logEntry );
+
                 const runResult = await runMcpTool( {
                     id: toolRecord.id
                     , version: toolRecord.version
@@ -379,8 +378,15 @@ const buildRuntimeTools = (
                 } );
 
                 if ( runResult.isError() ) {
+                    logEntry.status = 'FAILED';
+                    logEntry.error = runResult.value.message ?? 'Tool execution failed.';
+                    logEntry.completedAt = new Date().toISOString();
                     throw runResult.value;
                 }
+
+                logEntry.status = 'PASSED';
+                logEntry.output = runResult.value.output;
+                logEntry.completedAt = new Date().toISOString();
 
                 return runResult.value.output;
             }
@@ -400,6 +406,7 @@ export const runWorkflow = async (
         triggerMessageId: string;
         userMessage: string;
         modelId: string;
+        callbacks?: WorkflowRunCallbacks;
     }
 ): Promise<Either<ResourceError, WorkflowRunResult>> => {
 
@@ -436,6 +443,18 @@ export const runWorkflow = async (
     }
 
     const workflowRunId = workflowRunResult.value.id;
+
+    // notify listener that the workflow run was created
+    if ( params.callbacks?.onRunCreated ) {
+        try {
+            params.callbacks.onRunCreated( workflowRunId );
+        } catch ( err ) {
+            // ignore callback errors to avoid breaking execution
+            // eslint-disable-next-line no-console
+            console.warn( 'workflow runner: onRunCreated callback failed', err );
+        }
+    }
+
     const outputs: Record<string, string> = {};
 
     const orderedSteps = topologicalSortSteps( dag.steps ?? [] );
@@ -498,13 +517,15 @@ export const runWorkflow = async (
                 } )
                 .filter( entry => entry.trim().length > 0 );
 
-            const runtimeTools = buildRuntimeTools( step.tools ?? [], toolLookup );
+            const toolExecutionLogs: WorkflowToolLogEntry[] = [];
+
+            const runtimeTools = buildRuntimeTools( step.tools ?? [], toolLookup, toolExecutionLogs );
 
             if ( runtimeTools.toolNames.length !== ( step.tools ?? [] ).length ) {
                 throw new ResourceError( { message: `Missing tools for step ${ step.id }.` } );
             }
 
-            const prompt = buildStepPrompt( {
+            const prompt = buildWorkflowStepExecutionPrompt( {
                 userMessage: params.userMessage
                 , step
                 , upstreamOutputs
@@ -525,13 +546,38 @@ export const runWorkflow = async (
 
             const completedAt = new Date().toISOString();
 
+            // attach tool call ids to tool logs when available
+            const toolCalls = Array.isArray( result.toolCalls )
+                ? result.toolCalls
+                : [];
+
+            toolCalls.forEach( ( toolCall, index ) => {
+                const logEntry = toolExecutionLogs[ index ];
+                if ( !logEntry || !toolCall || typeof toolCall !== 'object' ) {
+                    return;
+                }
+
+                const toolCallRecord = toolCall as { toolCallId?: string; toolName?: string };
+
+                if ( toolCallRecord.toolCallId ) {
+                    logEntry.toolCallId = toolCallRecord.toolCallId;
+                }
+                if ( toolCallRecord.toolName && !logEntry.toolName ) {
+                    logEntry.toolName = toolCallRecord.toolName;
+                }
+            } );
+
+            const stepLogs = toolExecutionLogs.length > 0
+                ? toolExecutionLogs
+                : result.toolResults ?? null;
+
             const updateStepRunResult = await updateStepRun( {
                 workflowRunId
                 , stepId: step.id
                 , status: 'PASSED'
                 , output
-                , toolCalls: result.toolCalls ?? null
-                , logs: result.toolResults ?? null
+                , toolCalls: toolCalls.length > 0 ? toolCalls : null
+                , logs: stepLogs
                 , completedAt
             } );
 

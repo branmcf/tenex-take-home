@@ -18,8 +18,9 @@ import {
     , GetToolByIdQuery
     , GetToolByIdQueryVariables
     , GetToolsQuery
-    , UpdateToolMutation
-    , UpdateToolMutationVariables
+    , GetToolsQueryVariables
+    , UpdateToolByIdMutation
+    , UpdateToolByIdMutationVariables
 } from './tools.service.generatedTypes';
 
 export interface ToolRecord {
@@ -57,7 +58,7 @@ export const getTools = async (): Promise<Either<ResourceError, ToolRecord[]>> =
         }
     `;
 
-    const result = await postGraphileRequest<GetToolsQuery, undefined>( {
+    const result = await postGraphileRequest<GetToolsQuery, GetToolsQueryVariables>( {
         query: GET_TOOLS
     } );
 
@@ -207,7 +208,7 @@ export const createTool = async (
  */
 export const updateToolById = async (
     toolId: string
-    , toolPatch: UpdateToolMutationVariables['toolPatch']
+    , toolPatch: UpdateToolByIdMutationVariables['toolPatch']
 ): Promise<Either<ResourceError, ToolRecord>> => {
 
     const UPDATE_TOOL = gql`
@@ -226,7 +227,7 @@ export const updateToolById = async (
         }
     `;
 
-    const result = await postGraphileRequest<UpdateToolMutation, UpdateToolMutationVariables>( {
+    const result = await postGraphileRequest<UpdateToolByIdMutation, UpdateToolByIdMutationVariables>( {
         mutation: UPDATE_TOOL
         , variables: { toolId, toolPatch }
     } );

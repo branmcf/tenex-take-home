@@ -224,9 +224,9 @@ const parseStepPlanJson = ( raw: string ): { steps: WorkflowStepPlan[] } | null 
 
 const normalizeToolCalls = ( toolCalls: Array<{ toolName: string; input: unknown }> ): LLMToolCall[] => {
     return toolCalls.map( toolCall => ( {
-        name: toolCall.toolName as LLMToolCall['name']
-        , args: toolCall.input as LLMToolCall['args']
-    } ) );
+        name: toolCall.toolName
+        , args: toolCall.input
+    } ) as LLMToolCall );
 };
 
 /**
@@ -265,6 +265,14 @@ export const generateWorkflowIntent = async (
             , prompt
             , maxOutputTokens: 500
             , temperature: 0.2
+            , experimental_telemetry: {
+                isEnabled: true
+                , functionId: 'generateWorkflowIntent'
+                , metadata: {
+                    workflowName: params.workflowName
+                    , modelId: params.modelId
+                }
+            }
         } );
 
         // parse the json response
@@ -331,6 +339,14 @@ export const generateWorkflowToolCalls = async (
             , temperature: 0.3
             , tools: workflowTools
             , toolChoice: 'auto'
+            , experimental_telemetry: {
+                isEnabled: true
+                , functionId: 'generateWorkflowToolCalls'
+                , metadata: {
+                    workflowName: params.workflowName
+                    , modelId: params.modelId
+                }
+            }
         } );
 
         const toolCalls = normalizeToolCalls( ( result.toolCalls ?? [] ).map( call => ( {
@@ -381,6 +397,15 @@ export const generateWorkflowStepToolUsage = async (
             , prompt
             , maxOutputTokens: 800
             , temperature: 0.2
+            , experimental_telemetry: {
+                isEnabled: true
+                , functionId: 'generateWorkflowStepToolUsage'
+                , metadata: {
+                    workflowName: params.workflowName
+                    , modelId: params.modelId
+                    , stepsCount: String( params.steps.length )
+                }
+            }
         } );
 
         const rawText = result.text.trim();
@@ -428,6 +453,14 @@ export const generateWorkflowStepPlan = async (
             , prompt
             , maxOutputTokens: 900
             , temperature: 0.3
+            , experimental_telemetry: {
+                isEnabled: true
+                , functionId: 'generateWorkflowStepPlan'
+                , metadata: {
+                    workflowName: params.workflowName
+                    , modelId: params.modelId
+                }
+            }
         } );
 
         const rawText = result.text.trim();

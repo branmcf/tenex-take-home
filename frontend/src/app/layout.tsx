@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { Toaster } from "@/components/ui/sonner";
+import { ChatRefetchProvider } from "@/contexts";
 
 const notoSans = Noto_Sans({
   subsets: ["latin"],
@@ -31,9 +32,11 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <AuthGuard>
-              {children}
-            </AuthGuard>
+            <ChatRefetchProvider>
+              <AuthGuard>
+                {children}
+              </AuthGuard>
+            </ChatRefetchProvider>
             <Toaster />
           </AuthProvider>
         </ThemeProvider>
