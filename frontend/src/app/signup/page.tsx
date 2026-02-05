@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Stack } from "@phosphor-icons/react/dist/ssr";
+import { LogoMark } from "@/components/brand/LogoMark";
 
 import { SignUpForm } from "@/components/auth/SignUpForm";
 import { ThemedAuthImage } from "@/components/auth/ThemedAuthImage";
@@ -11,9 +11,7 @@ export default function SignUpPage() {
       <div className="flex flex-col gap-4 p-8 md:p-16">
         <div className="flex justify-between items-center">
           <Link href="/" className="flex items-center gap-3 font-semibold tracking-tight">
-            <div className="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-md">
-              <Stack className="size-5" weight="bold" />
-            </div>
+            <LogoMark size={32} className="h-8 w-8" />
             <span className="text-lg">HardWire</span>
           </Link>
           <ThemeToggle />

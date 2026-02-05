@@ -61,6 +61,17 @@
   box-sizing: border-box;
 }
 
+/* HardWire mark sizing (local asset) */
+.hardwire-mark {
+  width: 28px;
+  height: 28px;
+}
+
+.hardwire-mark--cta {
+  width: 64px;
+  height: 64px;
+}
+
 /* Video responsive */
 video {
   max-width: 100%;

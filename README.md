@@ -72,8 +72,8 @@ This spins up:
 ### Run Tests
 
 ```bash
-# Backend unit tests
-cd backend && npm run test:unit
+# Backend integration tests
+cd backend && npm run test:int
 
 # Backend LLM evals (mocked)
 cd backend && npm run test:evals

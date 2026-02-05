@@ -28,6 +28,9 @@ nav:
     - Getting Started:
       - Authentication: docs/getting-started/authentication.md
       - Making API Calls: docs/getting-started/api-calls.md
+    - Reference:
+      - Providers and Models: docs/reference/providers-and-models.md
+      - MCP Tools: docs/reference/mcp-tools.md
     - Backend API:
       - Overview: docs/endpoints/backend/overview.md
       - Liveness:
@@ -87,7 +90,7 @@ theme:
     text: Noto Sans
     code: Roboto Mono
   logo: assets/images/logo.svg
-  favicon: assets/images/logo.svg
+  favicon: assets/images/favicon.svg
   language: en
   features:
     - navigation.tabs

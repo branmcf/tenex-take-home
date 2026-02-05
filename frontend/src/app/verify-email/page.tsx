@@ -2,10 +2,11 @@
 
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Stack, EnvelopeSimple } from "@phosphor-icons/react";
+import { EnvelopeSimple } from "@phosphor-icons/react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ResendVerificationForm } from "@/components/auth/ResendVerificationForm";
+import { LogoMark } from "@/components/brand/LogoMark";
 
 export default function VerifyEmailPage() {
   const searchParams = useSearchParams();
@@ -16,9 +17,7 @@ export default function VerifyEmailPage() {
       <div className="flex flex-col gap-4 p-8 md:p-16">
         <div className="flex justify-between items-center">
           <Link href="/" className="flex items-center gap-3 font-semibold tracking-tight">
-            <div className="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-md">
-              <Stack className="size-5" weight="bold" />
-            </div>
+            <LogoMark size={32} className="h-8 w-8" />
             <span className="text-lg">HardWire</span>
           </Link>
           <ThemeToggle />

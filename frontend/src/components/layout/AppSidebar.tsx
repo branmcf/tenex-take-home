@@ -7,7 +7,6 @@ import {
   PenNib,
   MagnifyingGlass,
   GitBranch,
-  Stack,
   SidebarSimple,
 } from "@phosphor-icons/react";
 
@@ -29,6 +28,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ChatList } from "@/components/chat";
+import { LogoMark } from "@/components/brand/LogoMark";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useChatContext, useChatRefetch, useModal } from "@/contexts";
 import { useChats, useAuth } from "@/hooks";
@@ -133,9 +133,7 @@ export function AppSidebar() {
             href="/"
             className="flex items-center gap-2 font-medium"
           >
-            <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
-              <Stack className="size-4" weight="bold" />
-            </div>
+            <LogoMark size={24} className="h-6 w-6" />
             HardWire
           </Link>
           <Tooltip>
