@@ -26,7 +26,7 @@ Terraform configurations for deploying the Hardwire platform to AWS. Provisions 
 
 ---
 
-## Reviewer Notes (2 minutes)
+## Reviewer Notes
 
 - **Run:** `cd infrastructure/environments/prod && terraform init && terraform plan`
 - **What to look at first:**

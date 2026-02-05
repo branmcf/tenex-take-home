@@ -25,7 +25,7 @@ Vite-based static marketing/landing page for the HardWire platform. Built as a p
 
 ---
 
-## Reviewer Notes (2 minutes)
+## Reviewer Notes
 
 - **Run:** `npm install && npm run dev`
 - **What to look at first:**

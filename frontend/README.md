@@ -26,7 +26,7 @@ Next.js 15 React application providing the chat interface and workflow managemen
 
 ---
 
-## Reviewer Notes (2 minutes)
+## Reviewer Notes
 
 - **Run:** `npm install && npm run dev`
 - **What to look at first:**

@@ -36,7 +36,7 @@ src="https://github.com/user-attachments/assets/7a6ad561-bbc7-49c5-b38f-ea8e586d
 
 ---
 
-## Reviewer Notes (2 minutes)
+## Reviewer Notes
 
 ### Quick Start (Single Command)
 

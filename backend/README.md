@@ -29,7 +29,7 @@ The backend is a **Node.js + Express REST API** serving the Hardwire determinist
 
 ---
 
-## Reviewer Notes (2 minutes)
+## Reviewer Notes
 
 - **Run:** `npm run dev` (requires PostgreSQL + `.env` configured)
 - **Run tests:** `npm run test:unit`
