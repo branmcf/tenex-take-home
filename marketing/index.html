@@ -1241,7 +1241,6 @@
                       fetching, HTTP calls, text summarization, JSON extraction — validated schemas, security controls,
                       extensible architecture. Workflows reference tools by ID and version, the registry handles
                       execution.</p>
-                    TODOOO
                     <a arrow-color="green 1" text-color="green 1" border-color="green 1" target="_blank"
                       rel="noopener noreferrer" href="https://docs-hardwire.branmcf.com//docs/reference/mcp-tools/"
                       class="button w-inline-block">
@@ -1528,22 +1527,38 @@
                 </div>
                 <div class="data-workflow-graphic-content">
                   <p>
-                    <span class="text-color-swamp">interface </span>WorkflowStep<span class="text-color-swamp"> {</span><br />
-                    <span class="text-color-swamp">&nbsp;&nbsp;id: </span>string<span class="text-color-swamp">;</span><br />
-                    <span class="text-color-swamp">&nbsp;&nbsp;name: </span>string<span class="text-color-swamp">;</span><br />
-                    <span class="text-color-swamp">&nbsp;&nbsp;instruction: </span>string<span class="text-color-swamp">;</span><br />
-                    <span class="text-color-swamp">&nbsp;&nbsp;tools?: </span>WorkflowToolRef<span class="text-color-swamp">[];</span><br />
-                    <span class="text-color-swamp">&nbsp;&nbsp;dependsOn?: </span>string<span class="text-color-swamp">[];</span><br />
+                    <span class="text-color-swamp">interface </span>WorkflowStep<span class="text-color-swamp">
+                      {</span><br />
+                    <span class="text-color-swamp">&nbsp;&nbsp;id: </span>string<span
+                      class="text-color-swamp">;</span><br />
+                    <span class="text-color-swamp">&nbsp;&nbsp;name: </span>string<span
+                      class="text-color-swamp">;</span><br />
+                    <span class="text-color-swamp">&nbsp;&nbsp;instruction: </span>string<span
+                      class="text-color-swamp">;</span><br />
+                    <span class="text-color-swamp">&nbsp;&nbsp;tools?: </span>WorkflowToolRef<span
+                      class="text-color-swamp">[];</span><br />
+                    <span class="text-color-swamp">&nbsp;&nbsp;dependsOn?: </span>string<span
+                      class="text-color-swamp">[];</span><br />
                     <span class="text-color-swamp">}</span><br /><br />
-                    <span class="text-color-green-2">async function </span><span class="text-color-swamp">executeWorkflow(</span><br />
-                    <span class="text-color-swamp">&nbsp;&nbsp;dag: </span>WorkflowDAG<span class="text-color-swamp">,</span><br />
+                    <span class="text-color-green-2">async function </span><span
+                      class="text-color-swamp">executeWorkflow(</span><br />
+                    <span class="text-color-swamp">&nbsp;&nbsp;dag: </span>WorkflowDAG<span
+                      class="text-color-swamp">,</span><br />
                     <span class="text-color-swamp">&nbsp;&nbsp;runId: </span>string<br />
                     <span class="text-color-swamp">) {</span><br />
-                    <span class="text-color-swamp">&nbsp;&nbsp;const </span>sorted<span class="text-color-swamp"> = </span><span class="text-color-green-2">topologicalSort</span><span class="text-color-swamp">(dag.steps);</span><br /><br />
-                    <span class="text-color-swamp">&nbsp;&nbsp;for (const </span>step<span class="text-color-swamp"> of </span>sorted<span class="text-color-swamp">) {</span><br />
-                    <span class="text-color-swamp">&nbsp;&nbsp;&nbsp;&nbsp;const </span>result<span class="text-color-swamp"> = await </span><span class="text-color-green-2">executeStep</span><span class="text-color-swamp">(step);</span><br />
-                    <span class="text-color-swamp">&nbsp;&nbsp;&nbsp;&nbsp;if (result.</span>status<span class="text-color-swamp"> === </span><span class="text-color-green-1">'failed'</span><span class="text-color-swamp">) {</span><br />
-                    <span class="text-color-swamp">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw new </span>WorkflowError<span class="text-color-swamp">(result.error);</span><br />
+                    <span class="text-color-swamp">&nbsp;&nbsp;const </span>sorted<span class="text-color-swamp"> =
+                    </span><span class="text-color-green-2">topologicalSort</span><span
+                      class="text-color-swamp">(dag.steps);</span><br /><br />
+                    <span class="text-color-swamp">&nbsp;&nbsp;for (const </span>step<span class="text-color-swamp"> of
+                    </span>sorted<span class="text-color-swamp">) {</span><br />
+                    <span class="text-color-swamp">&nbsp;&nbsp;&nbsp;&nbsp;const </span>result<span
+                      class="text-color-swamp"> = await </span><span class="text-color-green-2">executeStep</span><span
+                      class="text-color-swamp">(step);</span><br />
+                    <span class="text-color-swamp">&nbsp;&nbsp;&nbsp;&nbsp;if (result.</span>status<span
+                      class="text-color-swamp"> === </span><span class="text-color-green-1">'failed'</span><span
+                      class="text-color-swamp">) {</span><br />
+                    <span class="text-color-swamp">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw new
+                    </span>WorkflowError<span class="text-color-swamp">(result.error);</span><br />
                     <span class="text-color-swamp">&nbsp;&nbsp;&nbsp;&nbsp;}</span><br />
                     <span class="text-color-swamp">&nbsp;&nbsp;}</span><br />
                     <span class="text-color-swamp">}</span>
