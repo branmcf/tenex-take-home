@@ -39,7 +39,7 @@ expressApp.use( cors( {
     origin: [
         'http://localhost:3000'
         , 'http://localhost:3026'
-        , 'https://app.hardwire.branmcf.com'
+        , 'https://app-hardwire.branmcf.com'
     ]
     , credentials: true
 } ) );
