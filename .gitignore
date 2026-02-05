@@ -12,3 +12,4 @@ jest/coverage
 .env.*
 .cache
 .claude
+docs/build/

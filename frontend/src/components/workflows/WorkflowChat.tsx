@@ -169,18 +169,19 @@ function ProposedChangesPanel({
   const renderToolCall = (call: ToolCall) => {
     const name = call?.name ?? call?.toolName ?? "unknown";
     const args = call?.args ?? call?.input ?? {};
+    const stepId = typeof args.stepId === "string" ? args.stepId : undefined;
 
     if (name === "add_step") {
       return `Add step: ${args.name ?? "Untitled Step"}`;
     }
     if (name === "update_step") {
-      return `Update step: ${resolveStepName(args.stepId)}`;
+      return `Update step: ${resolveStepName(stepId)}`;
     }
     if (name === "delete_step") {
-      return `Delete step: ${resolveStepName(args.stepId)}`;
+      return `Delete step: ${resolveStepName(stepId)}`;
     }
     if (name === "reorder_steps") {
-      return `Reorder step: ${resolveStepName(args.stepId)}`;
+      return `Reorder step: ${resolveStepName(stepId)}`;
     }
     return `Change: ${name}`;
   };
