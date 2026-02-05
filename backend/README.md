@@ -385,3 +385,7 @@ Ports:
 
 5. **API documentation** — Auto-generate OpenAPI spec from routes and validation schemas
    - Where: New `docs/` tooling
+
+## License
+
+Proprietary. All rights reserved. Brandon McFarland.
