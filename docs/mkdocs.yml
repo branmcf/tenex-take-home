@@ -3,7 +3,7 @@ site_name: HardWire API Documentation
 site_description: 'API documentation for HardWire - Workflows and Chat Platform'
 site_url: 'https://docs.hardwire.dev'
 repo_name: 'hardwire/docs'
-repo_url: 'https://github.com/hardwire/docs'
+repo_url: 'https://github.com/branmcf/tenex-take-home/tree/main/docs'
 copyright: Copyright &copy; 2026 Brandon McFarland
 
 # Directory configuration
@@ -18,7 +18,7 @@ extra_css:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/hardwire
+      link: https://github.com/branmcf/tenex-take-home/tree/main/docs
 
 # Navigation structure
 nav:

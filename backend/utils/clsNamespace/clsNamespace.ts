@@ -1,6 +1,6 @@
 import { createNamespace } from 'cls-hooked';
 
-export const clsNamespace = createNamespace( 'tenex-take-home-api' );
+export const clsNamespace = createNamespace( 'hardwire-api' );
 
 export const getNamespaceContext = (): { [ key: string ]: unknown } | null => {
     return clsNamespace.active;

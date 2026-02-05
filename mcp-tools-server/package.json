@@ -1,5 +1,5 @@
 {
-    "name": "tenex-mcp-tools-server",
+    "name": "hardwire-mcp-tools-server",
     "version": "0.1.0",
     "type": "module",
     "description": "Standalone MCP tools service",

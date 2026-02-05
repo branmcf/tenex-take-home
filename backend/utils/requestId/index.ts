@@ -7,7 +7,7 @@ import cls from 'cls-hooked';
  * lifecycle.
  */
 export const getCurrentRequestId = (): string | undefined => {
-    const namespace = cls.getNamespace( 'tenex-take-home-api' );
+    const namespace = cls.getNamespace( 'hardwire-api' );
     const requestId: string = namespace?.get( 'requestId' );
     return requestId;
 };

@@ -1,5 +1,5 @@
 {
-    "name": "tenex-take-home-api",
+    "name": "hardwire-api",
     "version": "0.1.0",
     "type": "module",
     "description": "A Node.js + Express API",

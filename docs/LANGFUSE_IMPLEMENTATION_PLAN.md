@@ -2,7 +2,7 @@
 
 ## Overview
 
-Add LLM observability to the Tenex backend using **Langfuse Cloud**. The integration captures all LLM calls (OpenAI, Anthropic, Google) made through the Vercel AI SDK via OpenTelemetry.
+Add LLM observability to the HardWire backend using **Langfuse Cloud**. The integration captures all LLM calls (OpenAI, Anthropic, Google) made through the Vercel AI SDK via OpenTelemetry.
 
 ## Architecture
 
@@ -37,7 +37,7 @@ The SDK runs inside your backend process and sends trace data to Langfuse Cloud 
 ## Phase 1: Langfuse Cloud Setup
 
 1. Sign up at https://cloud.langfuse.com
-2. Create a new project (e.g., "Tenex")
+2. Create a new project (e.g., "HardWire")
 3. Go to **Settings → API Keys → Create new API keys**
 4. Copy the **Public Key** (`pk-lf-...`) and **Secret Key** (`sk-lf-...`)
 5. Note the **Base URL** (either `https://cloud.langfuse.com` for EU or `https://us.cloud.langfuse.com` for US)
