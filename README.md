@@ -460,4 +460,4 @@ See [`infrastructure/README.md`](./infrastructure/README.md) for details.
 
 ## License
 
-Proprietary. All rights reserved.
+Proprietary. All rights reserved. Brandon McFarland.
