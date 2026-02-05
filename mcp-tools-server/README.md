@@ -1,8 +1,8 @@
-# Hardwire MCP Server
+# HardWire MCP Server
 
 <p align="center"> 
     <img 
-src="https://github-production-user-asset-6210df.s3.amazonaws.com/8098163/545401859-26b822f5-e3c3-41f0-836c-d1b3a83f6ac4.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20260205%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260205T063909Z&X-Amz-Expires=300&X-Amz-Signature=c1ad7664eab153b89523b5ddf2396440bdb5126229f711e262abfe66f8a66d82&X-Amz-SignedHeaders=host"
+src="https://github.com/user-attachments/assets/53422d95-0249-4bac-9f54-18ce87d60ab0"
         alt="Hardwire" 
         height="70%"
         width="100%">

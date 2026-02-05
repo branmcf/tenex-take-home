@@ -2,7 +2,7 @@
 
 <p align="center"> 
     <img 
-        src="https://github-production-user-asset-6210df.s3.amazonaws.com/8098163/545391398-caeb3b5d-77d5-4927-a0cb-f4f875a0ed0f.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20260205%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260205T061020Z&X-Amz-Expires=300&X-Amz-Signature=37412de0c9f0697c946264dfc39ca2cbcb2416738838f6af843afffdf5decbf0&X-Amz-SignedHeaders=host" 
+        src="https://github.com/user-attachments/assets/e0a5c26e-c23e-4078-a505-2a95eef09f1d" 
         alt="Hardwire" 
         height="70%"
         width="100%">
