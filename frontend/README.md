@@ -1,8 +1,8 @@
-# Hardwire Frontend
+# HardWire Frontend
 
 <p align="center"> 
     <img 
-src="https://github-production-user-asset-6210df.s3.amazonaws.com/8098163/545398667-d9f5fa8a-c072-4f4a-9474-93ef8c15ae06.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20260205%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260205T063058Z&X-Amz-Expires=300&X-Amz-Signature=36fc29d511bb36ddbe2de920a62269b3c788277ba713a634c8d315d6991e493d&X-Amz-SignedHeaders=host"
+src="https://github.com/user-attachments/assets/ac336143-e359-4df7-aca1-1787942e8147"
         alt="Hardwire" 
         height="70%"
         width="100%">

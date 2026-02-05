@@ -1,8 +1,8 @@
-# Hardwire
+# HardWire
 
 <p align="center"> 
     <img 
-src="https://github-production-user-asset-6210df.s3.amazonaws.com/8098163/545403494-28e54023-a6ff-4093-b557-636ec39dc671.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20260205%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260205T064323Z&X-Amz-Expires=300&X-Amz-Signature=cf993a8780fe65b04bc446065f4ffab9a151b8b49dd874e45d3890dd1c742a80&X-Amz-SignedHeaders=host"
+src="https://github.com/user-attachments/assets/7a6ad561-bbc7-49c5-b38f-ea8e586d1cea"
         alt="Hardwire" 
         height="70%"
         width="100%">

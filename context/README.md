@@ -1,10 +1,8 @@
-# Context Directory
-
-## Hardwire Context
+# HardWire Context
 
 <p align="center"> 
     <img 
-        src="https://github-production-user-asset-6210df.s3.amazonaws.com/8098163/545396176-e5fd6e6a-8020-4755-b79b-c27eba71fc02.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20260205%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260205T062320Z&X-Amz-Expires=300&X-Amz-Signature=746d527ed4d8dbade0468690d447fd08c17a76b64685a52d9bf2eccc5cb9de3d&X-Amz-SignedHeaders=host" 
+        src="https://github.com/user-attachments/assets/72f148d5-9e1a-4fe9-b0b0-6d673ad74963" 
         alt="Hardwire" 
         height="70%"
         width="100%">

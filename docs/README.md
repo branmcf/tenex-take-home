@@ -1,8 +1,8 @@
-# Hardwire Documentation
+# HardWire Documentation
 
 <p align="center"> 
     <img 
-        src="https://github-production-user-asset-6210df.s3.amazonaws.com/8098163/545397007-41e9a009-46ac-443f-96ac-1ce81c396c8a.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20260205%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260205T062545Z&X-Amz-Expires=300&X-Amz-Signature=c8ad90c9cc61cae90bf157611fc8945ac220681999905e825c3ab549a7d6bcf6&X-Amz-SignedHeaders=host" 
+        src="https://github.com/user-attachments/assets/045c0b27-cf5b-4411-9ee5-83ba3476346f" 
         alt="Hardwire" 
         height="70%"
         width="100%">

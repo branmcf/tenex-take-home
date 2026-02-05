@@ -1,8 +1,8 @@
-# Hardwire Infrastructure
+# HardWire Infrastructure
 
 <p align="center"> 
     <img 
-        src="https://github-production-user-asset-6210df.s3.amazonaws.com/8098163/545399237-09f85bd6-73a5-411a-aa08-882c92340ff3.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20260205%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260205T063257Z&X-Amz-Expires=300&X-Amz-Signature=d5e71e864b2ee4e26f64f49e0532f0542734c74008c9d089d7d40e724de9448f&X-Amz-SignedHeaders=host" 
+        src="https://github.com/user-attachments/assets/825e4c1a-c569-476e-89d4-42f1d9d4ea02" 
         alt="Hardwire" 
         height="70%"
         width="100%">
