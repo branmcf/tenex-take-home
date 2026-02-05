@@ -16,6 +16,7 @@ COPY errors ./errors
 COPY lib ./lib
 COPY middleware ./middleware
 COPY server ./server
+COPY migrations ./migrations
 COPY types ./types
 COPY utils ./utils
 COPY codegen.ts ./codegen.ts

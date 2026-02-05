@@ -6,8 +6,14 @@ The Backend API is the main API service for the HardWire platform. It provides e
 
 ## Base URL
 
+Local
 ```
-http://localhost:3026/api
+https://localhost:3026/api
+```
+
+Production
+```
+https://api-hardwire.branmcf.com
 ```
 
 ---

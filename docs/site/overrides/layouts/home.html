@@ -1,39 +1,42 @@
 {% extends "main.html" %}
 
 {% block tabs %}
-  {{ super() }}
-  <style>
-    /* Home page layout overrides */
-    .md-main__inner {
-      margin: 0;
-    }
-    .md-content {
+{{ super() }}
+<style>
+  /* Home page layout overrides */
+  .md-main__inner {
+    margin: 0;
+  }
+
+  .md-content {
+    display: none;
+  }
+
+  .md-sidebar--secondary {
+    display: none;
+  }
+
+  @media screen and (min-width: 60em) {
+    .md-sidebar--primary {
       display: none;
     }
-    .md-sidebar--secondary {
-      display: none;
-    }
-    @media screen and (min-width: 60em) {
-      .md-sidebar--primary {
-        display: none;
-      }
-    }
-  </style>
-  <div class="tx-hero-wrapper">
-    <section class="tx-hero">
-      <div class="tx-hero__content">
-        <div class="tx-hero__label">API Documentation</div>
-        <h1>The Production Stack<br>For AI Workflows</h1>
-        <p>
-          HardWire transforms LLM interactions into structured, auditable workflows
-          with deterministic execution and fail-fast error handling.
-        </p>
-        <a href="docs/introduction/" class="tx-hero__button">
-          View Documentation
-        </a>
-      </div>
-    </section>
-  </div>
+  }
+</style>
+<div class="tx-hero-wrapper">
+  <section class="tx-hero">
+    <div class="tx-hero__content">
+      <div class="tx-hero__label">API Documentation</div>
+      <h1>Deterministic Guardrails<br>For AI-Native Chat</h1>
+      <p>
+        HardWire transforms LLM interactions into structured, auditable workflows
+        with deterministic execution and fail-fast error handling.
+      </p>
+      <a href="docs/introduction/" class="tx-hero__button">
+        View Documentation
+      </a>
+    </div>
+  </section>
+</div>
 {% endblock %}
 
 {% block content %}{% endblock %}

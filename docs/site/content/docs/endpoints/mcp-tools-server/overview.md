@@ -6,6 +6,7 @@ The MCP Tools Server is a dedicated service for executing Model Context Protocol
 
 ## Base URL
 
+Local
 ```
 http://localhost:3027
 ```
