@@ -285,3 +285,7 @@ Read these in `context/` before making backend changes:
 
 - `BRIEF.md` — Full product specification
 - `PRD.md` — Product requirements document
+
+## License
+
+Proprietary. All rights reserved. Brandon McFarland.
