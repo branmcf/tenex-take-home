@@ -66,6 +66,16 @@ type WorkflowStreamPayload =
   | WorkflowStreamCompletePayload
   | { type: string; [key: string]: unknown };
 
+const isWorkflowStreamSnapshot = (
+  payload: WorkflowStreamPayload
+): payload is WorkflowStreamSnapshotPayload => {
+  return (
+    payload.type === "snapshot" &&
+    typeof (payload as WorkflowStreamSnapshotPayload).workflowRun === "object" &&
+    (payload as WorkflowStreamSnapshotPayload).workflowRun !== null
+  );
+};
+
 interface ChatContextValue {
   // Current chat state
   currentChatId: string | null;
@@ -240,7 +250,7 @@ export function ChatProvider({
           return;
         }
 
-        if (payload.type === "snapshot") {
+        if (isWorkflowStreamSnapshot(payload)) {
           const workflowRun = payload.workflowRun as {
             id: string;
             status: WorkflowRunStatus;
@@ -329,10 +339,11 @@ export function ChatProvider({
         }
 
         if (payload.type === "error") {
+          const errorPayload = payload as WorkflowStreamErrorPayload;
           setIsLoading(false);
           closeWorkflowStream();
           toast.error("Workflow run failed", {
-            description: payload.error?.message ?? "Please try again.",
+            description: errorPayload.error?.message ?? "Please try again.",
             duration: 5000,
           });
         }
