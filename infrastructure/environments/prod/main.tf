@@ -27,7 +27,7 @@ terraform {
   # cloud {
   #   organization = "your-organization"
   #   workspaces {
-  #     name = "tenex-infrastructure-prod"
+  #     name = "hardwire-infrastructure-prod"
   #   }
   # }
 }
@@ -64,7 +64,7 @@ provider "random" {
 ###############################################################################
 ###############################################################################
 
-# define a resource for an AWS VPC, named "prod-tenex-vpc"
+# define a resource for an AWS VPC, named "prod-hardwire-vpc"
 resource "aws_vpc" "main" {
 
   # set the IP address range for the VPC using CIDR notation allowing for 65,536 IP addresses within the VPC
@@ -88,7 +88,7 @@ resource "aws_vpc" "main" {
 ###############################################################################
 ###############################################################################
 
-# define a resource for an AWS subnet, named "prod-tenex-public-subnet-one"
+# define a resource for an AWS subnet, named "prod-hardwire-public-subnet-one"
 resource "aws_subnet" "public_one" {
 
   # associate this subnet with the VPC
@@ -110,7 +110,7 @@ resource "aws_subnet" "public_one" {
   }
 }
 
-# define a resource for an AWS subnet, named "prod-tenex-public-subnet-two"
+# define a resource for an AWS subnet, named "prod-hardwire-public-subnet-two"
 resource "aws_subnet" "public_two" {
 
   # associate this subnet with the VPC
@@ -132,7 +132,7 @@ resource "aws_subnet" "public_two" {
   }
 }
 
-# define a resource for an AWS subnet, named "prod-tenex-private-subnet-one"
+# define a resource for an AWS subnet, named "prod-hardwire-private-subnet-one"
 resource "aws_subnet" "private_one" {
 
   # associate this subnet with the VPC
@@ -151,7 +151,7 @@ resource "aws_subnet" "private_one" {
   }
 }
 
-# define a resource for an AWS subnet, named "prod-tenex-private-subnet-two"
+# define a resource for an AWS subnet, named "prod-hardwire-private-subnet-two"
 resource "aws_subnet" "private_two" {
 
   # associate this subnet with the VPC

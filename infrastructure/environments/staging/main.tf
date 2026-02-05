@@ -22,7 +22,7 @@ terraform {
   # cloud {
   #   organization = "your-organization"
   #   workspaces {
-  #     name = "tenex-infrastructure-staging"
+  #     name = "hardwire-infrastructure-staging"
   #   }
   # }
 }

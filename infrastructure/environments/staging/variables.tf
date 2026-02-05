@@ -13,7 +13,7 @@ variable "environment" {
 variable "project_name" {
   description = "The project name used for resource naming"
   type        = string
-  default     = "tenex"
+  default     = "hardwire"
 }
 
 variable "aws_region" {
@@ -29,7 +29,7 @@ variable "aws_region" {
 variable "vpc_cidr" {
   description = "CIDR block for the VPC"
   type        = string
-  default     = "10.1.0.0/16"  # Different CIDR from prod
+  default     = "10.1.0.0/16" # Different CIDR from prod
 }
 
 variable "public_subnet_one_cidr" {
@@ -75,7 +75,7 @@ variable "availability_zone_two" {
 variable "db_instance_class" {
   description = "Instance class for the RDS PostgreSQL database"
   type        = string
-  default     = "db.t3.micro"  # Smaller instance for staging
+  default     = "db.t3.micro" # Smaller instance for staging
 }
 
 variable "db_allocated_storage" {
@@ -87,7 +87,7 @@ variable "db_allocated_storage" {
 variable "db_max_allocated_storage" {
   description = "Maximum allocated storage for autoscaling in GB"
   type        = number
-  default     = 50  # Lower max for staging
+  default     = 50 # Lower max for staging
 }
 
 variable "db_name" {
@@ -99,7 +99,7 @@ variable "db_name" {
 variable "db_username" {
   description = "Master username for the database"
   type        = string
-  default     = "tenex_admin"
+  default     = "hardwire_admin"
 }
 
 variable "db_password" {
@@ -142,25 +142,25 @@ variable "github_org" {
 variable "github_repo_backend" {
   description = "GitHub repository name for the backend"
   type        = string
-  default     = "tenex-take-home"
+  default     = "hardwire-take-home"
 }
 
 variable "github_repo_frontend" {
   description = "GitHub repository name for the frontend"
   type        = string
-  default     = "tenex-take-home"
+  default     = "hardwire-take-home"
 }
 
 variable "github_repo_mcp_tools" {
   description = "GitHub repository name for the MCP tools server"
   type        = string
-  default     = "tenex-take-home"
+  default     = "hardwire-take-home"
 }
 
 variable "backend_branch" {
   description = "Branch to deploy for the backend service"
   type        = string
-  default     = "develop"  # Use develop branch for staging
+  default     = "develop" # Use develop branch for staging
 }
 
 variable "frontend_branch" {
@@ -178,7 +178,7 @@ variable "mcp_tools_branch" {
 variable "backend_cpu" {
   description = "CPU units for backend App Runner service"
   type        = string
-  default     = "512"  # Smaller for staging
+  default     = "512" # Smaller for staging
 }
 
 variable "backend_memory" {

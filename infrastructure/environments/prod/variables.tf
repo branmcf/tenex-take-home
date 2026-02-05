@@ -13,7 +13,7 @@ variable "environment" {
 variable "project_name" {
   description = "The project name used for resource naming"
   type        = string
-  default     = "tenex"
+  default     = "hardwire"
 }
 
 variable "aws_region" {
@@ -99,7 +99,7 @@ variable "db_name" {
 variable "db_username" {
   description = "Master username for the database"
   type        = string
-  default     = "tenex_admin"
+  default     = "hardwire_admin"
 }
 
 variable "db_password" {
@@ -142,19 +142,19 @@ variable "github_org" {
 variable "github_repo_backend" {
   description = "GitHub repository name for the backend"
   type        = string
-  default     = "tenex-take-home"
+  default     = "hardwire-take-home"
 }
 
 variable "github_repo_frontend" {
   description = "GitHub repository name for the frontend"
   type        = string
-  default     = "tenex-take-home"
+  default     = "hardwire-take-home"
 }
 
 variable "github_repo_mcp_tools" {
   description = "GitHub repository name for the MCP tools server"
   type        = string
-  default     = "tenex-take-home"
+  default     = "hardwire-take-home"
 }
 
 variable "backend_branch" {

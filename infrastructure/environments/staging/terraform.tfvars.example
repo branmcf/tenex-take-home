@@ -7,7 +7,7 @@
 ###############################################################################
 
 environment  = "staging"
-project_name = "tenex"
+project_name = "hardwire"
 aws_region   = "us-east-2"
 
 ###############################################################################
@@ -18,7 +18,7 @@ db_instance_class        = "db.t3.micro"
 db_allocated_storage     = 20
 db_max_allocated_storage = 50
 db_name                  = "app"
-db_username              = "tenex_admin"
+db_username              = "hardwire_admin"
 db_password              = "YOUR_STAGING_DATABASE_PASSWORD"
 
 ###############################################################################
@@ -35,9 +35,9 @@ redis_num_cache_nodes = 1
 github_connection_arn = "arn:aws:apprunner:us-east-2:YOUR_ACCOUNT_ID:connection/YOUR_CONNECTION_NAME/YOUR_CONNECTION_ID"
 
 github_org            = "branmcf"
-github_repo_backend   = "tenex-take-home"
-github_repo_frontend  = "tenex-take-home"
-github_repo_mcp_tools = "tenex-take-home"
+github_repo_backend   = "hardwire-take-home"
+github_repo_frontend  = "hardwire-take-home"
+github_repo_mcp_tools = "hardwire-take-home"
 
 # Staging uses develop branch by default
 backend_branch   = "develop"

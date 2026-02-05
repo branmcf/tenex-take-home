@@ -1,6 +1,6 @@
 # Making API Calls
 
-This guide covers the basics of making API calls to the Tenex platform.
+This guide covers the basics of making API calls to the HardWire platform.
 
 ---
 

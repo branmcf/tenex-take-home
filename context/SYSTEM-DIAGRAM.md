@@ -2,7 +2,7 @@ Here's an ASCII system diagram of your system:
 
 
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│                              TENEX - AI Workflow Platform                                │
+│                          HARDWIRE - AI Workflow Platform                                │
 └─────────────────────────────────────────────────────────────────────────────────────────┘
 
  ┌──────────────┐                                          ┌──────────────────────────┐
@@ -12,21 +12,21 @@ Here's an ASCII system diagram of your system:
  │  React 19    │                                          │  │ OpenAI │ │Anthropic│  │
  │  Tailwind    │                                          │  │ (GPT)  │ │(Claude) │  │
  │  Radix UI    │                                          │  └───┬────┘ └────┬────┘  │
- │              │                                          │      │           │        │
- │  Contexts:   │                                          │  ┌───┴───────────┴────┐   │
- │  - Auth      │                                          │  │      Google        │   │
- │  - Chat      │                                          │  │     (Gemini)       │   │
- │  - Workflow   │                                          │  └─────────┬──────────┘   │
- │  - Modal     │                                          └────────────┼──────────────┘
+ │              │                                          │      │           │       │
+ │  Contexts:   │                                          │  ┌───┴───────────┴────┐  │
+ │  - Auth      │                                          │  │      Google        │  │
+ │  - Chat      │                                          │  │     (Gemini)       │  │
+ │  - Workflow  │                                          │  └─────────┬──────────┘  │
+ │  - Modal     │                                          └────────────┼─────────────┘
  └──────┬───────┘                                                       │
         │ HTTP/REST                                                     │
         │ SSE (workflow run streams)                                    │ Vercel AI SDK
         │                                                               │
  ┌──────▼──────────────────────────────────────────────────────────────▼───────────────┐
- │                            Backend API  (Express :3026)                              │
+ │                            Backend API  (Express :3026)                             │
  │                                                                                     │
- │  ┌─────────────────────────────────── Middleware ─────────────────────────────────┐  │
- │  │  Session Validator │ Rate Limiter │ Request Validator │ Ownership Validators   │  │
+ │  ┌─────────────────────────────────── Middleware ─────────────────────────────────┐ │
+ │  │  Session Validator │ Rate Limiter │ Request Validator │ Ownership Validators   │ │
  │  └───────────────────────────────────────────────────────────────────────────────┘  │
  │                                                                                     │
  │  ┌──────────── API Routes (/api) ────────────────────────────────────────────────┐  │
@@ -43,16 +43,16 @@ Here's an ASCII system diagram of your system:
  │                                                                                     │
  │  ┌──────────── Domain Modules ───────────────────────────────────────────────────┐  │
  │  │                                                                               │  │
- │  │  ┌──────────┐ ┌──────────┐ ┌───────────┐ ┌───────────┐ ┌─────────────────┐   │  │
- │  │  │  Chats   │ │ Messages │ │ Workflows │ │   Tools   │ │ Workflow Runs   │   │  │
- │  │  │  .ctrl   │ │ .ctrl    │ │ .ctrl     │ │ .service  │ │ .ctrl           │   │  │
- │  │  │  .helper │ │ .helper  │ │ .helper   │ │ .valid.   │ │ (SSE streaming) │   │  │
- │  │  │  .router │ │ .service │ │ .service  │ │           │ │                 │   │  │
- │  │  └──────────┘ └──────────┘ └───────────┘ └───────────┘ └─────────────────┘   │  │
+ │  │  ┌──────────┐ ┌──────────┐ ┌───────────┐ ┌───────────┐ ┌─────────────────┐    │  │
+ │  │  │  Chats   │ │ Messages │ │ Workflows │ │   Tools   │ │ Workflow Runs   │    │  │
+ │  │  │  .ctrl   │ │ .ctrl    │ │ .ctrl     │ │ .service  │ │ .ctrl           │    │  │
+ │  │  │  .helper │ │ .helper  │ │ .helper   │ │ .valid.   │ │ (SSE streaming) │    │  │
+ │  │  │  .router │ │ .service │ │ .service  │ │           │ │                 │    │  │
+ │  │  └──────────┘ └──────────┘ └───────────┘ └───────────┘ └─────────────────┘    │  │
  │  │                                                                               │  │
  │  │  ┌─────────────────────┐  ┌──────────────────────────────┐                    │  │
  │  │  │ Workflow Chat Msgs  │  │ User Model Preferences       │                    │  │
- │  │  │ (authoring chat)    │  │                               │                    │  │
+ │  │  │ (authoring chat)    │  │                              │                    │  │
  │  │  └─────────────────────┘  └──────────────────────────────┘                    │  │
  │  └───────────────────────────────────────────────────────────────────────────────┘  │
  │                                                                                     │
@@ -61,52 +61,52 @@ Here's an ASCII system diagram of your system:
  │  │  ┌─────────────────────┐  ┌─────────────────────────────────────────────┐     │  │
  │  │  │ LLM Abstraction     │  │ Workflow Engine                             │     │  │
  │  │  │                     │  │                                             │     │  │
- │  │  │ - llm.ts            │  │ - workflowRunner.ts (DAG executor)         │     │  │
- │  │  │ - llmWithTools.ts   │  │ - dagValidator.ts   (cycle detection)      │     │  │
- │  │  │ - providers.ts      │  │ - dagSorter.ts      (topological sort)     │     │  │
- │  │  │ - systemPrompts     │  │ - dagModifier.ts    (add/remove/modify)    │     │  │
- │  │  └─────────────────────┘  │ - workflowProposals (propose → approve)    │     │  │
+ │  │  │ - llm.ts            │  │ - workflowRunner.ts (DAG executor)          │     │  │
+ │  │  │ - llmWithTools.ts   │  │ - dagValidator.ts   (cycle detection)       │     │  │
+ │  │  │ - providers.ts      │  │ - dagSorter.ts      (topological sort)      │     │  │
+ │  │  │ - systemPrompts     │  │ - dagModifier.ts    (add/remove/modify)     │     │  │
+ │  │  └─────────────────────┘  │ - workflowProposals (propose → approve)     │     │  │
  │  │                           └─────────────────────────────────────────────┘     │  │
  │  │                                                                               │  │
- │  │  ┌──────────┐ ┌────────────┐ ┌───────────┐ ┌──────────┐ ┌──────────────┐     │  │
+ │  │  ┌──────────┐ ┌────────────┐ ┌───────────┐ ┌──────────┐ ┌──────────────┐      │  │
  │  │  │BetterAuth│ │  Langfuse  │ │   Redis    │ │  Exa     │ │ PostGraphile │     │  │
  │  │  │(auth)    │ │  (tracing) │ │  (cache)   │ │ (search) │ │ (GQL codegen)│     │  │
- │  │  └──────────┘ └────────────┘ └───────────┘ └──────────┘ └──────────────┘     │  │
+ │  │  └──────────┘ └────────────┘ └───────────┘ └──────────┘ └──────────────┘      │  │
  │  └───────────────────────────────────────────────────────────────────────────────┘  │
  └──────┬──────────────────────────┬──────────────────────┬────────────────────────────┘
         │                          │                      │
         │ pg driver                │ HTTP + x-service-key │ ioredis
         │                          │                      │
- ┌──────▼──────────┐  ┌────────────▼────────────────┐  ┌──▼───────────────┐
- │                 │  │                             │  │                  │
- │  PostgreSQL     │  │  MCP Tools Server           │  │   Redis          │
- │  (:5433)        │  │  (Express :4010)            │  │                  │
- │                 │  │                             │  │  - Response cache│
- │  Tables:        │  │  Endpoints:                 │  │  - Session state │
- │  - user         │  │  GET  /tools/list           │  │                  │
- │  - chats        │  │  GET  /tools/search         │  └──────────────────┘
+ ┌──────▼──────────┐  ┌────────────▼────────────────┐  ┌──▼──────────────--─┐
+ │                 │  │                             │  │                    │
+ │  PostgreSQL     │  │  MCP Tools Server           │  │   Redis            │
+ │  (:5433)        │  │  (Express :4010)            │  │                    │
+ │                 │  │                             │  │  - Response cache  │
+ │  Tables:        │  │  Endpoints:                 │  │  - Session state   │
+ │  - user         │  │  GET  /tools/list           │  │                    │
+ │  - chats        │  │  GET  /tools/search         │  └──────────────────--┘
  │  - messages     │  │  GET  /tools/:id/:version   │
- │  - msg_sources  │  │  POST /tools/:id/run        │  ┌──────────────────┐
- │  - workflows    │  │                             │  │                  │
- │  - wf_versions  │  │  Available Tools:           │  │   Exa API        │
- │  - wf_proposals │  │  ┌───────────────────────┐  │  │   (Neural Search)│
- │  - wf_chat_msgs │  │  │ web_search            │──┼──▶                  │
- │  - workflow_runs│  │  │ read_url              │  │  └──────────────────┘
+ │  - msg_sources  │  │  POST /tools/:id/run        │  ┌──────────────────--┐
+ │  - workflows    │  │                             │  │                    │
+ │  - wf_versions  │  │  Available Tools:           │  │   Exa API          │
+ │  - wf_proposals │  │  ┌───────────────────────┐  │  │   (Neural Search)  │
+ │  - wf_chat_msgs │  │  │ web_search            │──┼──▶                    │
+ │  - workflow_runs│  │  │ read_url              │  │  └──────────────────--┘
  │  - step_runs    │  │  │ http_request          │  │
- │  - tools        │  │  │ summarize             │  │  ┌──────────────────┐
- │  - models       │  │  │ extract_json          │  │  │                  │
- │  - usage_records│  │  └───────────────────────┘  │  │   Langfuse       │
- │                 │  │                             │  │   (Observability)│
- │  23+ migrations │  │  Auth: x-service-key header │  │   via OpenTel    │
- │                 │  │                             │  │                  │
- └─────────────────┘  └─────────────────────────────┘  └──────────────────┘
+ │  - tools        │  │  │ summarize             │  │  ┌──────────────────--┐
+ │  - models       │  │  │ extract_json          │  │  │                    │
+ │  - usage_records│  │  └───────────────────────┘  │  │   Langfuse         │
+ │                 │  │                             │  │   (Observability)  │
+ │  23+ migrations │  │  Auth: x-service-key header │  │   via OpenTel      │
+ │                 │  │                             │  │                    │
+ └─────────────────┘  └─────────────────────────────┘  └──────────────────--┘
 
 
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
 │                              Workflow Execution Flow                                    │
 ├─────────────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                         │
-│  User sends message ──▶ Create Workflow Run ──▶ Topological Sort DAG                   │
+│  User sends message ──▶ Create Workflow Run ──▶ Topological Sort DAG                    │
 │                                                        │                                │
 │                                   ┌────────────────────▼─────────────────────┐          │
 │                                   │        For each step (in order):         │          │
@@ -130,29 +130,29 @@ Here's an ASCII system diagram of your system:
 │                              Workflow Authoring Flow                                    │
 ├─────────────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                         │
-│  User describes workflow ──▶ LLM determines intent                                     │
+│  User describes workflow ──▶ LLM determines intent                                      │
 │                                     │                                                   │
 │                    ┌────────────────┼────────────────────┐                              │
-│                    ▼                ▼                    ▼                               │
+│                    ▼                ▼                    ▼                              │
 │              modify_workflow   ask_clarifying      answer_only                          │
 │                    │                                                                    │
 │                    ▼                                                                    │
-│          LLM generates tool calls:                                                     │
-│          - add_step                                                                    │
-│          - remove_step                                                                 │
-│          - modify_step                                                                 │
-│          - modify_step_tools                                                           │
+│          LLM generates tool calls:                                                      │
+│          - add_step                                                                     │
+│          - remove_step                                                                  │
+│          - modify_step                                                                  │
+│          - modify_step_tools                                                            │
 │                    │                                                                    │
 │                    ▼                                                                    │
-│          Apply to DAG ──▶ Create Proposal (pending)                                    │
+│          Apply to DAG ──▶ Create Proposal (pending)                                     │
 │                                     │                                                   │
-│                          ┌──────────┴──────────┐                                       │
+│                          ┌──────────┴──────────┐                                        │
 │                          ▼                     ▼                                        │
-│                     User Approves         User Rejects                                 │
+│                     User Approves         User Rejects                                  │
 │                          │                     │                                        │
 │                          ▼                     ▼                                        │
 │                  Apply to workflow       Mark rejected                                  │
-│                  Create new version      (no changes)                                  │
+│                  Create new version      (no changes)                                   │
 │                                                                                         │
 └─────────────────────────────────────────────────────────────────────────────────────────┘
 The diagram covers three main views:

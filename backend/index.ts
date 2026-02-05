@@ -13,7 +13,7 @@ const {
 const port = PORT || 3026;
 
 const server = app.listen( port, () => {
-    Log.info( `Tenex Takehome API is listening on port: ${ port }` );
+    Log.info( `HardWire API is listening on port: ${ port }` );
     Log.info( `Using Node version ${ process.versions.node }` );
     Log.info( `Environment: ${ ENVIRONMENT || 'Local' }` );
 } );
