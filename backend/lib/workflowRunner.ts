@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { gql } from 'graphile-utils';
-import { generateText, tool, jsonSchema } from 'ai';
+import {
+    generateText, tool, jsonSchema
+} from 'ai';
 import {
     Either
     , error
@@ -92,6 +95,7 @@ const topologicalSortSteps = ( steps: WorkflowStep[] ) => {
             if ( !stepMap.has( depId ) ) {
                 return;
             }
+
             indegree.set( step.id, ( indegree.get( step.id ) ?? 0 ) + 1 );
             dependents.get( depId )?.push( step.id );
         } );
@@ -108,17 +112,21 @@ const topologicalSortSteps = ( steps: WorkflowStep[] ) => {
 
     while ( queue.length > 0 ) {
         const step = queue.shift();
+
         if ( !step ) {
             continue;
         }
+
         sorted.push( step );
 
         const outgoing = dependents.get( step.id ) ?? [];
         outgoing.forEach( nextId => {
             const nextIndegree = ( indegree.get( nextId ) ?? 0 ) - 1;
             indegree.set( nextId, nextIndegree );
+
             if ( nextIndegree === 0 ) {
                 const nextStep = stepMap.get( nextId );
+
                 if ( nextStep ) {
                     queue.push( nextStep );
                 }
@@ -174,6 +182,7 @@ const createWorkflowRun = async (
     }
 
     const workflowRunId = result.value?.createWorkflowRun?.workflowRun?.id;
+
     if ( !workflowRunId ) {
         return error( new ResourceError( { message: 'Failed to create workflow run.' } ) );
     }
@@ -341,7 +350,7 @@ const buildRuntimeTools = (
     , toolLookup: Map<string, MCPTool>
     , toolLogs: WorkflowToolLogEntry[]
 ) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const tools: Record<string, ReturnType<typeof tool<any, any>>> = {};
     const toolNames: string[] = [];
 
@@ -411,6 +420,7 @@ export const runWorkflow = async (
 ): Promise<Either<ResourceError, WorkflowRunResult>> => {
 
     const workflowResult = await getWorkflowById( params.workflowId );
+
     if ( workflowResult.isError() ) {
         return error( workflowResult.value );
     }
@@ -418,12 +428,13 @@ export const runWorkflow = async (
     const workflow = workflowResult.value;
     const latestVersion = workflow.workflowVersionsByWorkflowId?.nodes?.[ 0 ];
 
-    if ( !latestVersion || !latestVersion.dag ) {
+    if ( !latestVersion?.dag ) {
         return error( new ResourceError( { message: 'Workflow has no version to run.' } ) );
     }
 
     const dag = latestVersion.dag as WorkflowDAG;
     const validationResult = validateWorkflowDag( { dag } );
+
     if ( validationResult.isError() ) {
         return error( validationResult.value );
     }
@@ -461,8 +472,10 @@ export const runWorkflow = async (
 
     // if any step references tools, ensure we have tool definitions loaded
     const requiredToolRefs = orderedSteps.flatMap( step => step.tools ?? [] );
+
     if ( requiredToolRefs.length > 0 ) {
         const cachedToolsResult = await getCachedTools( false );
+
         if ( cachedToolsResult.isError() ) {
             const completedAt = new Date().toISOString();
             await updateWorkflowRunStatus( {
@@ -476,8 +489,10 @@ export const runWorkflow = async (
         toolLookup = buildToolRecordLookup( buildMcpToolsFromCache( cachedToolsResult.value ) );
 
         const missingTools = findMissingToolRefs( requiredToolRefs, toolLookup );
+
         if ( missingTools.length > 0 ) {
             const refreshResult = await getCachedTools( true );
+
             if ( refreshResult.isError() ) {
                 const completedAt = new Date().toISOString();
                 await updateWorkflowRunStatus( {
@@ -553,6 +568,7 @@ export const runWorkflow = async (
 
             toolCalls.forEach( ( toolCall, index ) => {
                 const logEntry = toolExecutionLogs[ index ];
+
                 if ( !logEntry || !toolCall || typeof toolCall !== 'object' ) {
                     return;
                 }
@@ -562,6 +578,7 @@ export const runWorkflow = async (
                 if ( toolCallRecord.toolCallId ) {
                     logEntry.toolCallId = toolCallRecord.toolCallId;
                 }
+
                 if ( toolCallRecord.toolName && !logEntry.toolName ) {
                     logEntry.toolName = toolCallRecord.toolName;
                 }

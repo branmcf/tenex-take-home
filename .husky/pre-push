@@ -1,0 +1,25 @@
+#!/bin/sh
+
+echo "Running pre-push checks..."
+
+# Lint frontend
+echo "Linting frontend..."
+cd frontend && npm run lint
+FRONTEND_EXIT=$?
+
+if [ $FRONTEND_EXIT -ne 0 ]; then
+  echo "Frontend lint failed. Push aborted."
+  exit 1
+fi
+
+# Lint/build backend (TypeScript compile check)
+echo "Checking backend..."
+cd ../backend && npm run build
+BACKEND_EXIT=$?
+
+if [ $BACKEND_EXIT -ne 0 ]; then
+  echo "Backend build failed. Push aborted."
+  exit 1
+fi
+
+echo "All checks passed!"
