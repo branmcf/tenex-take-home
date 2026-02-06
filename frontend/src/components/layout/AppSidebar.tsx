@@ -209,10 +209,10 @@ export function AppSidebar() {
               <SidebarMenuButton onClick={() => openModal("settings")} className="flex-1 min-w-0">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground">
-                    BM
+                    {user?.initials ?? "*"}
                   </div>
                   <div className="flex flex-col min-w-0">
-                    <span className="text-sm font-medium truncate">Brandon McFarland</span>
+                    <span className="text-sm font-medium truncate">{user?.name ?? "User"}</span>
                   </div>
                 </div>
               </SidebarMenuButton>
