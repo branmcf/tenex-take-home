@@ -17,7 +17,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { AccountTab } from "./AccountTab";
-import { UsageTab } from "./UsageTab";
 import { useAuth } from "@/hooks";
 
 export interface SettingsModalProps {
@@ -105,12 +104,6 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               >
                 Account
               </TabsTrigger>
-              <TabsTrigger
-                value="usage"
-                className="rounded-none border-b-2 border-transparent px-0 pb-3 pt-2 data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none"
-              >
-                Usage
-              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -118,10 +111,6 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           <div className="flex-1 overflow-y-auto">
             <TabsContent value="account" className="m-0 h-full p-4">
               <AccountTab user={user} />
-            </TabsContent>
-
-            <TabsContent value="usage" className="m-0 h-full p-4">
-              <UsageTab />
             </TabsContent>
           </div>
         </Tabs>

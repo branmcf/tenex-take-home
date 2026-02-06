@@ -84,6 +84,23 @@ if ( process.env.NODE_ENV !== 'production' ) {
  * - Standard API: 100 requests/minute
  */
 
+const isAuthSessionPath = ( req: express.Request ) =>
+    req.path === '/get-session' || req.path === '/mcp/get-session';
+
+const isApiAuthPath = ( req: express.Request ) =>
+    req.path.startsWith( '/auth/' );
+
+// Standard rate limit for session polling endpoints under /api/auth
+expressApp.use(
+    '/api/auth'
+    , rateLimiter( {
+        ...RATE_LIMIT_PRESETS.standard
+        , skip: ( req ) => {
+            return process.env.SKIP_RATE_LIMIT === 'true' || !isAuthSessionPath( req );
+        }
+    } )
+);
+
 // Stricter rate limit for auth endpoints
 expressApp.use(
     '/api/auth'
@@ -91,7 +108,7 @@ expressApp.use(
         ...RATE_LIMIT_PRESETS.auth
         , skip: ( req ) => {
             // Skip rate limiting in test/development if needed
-            return process.env.SKIP_RATE_LIMIT === 'true';
+            return process.env.SKIP_RATE_LIMIT === 'true' || isAuthSessionPath( req );
         }
     } )
 );
@@ -103,7 +120,7 @@ expressApp.use(
         ...RATE_LIMIT_PRESETS.standard
         , skip: ( req ) => {
             // Skip rate limiting in test/development if needed
-            return process.env.SKIP_RATE_LIMIT === 'true';
+            return process.env.SKIP_RATE_LIMIT === 'true' || isApiAuthPath( req );
         }
     } )
 );
