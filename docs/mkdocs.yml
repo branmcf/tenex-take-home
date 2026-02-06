@@ -90,7 +90,7 @@ theme:
     text: Noto Sans
     code: Roboto Mono
   logo: assets/images/logo.svg
-  favicon: assets/images/favicon.svg
+  favicon: assets/images/logo.svg
   language: en
   features:
     - navigation.tabs
