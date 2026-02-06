@@ -29,9 +29,9 @@ Before you begin, ensure you have:
 
 ```bash
 # clone the repo
-git clone <repository-url>
+git clone https://github.com/branmcf/tenex-take-home.git
 
-# move in to the take-home dir
+# move in to the tenex-take-home dir
 cd tenex-take-home
 ```
 
@@ -42,10 +42,8 @@ cd tenex-take-home
 Copy the example files to create your local configuration:
 
 ```bash
-# copy example environment files to create local configurations 
-cp backend/.env.example backend/.env
-cp frontend/.env.local.example frontend/.env.local
-cp mcp-tools-server/.env.example mcp-tools-server/.env
+# copy example environment files to create .env files
+cp backend/.env.example backend/.env && cp frontend/.env.local.example frontend/.env.local && cp mcp-tools-server/.env.example mcp-tools-server/.env
 ```
 
 ---

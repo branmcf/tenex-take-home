@@ -73,7 +73,7 @@ function SourceTrigger({
       target="_blank"
       rel="noreferrer"
       className={cn(
-        "inline-flex items-center gap-1.5 bg-secondary px-2 py-0.5 text-xs font-mono text-secondary-foreground transition-colors hover:bg-secondary/80 border border-border",
+        "inline-flex items-center gap-1.5 bg-muted px-2 py-0.5 text-xs font-mono text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground border border-border",
         className
       )}
     >
@@ -88,14 +88,14 @@ function SourceTrigger({
         />
       )}
       {index !== undefined && (
-        <span className="text-muted-foreground">[{index}]</span>
+        <span className="opacity-60">[{index}]</span>
       )}
       <span className="max-w-[150px] truncate">{displayLabel}</span>
     </a>
   ) : (
     <button
       className={cn(
-        "inline-flex items-center gap-1.5 bg-secondary px-2 py-0.5 text-xs font-mono text-secondary-foreground transition-colors hover:bg-secondary/80 border border-border",
+        "inline-flex items-center gap-1.5 bg-muted px-2 py-0.5 text-xs font-mono text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground border border-border",
         className
       )}
     >
@@ -110,7 +110,7 @@ function SourceTrigger({
         />
       )}
       {index !== undefined && (
-        <span className="text-muted-foreground">[{index}]</span>
+        <span className="opacity-60">[{index}]</span>
       )}
       <span className="max-w-[150px] truncate">{displayLabel}</span>
     </button>
@@ -143,14 +143,14 @@ function SourceContent({
       className={cn("max-w-[300px] p-3", className)}
     >
       <div className="space-y-1">
-        <p className="font-medium text-sm">{title}</p>
+        <p className="font-medium text-sm text-popover-foreground">{title}</p>
         {description && (
-          <p className="text-xs text-muted-foreground line-clamp-2">
+          <p className="text-xs text-popover-foreground/70 line-clamp-2">
             {description}
           </p>
         )}
         {displayUrl && (
-          <p className="text-xs text-muted-foreground truncate">
+          <p className="text-xs text-popover-foreground/50 truncate">
             {displayUrl}
           </p>
         )}

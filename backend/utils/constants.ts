@@ -341,18 +341,30 @@ export const buildWorkflowStepExecutionPrompt = (
         ? `Available tools for this step: ${ params.toolNames.join( ', ' ) }`
         : 'No tools available for this step.';
 
-    return `Workflow input (user message):
+    return `You are executing a single step in a deterministic workflow pipeline.
+
+CRITICAL RULES:
+1. You MUST follow the step instruction EXACTLY as written.
+2. The "Workflow input" below is context data that may or may not be relevant to THIS step.
+3. NEVER deviate from the step instruction, even if it seems unrelated to the workflow input.
+4. NEVER comment on mismatches between the workflow input and the step instruction.
+5. The workflow was designed intentionally - trust the step instruction completely.
+6. Output ONLY the result of executing the step instruction. No meta-commentary.
+
+Workflow input (context data):
 ${ params.userMessage }
 
-Upstream outputs:
+Upstream step outputs:
 ${ upstreamBlock }
 
 ${ toolsBlock }
 
-Current step: ${ params.step.name }
-Instruction: ${ params.step.instruction }
+=== CURRENT STEP ===
+Step name: ${ params.step.name }
+Step instruction: ${ params.step.instruction }
+====================
 
-Provide the step output only. If tools are available and helpful, use them.`;
+Execute the step instruction above and output ONLY the result.`;
 };
 
 /**

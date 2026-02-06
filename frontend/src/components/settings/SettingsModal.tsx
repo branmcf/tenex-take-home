@@ -51,13 +51,10 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     }
   }, [isOpen]);
 
-  const handleSignOut = React.useCallback(async () => {
+  const handleSignOut = React.useCallback(() => {
     setIsSigningOut(true);
-    try {
-      await signOut();
-    } finally {
-      setIsSigningOut(false);
-    }
+    // Don't await - let the signOut function handle the redirect
+    signOut();
   }, [signOut]);
 
   if (!isOpen || !user) return null;
@@ -142,7 +139,12 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleSignOut}>
+                <AlertDialogAction
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleSignOut();
+                  }}
+                >
                   Log out
                 </AlertDialogAction>
               </AlertDialogFooter>

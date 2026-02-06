@@ -50,7 +50,7 @@ function WorkflowChatMessage({
     return (
       <Message className="justify-end">
         <div className="group flex flex-col items-end gap-1 max-w-[85%] sm:max-w-[75%]">
-          <MessageContent className="bg-primary text-primary-foreground px-4 py-3 border border-primary">
+          <MessageContent className="chat-user-text bg-primary text-primary-foreground px-4 py-3 border border-primary">
             {message.content}
           </MessageContent>
           <MessageActions
@@ -83,7 +83,7 @@ function WorkflowChatMessage({
     <Message className="justify-start">
       <div className="group flex w-full flex-col gap-2">
         <MessageContent
-          className="prose prose-sm dark:prose-invert max-w-none"
+          className="max-w-none"
           markdown
         >
           {message.content}

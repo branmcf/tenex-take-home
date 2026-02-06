@@ -7,127 +7,139 @@
    ============================================ */
 
 @layer base {
-  /* Light Theme - Clean Modern */
+  /* ==============================================
+     LIGHT THEME - Matches "Everything You Need" section
+     Background: #efefef (light gray)
+     Text: #161715 (greenish-black)
+     Primary: #0aa67d (teal green)
+     Highlight: #82c38c (sage/mint green)
+     ============================================== */
   :root {
-    /* Base */
-    --background: 0 0% 100%;           /* white */
-    --foreground: 0 0% 4%;             /* near-black */
+    /* Base - light gray background like marketing lightgray section */
+    --background: 0 0% 94%;            /* #efefef */
+    --foreground: 90 5% 9%;            /* #161715 */
 
-    /* Surfaces */
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 4%;
+    /* Surfaces - slightly lighter than background */
+    --card: 0 0% 96%;                  /* #f4f4f4 */
+    --card-foreground: 90 5% 9%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 4%;
+    --popover: 0 0% 96%;
+    --popover-foreground: 90 5% 9%;
 
-    /* Primary (teal-green like Tensorlake #0AA67D) */
-    --primary: 161 89% 35%;
+    /* Primary (teal-green #0AA67D) */
+    --primary: 164 89% 35%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary (neutral gray) */
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 4%;
+    /* Secondary (sage/mint green #82c38c for highlights) */
+    --secondary: 129 33% 64%;
+    --secondary-foreground: 90 5% 9%;
 
-    /* Muted */
-    --muted: 0 0% 96%;
+    /* Muted - neutral gray for secondary text */
+    --muted: 0 0% 90%;
     --muted-foreground: 0 0% 45%;
 
     /* Accent (subtle gray for hover states) */
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 4%;
+    --accent: 0 0% 90%;
+    --accent-foreground: 90 5% 9%;
 
     /* Destructive */
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Borders / inputs - subtle gray, not colored */
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 161 89% 35%;               /* primary green for focus */
+    /* Borders / inputs - subtle gray */
+    --border: 0 0% 85%;
+    --input: 0 0% 85%;
+    --ring: 164 89% 35%;               /* primary green for focus */
 
     /* Chart colors */
-    --chart-1: 161 89% 35%;
-    --chart-2: 160 84% 39%;
-    --chart-3: 0 0% 45%;
-    --chart-4: 0 0% 64%;
-    --chart-5: 0 0% 83%;
+    --chart-1: 164 89% 35%;            /* green-1 */
+    --chart-2: 129 33% 64%;            /* green-2 */
+    --chart-3: 164 70% 21%;            /* green-3 */
+    --chart-4: 81 9% 52%;              /* swamp */
+    --chart-5: 0 0% 75%;
 
-    /* Radius - sharp edges (lyra style) */
+    /* Radius - sharp edges */
     --radius: 0;
 
     /* Sidebar */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 0 0% 4%;
-    --sidebar-primary: 161 89% 35%;
+    --sidebar-background: 0 0% 96%;    /* #f4f4f4 */
+    --sidebar-foreground: 90 5% 9%;
+    --sidebar-primary: 164 89% 35%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 96%;
-    --sidebar-accent-foreground: 0 0% 4%;
-    --sidebar-border: 0 0% 90%;
-    --sidebar-ring: 161 89% 35%;
+    --sidebar-accent: 0 0% 90%;
+    --sidebar-accent-foreground: 90 5% 9%;
+    --sidebar-border: 0 0% 85%;
+    --sidebar-ring: 164 89% 35%;
 
-    /* Grid overlay */
-    --grid-color: rgba(229, 229, 229, 0.5);
-    --grid-size: 8px;
+    /* Grid overlay - matches marketing lightgray grid */
+    --grid-color: rgba(201, 201, 201, 0.4);
+    --grid-size: 18px;
   }
 
-  /* Dark Theme - Like Tensorlake */
+  /* ==============================================
+     DARK THEME - Matches "Natural Language Authoring" section
+     Background: #161715 (greenish-black)
+     Text: #f4f4f4 (warm off-white)
+     Primary: #0aa67d (teal green)
+     Highlight: #82c38c (sage/mint green)
+     ============================================== */
   .dark {
-    /* Base */
-    --background: 0 0% 0%;             /* true black */
-    --foreground: 0 0% 98%;            /* off-white */
+    /* Base - dark greenish-black like marketing dark sections */
+    --background: 90 5% 9%;            /* #161715 */
+    --foreground: 0 0% 96%;            /* #f4f4f4 */
 
-    /* Surfaces */
-    --card: 0 0% 9%;                   /* neutral-900 */
-    --card-foreground: 0 0% 98%;
+    /* Surfaces - slightly lighter than background */
+    --card: 90 4% 12%;
+    --card-foreground: 0 0% 96%;
 
-    --popover: 0 0% 9%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 90 4% 12%;
+    --popover-foreground: 0 0% 96%;
 
     /* Primary (teal-green #0AA67D) */
-    --primary: 161 89% 35%;
+    --primary: 164 89% 35%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary */
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 0 0% 98%;
+    /* Secondary (sage/mint green #82c38c) */
+    --secondary: 129 33% 64%;
+    --secondary-foreground: 90 5% 9%;
 
-    /* Muted */
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 64%;
+    /* Muted - neutral gray, not olive-tinted */
+    --muted: 90 4% 18%;
+    --muted-foreground: 0 0% 65%;      /* neutral light gray */
 
     /* Accent */
-    --accent: 0 0% 15%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 90 4% 18%;
+    --accent-foreground: 0 0% 96%;
 
     /* Destructive */
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Borders / inputs - subtle dark borders like Tensorlake */
-    --border: 0 0% 24%;
-    --input: 0 0% 24%;
-    --ring: 161 89% 35%;
+    /* Borders / inputs - subtle dark borders */
+    --border: 90 4% 24%;
+    --input: 90 4% 24%;
+    --ring: 164 89% 35%;
 
     /* Chart colors */
-    --chart-1: 161 89% 35%;
-    --chart-2: 160 84% 39%;
-    --chart-3: 0 0% 45%;
-    --chart-4: 0 0% 64%;
-    --chart-5: 0 0% 32%;
+    --chart-1: 164 89% 35%;            /* green-1 */
+    --chart-2: 129 33% 64%;            /* green-2 */
+    --chart-3: 164 70% 21%;            /* green-3 */
+    --chart-4: 81 9% 52%;              /* swamp */
+    --chart-5: 90 4% 30%;
 
     /* Sidebar */
-    --sidebar-background: 0 0% 5%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 161 89% 35%;
+    --sidebar-background: 90 5% 7%;
+    --sidebar-foreground: 0 0% 96%;
+    --sidebar-primary: 164 89% 35%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 15%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 0 0% 24%;
-    --sidebar-ring: 161 89% 35%;
+    --sidebar-accent: 90 4% 18%;
+    --sidebar-accent-foreground: 0 0% 96%;
+    --sidebar-border: 90 4% 24%;
+    --sidebar-ring: 164 89% 35%;
 
-    /* Grid overlay */
+    /* Grid overlay - matches marketing dark grid */
     --grid-color: rgba(62, 62, 62, 0.5);
-    --grid-size: 8px;
+    --grid-size: 18px;
   }
 }
 
@@ -264,6 +276,130 @@
 .focus-frame:focus::after,
 .focus-frame.active::after {
   opacity: 1;
+}
+
+/* ============================================
+   CHAT TYPOGRAPHY - Polished, professional feel
+   ============================================ */
+
+/* Base chat text - the "locked in" feel */
+.chat-prose {
+  font-size: 0.9375rem;           /* 15px - slightly larger than sm, smaller than base */
+  line-height: 1.7;               /* Generous line height for readability */
+  letter-spacing: -0.01em;        /* Slight negative tracking like ChatGPT/Claude */
+  word-spacing: 0.02em;           /* Subtle word spacing for flow */
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Paragraph spacing within chat messages */
+.chat-prose p {
+  margin-bottom: 0.75em;
+}
+
+.chat-prose p:last-child {
+  margin-bottom: 0;
+}
+
+/* Lists in chat */
+.chat-prose ul,
+.chat-prose ol {
+  margin: 0.5em 0;
+  padding-left: 1.25em;
+}
+
+.chat-prose li {
+  margin: 0.25em 0;
+  line-height: 1.6;
+}
+
+/* Headings in chat responses */
+.chat-prose h1,
+.chat-prose h2,
+.chat-prose h3,
+.chat-prose h4 {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-top: 1.25em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+.chat-prose h1:first-child,
+.chat-prose h2:first-child,
+.chat-prose h3:first-child,
+.chat-prose h4:first-child {
+  margin-top: 0;
+}
+
+.chat-prose h1 { font-size: 1.375rem; }
+.chat-prose h2 { font-size: 1.25rem; }
+.chat-prose h3 { font-size: 1.125rem; }
+.chat-prose h4 { font-size: 1rem; }
+
+/* Inline code in chat */
+.chat-prose code:not(pre code) {
+  font-size: 0.8125rem;
+  padding: 0.125em 0.375em;
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+}
+
+/* Code blocks in chat */
+.chat-prose pre {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  margin: 0.75em 0;
+  padding: 1em;
+  overflow-x: auto;
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+}
+
+.chat-prose pre code {
+  padding: 0;
+  background: none;
+  border: none;
+}
+
+/* Blockquotes */
+.chat-prose blockquote {
+  border-left: 2px solid hsl(var(--border));
+  padding-left: 1em;
+  margin: 0.75em 0;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Links */
+.chat-prose a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.chat-prose a:hover {
+  opacity: 0.8;
+}
+
+/* Bold and emphasis */
+.chat-prose strong {
+  font-weight: 600;
+}
+
+.chat-prose em {
+  font-style: italic;
+}
+
+/* User message typography - slightly different for distinction */
+.chat-user-text {
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  letter-spacing: -0.005em;
+  font-feature-settings: "kern" 1, "liga" 1;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* ============================================
