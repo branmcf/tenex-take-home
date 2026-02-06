@@ -10,7 +10,7 @@ src="https://github.com/user-attachments/assets/ac336143-e359-4df7-aca1-1787942e
 
 ## Overview
 
-This repository contains a [Next.js](https://nextjs.org/) 15 React application providing the chat interface and workflow management UI for the Hardwire platform. This codebase acts as the primary user-facing client, communicating with the backend API for authentication, chat sessions, and workflow execution.
+This directory contains a [Next.js](https://nextjs.org/) 15 React application providing the chat interface and workflow management UI for the Hardwire platform. This codebase acts as the primary user-facing client, communicating with the backend API for authentication, chat sessions, and workflow execution.
 
 - **Responsibilities**
   - User authentication (email/password, Google OAuth) via [Better Auth](https://www.better-auth.com/)

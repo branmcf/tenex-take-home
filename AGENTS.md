@@ -9,7 +9,7 @@ src="https://github.com/user-attachments/assets/3a3346f0-58ac-4398-b4ce-75e5fb25
 </p>
 
 
-## Quick start (golden path)
+## Quick start
 
 ```bash
 # 1. Start all services with Docker (recommended)
@@ -31,8 +31,8 @@ docker compose up postgres -d
 cd mcp-tools-server && npm install && npm run dev
 
 # Terminal 3: Backend
-cd backend && npm install && cp .env.example .env
-# Edit .env with your API keys
+cd backend && npm install
+# Create .env manually (see "Environment & secrets" section below)
 npm run migrate:up && npm run dev
 
 # Terminal 4: Frontend
@@ -110,7 +110,7 @@ cd frontend && npm install && npm run dev
 
 ## Architecture & invariants
 
-1. **Collection module structure** — Every backend API resource in `backend/app/<collection>/` MUST have: `types.ts`, `errors.ts`, `validation.ts`, `ctrl.ts`, `router.ts`, `service.ts`, `helper.ts`. See `context/COLLECTION-STANDARDS.md`.
+1. **Collection module structure** — Backend API resources in `backend/app/<collection>/` may ONLY contain: `types.ts`, `errors.ts`, `validation.ts`, `ctrl.ts`, `router.ts`, `service.ts`, `helper.ts`, or subdirectories. No other files allowed. See `context/COLLECTION-STANDARDS.md`.
 
 2. **Either monad for errors** — Service and helper functions return `Either<ResourceError, T>`, not thrown exceptions. Check `result.isError()` before using `result.value`.
 

@@ -10,7 +10,7 @@
 
 ## Overview
 
-The `docs/` directory contains the **MkDocs Material documentation site** for the HardWire API. It provides comprehensive API reference documentation for both the Backend API and MCP Tools Server.
+This directorry contains the **[MkDocs](https://www.mkdocs.org/) documentation site** for the HardWire API. It provides comprehensive API reference documentation for both the Backend API and MCP Tools Server.
 
 **Responsibilities:**
 - API endpoint documentation with request/response examples
@@ -55,37 +55,39 @@ The `docs/` directory contains the **MkDocs Material documentation site** for th
 ### Install
 
 ```bash
+# move into the docs dir
 cd docs
 
-# Create virtual environment (first time only)
+# create virtual environment (first time only)
 python3 -m venv venv
 
-# Activate virtual environment
+# activate the virtual environment
 source venv/bin/activate
 
-# Install dependencies
+# install the dependencies
 pip install -r requirements.txt
 ```
 
 ### Run Development Server
 
 ```bash
-# Activate venv if not already active
+# activate venv if not already active
 source venv/bin/activate
 
-# Start dev server with hot reload
+# start dev server with hot reload
 mkdocs serve
 ```
 
-Site runs at `http://localhost:8000`
+The HardWire MK Docs site will run at http://localhost:3026.
 
 ### Build for Production
 
 ```bash
+# build the docs
 mkdocs build
 ```
 
-Output goes to `build/` directory.
+The build output goes to the `build/` directory.
 
 ---
 
@@ -250,14 +252,11 @@ docs/
 
 ## Future Work
 
-1. **OpenAPI generation** — Auto-generate endpoint docs from backend schemas
-   - Where: Build script to parse Joi schemas
-
-2. **API playground** — Interactive request builder
+1. **API playground** — Interactive request builder
    - Where: Custom MkDocs plugin or embedded component
 
-3. **Versioned docs** — Support multiple API versions
+2. **Versioned docs** — Support multiple API versions
    - Where: `mike` plugin for MkDocs versioning
 
-4. **Search analytics** — Track what developers search for
+3. **Search analytics** — Track what developers search for
    - Where: Custom analytics integration

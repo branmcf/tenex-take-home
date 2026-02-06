@@ -10,7 +10,7 @@
 
 ## Overview
 
-This repository contains production-ready Terraform configurations demonstrating how to deploy the HardWire platform to [AWS](https://aws.amazon.com/). These configurations serve as reference architecture for enterprise deployments—suitable for `terraform plan` validation but should not be actively applied. The live HardWire demonstration is hosted on [Railway](https://railway.com/).
+This directory contains production-ready Terraform configurations demonstrating how to deploy the HardWire platform to [AWS](https://aws.amazon.com/). These configurations serve as reference architecture for enterprise deployments—suitable for `terraform plan` validation but should not be actively applied. The live HardWire demonstration is hosted on [Railway](https://railway.com/).
 
 - **Responsibilities:**
   - VPC networking with public/private subnet isolation across 2 AZs

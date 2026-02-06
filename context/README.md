@@ -8,7 +8,7 @@
         width="100%">
 </p>
 
-The `context/` directory is the **canonical source of truth for all project documentation**, standards, and architectural decisions for the HardWire deterministic workflow chat platform. It provides LLM-consumable context files that define product requirements, technical specifications, coding conventions, and design systems.
+This directory contains the **canonical source of truth for all project reference materials** for the HardWire deterministic workflow chat platform. It provides LLM-consumable context files that define product requirements, technical specifications, coding conventions, and design systems.
 
 **Responsibilities:**
 - Product definition (PRD, BRIEF, PLAN)
@@ -115,40 +115,33 @@ context/
 
 ## Key Concepts
 
-### 1. Collection-Based Backend Architecture
-**What:** Every API resource follows a strict file structure with types, validation, controller, service, router, errors, and helpers.
+### 1. Planning as Documentation
+**What:** Every major system has explicit plans and roadmaps captured in documents before implementation begins.
 
-**Why:** Ensures consistency, enables LLM-assisted development, prevents architectural drift.
+**Why:** Plans force clarity of thought. Documented plans become reviewable artifacts that prevent scope creep and misaligned expectations.
 
-**Evidence:** `COLLECTION-STANDARDS.md` (1400+ lines of patterns)
+**Evidence:** `PLAN.md`, `BRIEF.md`, `WORKFLOWS.md` all capture intent before code.
 
-### 2. Either Monad for Error Handling
-**What:** All service and helper functions return `Either<ResourceError, SuccessType>` instead of throwing exceptions.
+### 2. Radical Clarity
+**What:** Every document answers "what," "why," and "how" without ambiguity. No implicit knowledge assumed.
 
-**Why:** Explicit error handling, type-safe error propagation, no hidden control flow.
+**Why:** Ambiguity creates drift. When two developers interpret a standard differently, inconsistency compounds over time.
 
-**Evidence:** `COLLECTION-STANDARDS.md` → "Core Pattern: The Either Monad"
+**Evidence:** `COLLECTION-STANDARDS.md` shows full code examples for every pattern, not just descriptions.
 
-### 3. Swiss-Modernist Design System
-**What:** Strict visual language with no rounded corners, no shadows, 8px grid, monospace labels.
+### 3. Codified Standards Over Tribal Knowledge
+**What:** Conventions are written down with explicit rules, not passed along verbally or "just known."
 
-**Why:** Technical, blueprint aesthetic that differentiates from generic SaaS products.
+**Why:** Tribal knowledge doesn't scale. New team members (and LLMs) can only follow rules they can read.
 
-**Evidence:** `DESIGN-SYSTEM.md`, `DESIGN-RULES.md`
+**Evidence:** `DESIGN-RULES.md` lists explicit prohibitions; `MIGRATION-STANDARDS.md` specifies exact file naming.
 
-### 4. Proposal-First Workflow Editing
-**What:** All workflow DAG changes go through a proposal → review → apply flow.
+### 4. LLM-First Authoring
+**What:** Documents are structured for machine consumption: consistent headings, code blocks, tables, and predictable patterns.
 
-**Why:** Determinism guarantee—users always confirm before changes take effect.
+**Why:** Context windows are precious. Well-structured documents let LLMs extract relevant sections efficiently.
 
-**Evidence:** `WORKFLOWS.md` → "Non-Negotiable Invariants"
-
-### 5. MCP Tools as External Registry
-**What:** Tools are served by a standalone MCP server, not embedded in the backend.
-
-**Why:** Separation of concerns, canonical tool definitions, version pinning for reproducibility.
-
-**Evidence:** `WORKFLOWS.md` → "Root MCP Service"
+**Evidence:** Every standards doc uses the same format: Purpose → Rules → Examples → Anti-patterns.
 
 ---
 
@@ -160,7 +153,7 @@ context/
 - Design tokens and component specs for frontend implementation
 
 ### Depends On
-- Nothing—this is a documentation-only directory
+- Nothing. This is a documentation-only directory
 
 ### Interfaces
 - Referenced by `AGENTS.md` at repo root for AI coding context
@@ -191,14 +184,5 @@ These documents are designed for:
 
 ## Future Work
 
-1. **Conformance validation** — Lint rules to check backend modules match `COLLECTION-STANDARDS.md`
-   - Where: CI pipeline + custom ESLint rules
-
-2. **Design token extraction** — Auto-generate Tailwind config from `DESIGN-SYSTEM.md`
-   - Where: `frontend/tailwind.config.ts`
-
-3. **API documentation generation** — Generate OpenAPI spec from standards + code
-   - Where: `docs/` directory
-
-4. **Standards versioning** — Track breaking changes to standards over time
+1. **Standards versioning** — Track breaking changes to standards over time
    - Where: Version headers in each document

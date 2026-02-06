@@ -10,7 +10,7 @@ src="https://github.com/user-attachments/assets/0ed4ecc6-0d7d-462d-9ae1-c5d81553
 
 ## Overview
 
-This is a static marketing/landing site for the HardWire chat platform built using [Vite](https://v3.vitejs.dev/).
+This directory contains a static marketing/landing site for the HardWire chat platform built using [Vite](https://v3.vitejs.dev/).
 
 This application is hosted at: https://hardwire.branmcf.com.
 

@@ -10,15 +10,15 @@
 
 ## Overview
 
-The backend is a **Node.js + Express REST API** serving the Hardwire deterministic workflow chat platform. It handles authentication, chat/message management, workflow execution, LLM orchestration, and tool integration via an external MCP server.
+This directory contains a **Node.js + Express REST API** serving the HardWire deterministic workflow chat application. It handles authentication, chat/message management, workflow execution, LLM orchestration, and tool integration via an external MCP server.
 
 **Responsibilities:**
-- Session-based authentication via better-auth (email/password + Google OAuth)
-- Chat and message CRUD with PostgreSQL via PostGraphile
+- Session-based authentication via [better-auth](https://www.better-auth.com/) (email/password + Google OAuth)
+- Chat and message CRUD with [PostgreSQL](https://www.postgresql.org/) via [PostGraphile](https://www.graphile.org/)
 - Workflow DAG compilation, validation, and execution
 - Multi-provider LLM integration (OpenAI, Anthropic, Google)
 - Real-time workflow status streaming via SSE
-- Tool orchestration through MCP Tools Server
+- Tool orchestration through [MCP](https://modelcontextprotocol.io/docs/getting-started/intro) (Model Context Protocol) Tools Server
 
 **Non-goals:**
 - Does not serve static frontend assets in production
@@ -32,7 +32,7 @@ The backend is a **Node.js + Express REST API** serving the Hardwire determinist
 ## Reviewer Notes
 
 - **Run:** `npm run dev` (requires PostgreSQL + `.env` configured)
-- **Run tests:** `npm run test:unit`
+- **Run tests:** `npm run test:int`
 - **Run evals:** `npm run test:evals`
 
 **What to look at first:**
@@ -50,66 +50,55 @@ The backend is a **Node.js + Express REST API** serving the Hardwire determinist
 
 ---
 
-## Usage (Quick start)
+## Usage
 
 ### Prerequisites
+
 - Node.js 20+
-- PostgreSQL 16 (or use Docker)
 - npm
+- Docker
 
-### Install
+### Quick Start
 
 ```bash
+# move into the backend dir
 cd backend
+
+# install the dependencies
 npm install
-```
 
-### Configure
+# start postgres
+docker compose up postgres -d
 
-Create `.env` from required variables:
-
-```bash
-# Database
-DATABASE_URL=postgres://postgres:postgrespassword@localhost:5433/app
-
-# Auth
-AUTH_SECRET=your-secret-key-min-32-chars
-API_URL=http://localhost:3026
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-
-# Email (Resend)
-RESEND_API_KEY=your-resend-api-key
-
-# LLM Providers
-OPENAI_API_KEY=your-openai-key
-ANTHROPIC_API_KEY=your-anthropic-key
-GOOGLE_GENERATIVE_AI_API_KEY=your-google-ai-key
-
-# External Services
-MCP_TOOLS_URL=http://localhost:4010
-EXA_API_KEY=your-exa-key
-
-# Optional
-REDIS_URL=redis://localhost:6379
-LANGFUSE_PUBLIC_KEY=your-langfuse-public-key
-LANGFUSE_SECRET_KEY=your-langfuse-secret-key
-```
-
-### Run
-
-```bash
-# Start PostgreSQL (if using Docker)
-docker-compose up postgres -d
-
-# Run migrations
+# run the migrations to create/populate tables
 npm run migrate:up
 
-# Start dev server
+# in a new tab, run the backend
 npm run dev
 ```
 
-Server runs at `http://localhost:3026`
+The HardWire API server will run at http://localhost:3026.
+
+### Environment Variables
+
+Create a `.env` file before running migrations.
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DATABASE_URL` | Yes | `postgres://postgres:postgrespassword@localhost:5433/app` |
+| `AUTH_SECRET` | Yes | Random string, minimum 32 characters |
+| `API_URL` | Yes | `http://localhost:3026` |
+| `MCP_TOOLS_URL` | Yes | `http://localhost:4010` |
+| `OPENAI_API_KEY` | One LLM required | OpenAI API key |
+| `ANTHROPIC_API_KEY` | One LLM required | Anthropic API key |
+| `GOOGLE_GENERATIVE_AI_API_KEY` | One LLM required | Google AI API key |
+| `GOOGLE_CLIENT_ID` | No | For Google OAuth |
+| `GOOGLE_CLIENT_SECRET` | No | For Google OAuth |
+| `RESEND_API_KEY` | No | For email verification |
+| `EXA_API_KEY` | No | For web search tools |
+| `REDIS_URL` | No | For distributed rate limiting |
+| `LANGFUSE_PUBLIC_KEY` | No | For LLM observability |
+| `LANGFUSE_SECRET_KEY` | No | For LLM observability |
 
 ---
 
@@ -212,7 +201,7 @@ backend/
 
 ### Provides
 - REST API at `/api/*` for frontend consumption
-- Authentication endpoints at `/api/auth/*` (handled by better-auth)
+- Authentication endpoints at `/api/auth/*` for auth
 - SSE streaming for workflow execution status
 - GraphQL endpoint at `/graphql` (development only)
 
@@ -272,27 +261,19 @@ backend/
 
 ## Tests
 
-### Unit Tests
-```bash
-npm run test:unit
-```
-- Jest with TypeScript
-- Mocks in `lib/<module>/__mocks__/`
-- Test files: `tests/<collection>/<collection>.test.ts`
-
 ### Integration Tests
 ```bash
+# run the full integration test suite
 npm run test:int
 ```
-- Requires running PostgreSQL
 - Uses `tests/tests.server.ts` for isolated Express instance
 
 ### LLM Evaluations
 ```bash
-# Mocked (fast, offline)
+# mocked (fast, offline)
 npm run test:evals
 
-# Live (hits real LLM APIs)
+# live (hits real LLM APIs)
 npm run test:evals-live
 ```
 - Eval files: `evals/*.eval.ts`
@@ -301,6 +282,7 @@ npm run test:evals-live
 
 ### Lint
 ```bash
+# lint the code for style and error checking
 npx eslint .
 ```
 - ESLint 9 with TypeScript parser
@@ -308,6 +290,7 @@ npx eslint .
 
 ### Type Check
 ```bash
+# type check without emitting files
 npx tsc --noEmit
 ```
 
@@ -339,13 +322,13 @@ npx tsc --noEmit
 ## Database Migrations
 
 ```bash
-# Create new migration
+# create new migration
 npm run migrate:create -- <migration-name>
 
-# Run pending migrations
+# run pending migrations
 npm run migrate:up
 
-# Rollback last migration
+# rollback last migration
 npm run migrate:down
 ```
 
@@ -356,10 +339,10 @@ Migration files are in `migrations/` with timestamp prefixes.
 ## Docker
 
 ```bash
-# Start PostgreSQL only
+# start PostgreSQL only
 docker-compose up postgres -d
 
-# Build and run full backend
+# build and run full backend
 docker-compose up --build
 ```
 
@@ -371,20 +354,24 @@ Ports:
 
 ## Future Work
 
-1. **Real integration tests** — Current tests use mocks; add database-backed integration tests
-   - Where: `tests/` with real PostgreSQL transactions
+1. **Workflow chaining** — Allow workflow outputs to trigger other workflows; enable composable, multi-stage automations
+   - Trade-off made: Focused on single-workflow execution for initial scope
 
-2. **Stripe integration completion** — Payment processing is stubbed
-   - Where: `lib/stripe/` (to be created)
+2. **Recommended follow-up queries** — After chat responses, suggest related questions or next actions based on context
+   - Trade-off made: Prioritized core chat functionality over discovery features
 
-3. **WebSocket for real-time chat** — Replace SSE polling with persistent connections
-   - Where: `server/` + `app/messages/`
+3. **Multimodal support** — Accept audio and image inputs; integrate speech-to-text and vision models for richer interactions
+   - Trade-off made: Started with text-only to ship faster
 
-4. **Redis cluster support** — Production-ready caching configuration
-   - Where: `lib/redis/`
+4. **Workflow step retry and resume** — Failed workflows currently halt entirely; add configurable retry policies and resume from last successful step
+   - Trade-off made: Kept initial implementation simple with fail-fast behavior
 
-5. **API documentation** — Auto-generate OpenAPI spec from routes and validation schemas
-   - Where: New `docs/` tooling
+5. **Distributed tracing** — `requestId` exists but isn't propagated to MCP calls or LLM requests; add OpenTelemetry spans for end-to-end visibility
+   - Trade-off made: Prioritized core functionality over observability instrumentation
+
+6. **Graceful shutdown** — No handling for in-flight requests during deploys; SSE connections and running workflows should drain properly
+   - Trade-off made: Relied on container orchestration for restart handling
+
 
 ## License
 

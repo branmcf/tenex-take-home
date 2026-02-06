@@ -1,4 +1,6 @@
 import pg from 'pg';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 
 const { Client } = pg;
 
@@ -36,6 +38,24 @@ try {
     'select name, run_on from pgmigrations order by id desc limit 5'
   );
   console.log('[diagnose-db] pgmigrations recent', recent.rows);
+
+  const applied = await client.query('select name from pgmigrations order by id asc');
+  const appliedNames = new Set(applied.rows.map((row) => row.name));
+
+  const migrationsDir = path.resolve('migrations');
+  let fileNames = [];
+  try {
+    fileNames = (await fs.readdir(migrationsDir)).filter((name) => name.endsWith('.ts'));
+  } catch (error) {
+    console.error('[diagnose-db] failed to read migrations directory', error);
+  }
+
+  const missingInDb = fileNames.filter((name) => !appliedNames.has(name));
+  const extraInDb = Array.from(appliedNames).filter((name) => !fileNames.includes(name));
+
+  console.log('[diagnose-db] migrations in repo', fileNames.length);
+  console.log('[diagnose-db] missing in db', missingInDb);
+  console.log('[diagnose-db] extra in db', extraInDb);
 } catch (error) {
   console.error('[diagnose-db] error', error);
   process.exit(1);

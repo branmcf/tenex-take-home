@@ -10,7 +10,7 @@ src="https://github.com/user-attachments/assets/53422d95-0249-4bac-9f54-18ce87d6
 
 ## Overview
 
-This is a standalone MCP ([Model Context Protocol](https://modelcontextprotocol.io/docs/getting-started/intro)) tools service providing tool discovery and execution via a JSON-RPC-style API. This service enables AI agents to search the web, read URLs, make HTTP requests, summarize text, and extract JSON through a unified interface.
+This directory contains a standalone MCP ([Model Context Protocol](https://modelcontextprotocol.io/docs/getting-started/intro)) tools service providing tool discovery and execution via a JSON-RPC-style API. This service enables AI agents to search the web, read URLs, make HTTP requests, summarize text, and extract JSON through a unified interface.
 
 - **Responsibilities**
   - Tool registry with list/search/get operations
