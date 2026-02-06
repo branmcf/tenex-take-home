@@ -23,8 +23,8 @@ COPY types ./types
 COPY utils ./utils
 COPY codegen.ts ./codegen.ts
 
-# `npm run build` expects a `public/` directory to exist (it copies it into dist/)
-RUN mkdir -p public
+# Copy public assets (HTML files, favicon, etc.) for the build step
+COPY public ./public
 
 RUN npm run build
 
