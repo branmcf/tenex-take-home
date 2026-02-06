@@ -11,10 +11,14 @@ import type {
     LLMGenerateParams
     , LLMGenerateResult
     , LLMStreamParams
+    , ChatHistoryMessage
+    , SearchClassificationResult
 } from './llm.types';
 import {
-    buildRAGAugmentedPrompt
+    buildSearchClassificationPrompt
+    , buildChatSystemPrompt
     , formatSourcesForRAGPrompt
+    , formatConversationHistoryForPrompt
 } from '../../utils/constants';
 
 /**
@@ -34,6 +38,80 @@ class LLMRequestFailed extends ResourceError {
 }
 
 /**
+ * Format conversation history for context
+ */
+const formatHistoryForContext = ( history: ChatHistoryMessage[] ): string => {
+    if ( !history || history.length === 0 ) {
+        return '';
+    }
+
+    return formatConversationHistoryForPrompt(
+        history.map( msg => ( { role: msg.role, content: msg.content } ) )
+    );
+};
+
+/**
+ * Classify whether a query needs web search
+ *
+ * @param params - classification parameters
+ * @returns classification result
+ */
+const classifySearchNeed = async (
+    params: {
+        modelId: string;
+        userMessage: string;
+        conversationContext?: string | null;
+    }
+): Promise<SearchClassificationResult> => {
+
+    try {
+        const model = getModelProvider( params.modelId );
+
+        const prompt = buildSearchClassificationPrompt( {
+            userMessage: params.userMessage
+            , conversationContext: params.conversationContext
+        } );
+
+        const result = await generateText( {
+            model
+            , prompt
+            , maxOutputTokens: 100
+            , temperature: 0.1
+            , experimental_telemetry: {
+                isEnabled: true
+                , functionId: 'classifySearchNeed'
+                , metadata: {
+                    modelId: params.modelId
+                }
+            }
+        } );
+
+        // parse the JSON response
+        const text = result.text.trim();
+
+        try {
+            const parsed = JSON.parse( text );
+            return {
+                needsSearch: Boolean( parsed.needsSearch )
+                , reason: parsed.reason ?? 'unknown'
+            };
+        } catch {
+            // if parsing fails, default to search (safer)
+            return {
+                needsSearch: true
+                , reason: 'classification parsing failed, defaulting to search'
+            };
+        }
+    } catch {
+        // if classification fails, default to search (safer)
+        return {
+            needsSearch: true
+            , reason: 'classification failed, defaulting to search'
+        };
+    }
+};
+
+/**
  * generate a text response from an LLM
  *
  * @param params - generation parameters
@@ -48,26 +126,45 @@ export const generateLLMText = async (
         // get the model provider
         const model = getModelProvider( params.modelId );
 
-        // generate sources using RAG (default: true)
+        // build conversation context from history
+        const conversationContext = params.conversationHistory
+            ? formatHistoryForContext( params.conversationHistory )
+            : null;
+
+        // determine if RAG is enabled and if search is actually needed
         const useRAG = params.useRAG ?? true;
-        const sources = useRAG ? await generateSources( params.prompt ) : [];
+        let searchPerformed = false;
+        let sources: Awaited<ReturnType<typeof generateSources>> = [];
 
-        // augment the prompt with search results if sources were found
-        let augmentedPrompt = params.prompt;
-
-        if ( sources.length > 0 ) {
-            const sourcesContext = formatSourcesForRAGPrompt( sources );
-
-            augmentedPrompt = buildRAGAugmentedPrompt( {
-                userPrompt: params.prompt
-                , sourcesContext
+        if ( useRAG ) {
+            // classify if search is needed based on query and conversation
+            const classification = await classifySearchNeed( {
+                modelId: params.modelId
+                , userMessage: params.prompt
+                , conversationContext
             } );
+
+            if ( classification.needsSearch ) {
+                sources = await generateSources( params.prompt );
+                searchPerformed = true;
+            }
         }
+
+        // build the full prompt with conversation context and sources
+        const sourcesContext = sources.length > 0
+            ? formatSourcesForRAGPrompt( sources )
+            : null;
+
+        const fullPrompt = buildChatSystemPrompt( {
+            userMessage: params.prompt
+            , conversationContext
+            , sourcesContext
+        } );
 
         // generate text using the AI SDK
         const result = await generateText( {
             model
-            , prompt: augmentedPrompt
+            , prompt: fullPrompt
             , maxOutputTokens: params.maxTokens ?? 2000
             , temperature: params.temperature ?? 0.7
             , experimental_telemetry: {
@@ -76,7 +173,9 @@ export const generateLLMText = async (
                 , metadata: {
                     modelId: params.modelId
                     , useRAG: String( useRAG )
+                    , searchPerformed: String( searchPerformed )
                     , sourcesCount: String( sources.length )
+                    , hasConversationHistory: String( !!conversationContext )
                 }
             }
         } );
@@ -89,6 +188,7 @@ export const generateLLMText = async (
         return success( {
             content: result.text
             , sources
+            , searchPerformed
             , usage: {
                 inputTokens
                 , outputTokens
@@ -109,33 +209,52 @@ export const generateLLMText = async (
  * stream a text response from an LLM
  *
  * @param params - streaming parameters
- * @returns text stream and sources
+ * @returns text stream, sources, and whether search was performed
  */
 export const streamLLMText = async ( params: LLMStreamParams ) => {
 
     // get the model provider
     const model = getModelProvider( params.modelId );
 
-    // generate sources using RAG (default: true)
+    // build conversation context from history
+    const conversationContext = params.conversationHistory
+        ? formatHistoryForContext( params.conversationHistory )
+        : null;
+
+    // determine if RAG is enabled and if search is actually needed
     const useRAG = params.useRAG ?? true;
-    const sources = useRAG ? await generateSources( params.prompt ) : [];
+    let searchPerformed = false;
+    let sources: Awaited<ReturnType<typeof generateSources>> = [];
 
-    // augment the prompt with search results if sources were found
-    let augmentedPrompt = params.prompt;
-
-    if ( sources.length > 0 ) {
-        const sourcesContext = formatSourcesForRAGPrompt( sources );
-
-        augmentedPrompt = buildRAGAugmentedPrompt( {
-            userPrompt: params.prompt
-            , sourcesContext
+    if ( useRAG ) {
+        // classify if search is needed based on query and conversation
+        const classification = await classifySearchNeed( {
+            modelId: params.modelId
+            , userMessage: params.prompt
+            , conversationContext
         } );
+
+        if ( classification.needsSearch ) {
+            sources = await generateSources( params.prompt );
+            searchPerformed = true;
+        }
     }
+
+    // build the full prompt with conversation context and sources
+    const sourcesContext = sources.length > 0
+        ? formatSourcesForRAGPrompt( sources )
+        : null;
+
+    const fullPrompt = buildChatSystemPrompt( {
+        userMessage: params.prompt
+        , conversationContext
+        , sourcesContext
+    } );
 
     // stream text using the AI SDK
     const result = streamText( {
         model
-        , prompt: augmentedPrompt
+        , prompt: fullPrompt
         , maxOutputTokens: params.maxTokens ?? 2000
         , temperature: params.temperature ?? 0.7
         , experimental_telemetry: {
@@ -144,7 +263,9 @@ export const streamLLMText = async ( params: LLMStreamParams ) => {
             , metadata: {
                 modelId: params.modelId
                 , useRAG: String( useRAG )
+                , searchPerformed: String( searchPerformed )
                 , sourcesCount: String( sources.length )
+                , hasConversationHistory: String( !!conversationContext )
             }
         }
     } );
@@ -152,6 +273,7 @@ export const streamLLMText = async ( params: LLMStreamParams ) => {
     return {
         textStream: result.textStream
         , sources
+        , searchPerformed
     };
 
 };

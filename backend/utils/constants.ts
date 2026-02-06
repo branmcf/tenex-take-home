@@ -450,6 +450,111 @@ export const buildChatTitlePrompt = ( userMessage: string ): string => {
 };
 
 /**
+ * Parameters for building search classification prompts
+ */
+export interface SearchClassificationPromptParams {
+    userMessage: string;
+    conversationContext?: string | null;
+}
+
+/**
+ * Build prompt for classifying whether a query needs web search
+ */
+export const buildSearchClassificationPrompt = (
+    params: SearchClassificationPromptParams
+): string => {
+    const conversationBlock = params.conversationContext
+        ? `\nRecent conversation:\n${ params.conversationContext }\n`
+        : '';
+
+    return `You are a search classifier. Decide if a web search is needed to answer the user's question.
+
+SEARCH NEEDED when the question:
+- Asks about current events, recent news, or time-sensitive information
+- Requests specific facts, statistics, or data that require verification
+- Asks about products, services, prices, or availability
+- Needs up-to-date technical documentation or API references
+- Asks "what is the latest..." or "what happened recently..."
+- Requires information that changes frequently
+
+NO SEARCH NEEDED when the question:
+- Is a follow-up that can be answered from conversation context
+- Asks for opinions, advice, or general guidance
+- Is conversational (greetings, thanks, clarifications)
+- Asks about well-established concepts the LLM knows
+- Requests creative writing, brainstorming, or ideation
+- Can be fully answered from the conversation history
+- Is a simple task like summarizing, reformatting, or explaining something already discussed
+${ conversationBlock }
+User message: ${ params.userMessage }
+
+Respond with ONLY valid JSON on a single line:
+{"needsSearch": true|false, "reason": "brief explanation"}`;
+};
+
+/**
+ * Parameters for building chat system prompts
+ */
+export interface ChatSystemPromptParams {
+    userMessage: string;
+    conversationContext?: string | null;
+    sourcesContext?: string | null;
+}
+
+/**
+ * Build the main chat system prompt with conversation context
+ */
+export const buildChatSystemPrompt = (
+    params: ChatSystemPromptParams
+): string => {
+    const conversationBlock = params.conversationContext
+        ? `\n## Conversation History\n${ params.conversationContext }\n`
+        : '';
+
+    const sourcesBlock = params.sourcesContext
+        ? `\n## Web Search Results\nUse these search results to inform your answer. Cite sources when relevant.\n${ params.sourcesContext }\n`
+        : '';
+
+    return `You are a helpful AI assistant engaged in a conversation with the user.
+
+## Guidelines
+- Be concise and direct in your responses
+- Use conversation history to maintain context and avoid repeating information
+- If web search results are provided, use them to give accurate, up-to-date information
+- Cite sources naturally when referencing search results (e.g., "According to [source]...")
+- If no search results are provided, answer from your knowledge
+- For follow-up questions, refer back to the conversation context
+- Admit when you don't know something rather than making things up
+${ conversationBlock }${ sourcesBlock }
+## Current Message
+User: ${ params.userMessage }
+
+Respond helpfully and concisely.`;
+};
+
+/**
+ * Parameters for building chat history summary prompts
+ */
+export interface ChatHistorySummaryPromptParams {
+    conversationHistory: string;
+    maxWords: number;
+}
+
+/**
+ * Build prompt for summarizing chat conversation history
+ */
+export const buildChatHistorySummaryPrompt = (
+    params: ChatHistorySummaryPromptParams
+): string => {
+    return `Summarize this conversation for context in future responses.
+Include: key topics discussed, important facts mentioned, user preferences or requests, and any conclusions reached.
+Keep it under ${ params.maxWords } words. Be concise.
+
+Conversation:
+${ params.conversationHistory }`;
+};
+
+/**
  * Parameters for building RAG augmented prompts
  */
 export interface RAGAugmentedPromptParams {

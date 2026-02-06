@@ -161,9 +161,20 @@ export function ChatProvider({
   // Keep reference to the SSE connection for chat title updates
   const chatEventsStreamRef = React.useRef<EventSource | null>(null);
 
+  // Keep reference to the SSE connection for message streaming
+  const messageStreamRef = React.useRef<EventSource | null>(null);
+
   // Ref to track when we're actively sending a message in a new chat
   // This prevents the URL change from triggering a message fetch that would overwrite optimistic updates
   const isSendingNewChatRef = React.useRef(false);
+
+  // Close the message stream SSE connection
+  const closeMessageStream = React.useCallback(() => {
+    if (messageStreamRef.current) {
+      messageStreamRef.current.close();
+      messageStreamRef.current = null;
+    }
+  }, []);
 
   // Load the user's saved model preference
   React.useEffect(() => {
@@ -414,8 +425,9 @@ export function ChatProvider({
     return () => {
       closeWorkflowStream();
       closeChatEventsStream();
+      closeMessageStream();
     };
-  }, [closeWorkflowStream, closeChatEventsStream]);
+  }, [closeWorkflowStream, closeChatEventsStream, closeMessageStream]);
 
   // Extract chatId from URL pathname
   const chatIdFromUrl = React.useMemo(() => {
@@ -519,6 +531,7 @@ export function ChatProvider({
     setWorkflowRuns([]);
     closeWorkflowStream();
     closeChatEventsStream();
+    closeMessageStream();
 
     // Check if we're on a non-chat page (like /workflows)
     // If so, use router.push to navigate to home
@@ -531,7 +544,7 @@ export function ChatProvider({
       // If on a chat page with existing chat, update URL to root without remount
       window.history.replaceState(null, "", "/");
     }
-  }, [hasMessages, currentChatId, pathname, router, closeWorkflowStream, closeChatEventsStream]);
+  }, [hasMessages, currentChatId, pathname, router, closeWorkflowStream, closeChatEventsStream, closeMessageStream]);
 
   // Load an existing chat (navigates to chat page)
   const loadChat = React.useCallback((chatId: string) => {
@@ -540,9 +553,10 @@ export function ChatProvider({
     setWorkflowRuns([]);
     closeWorkflowStream();
     closeChatEventsStream();
+    closeMessageStream();
     // Use router.push for loading existing chats since we want full navigation
     router.push(`/chats/${chatId}`);
-  }, [router, closeWorkflowStream, closeChatEventsStream]);
+  }, [router, closeWorkflowStream, closeChatEventsStream, closeMessageStream]);
 
   // Send a message
   const sendMessage = React.useCallback(
@@ -559,7 +573,6 @@ export function ChatProvider({
 
       // Track if this is a new chat
       const isNewChat = !currentChatId;
-      let keepLoading = false;
 
       // Generate a new chat ID if this is the first message
       let chatIdForRequest = currentChatId;
@@ -584,115 +597,238 @@ export function ChatProvider({
       setInput("");
       setIsLoading(true);
 
-      try {
-        const response = await createMessage(chatIdForRequest, {
-          content: content.trim(),
-          modelId: selectedModel.id,
-          userId: user.id,
-          workflowId: selectedWorkflow ?? null,
-        });
-
-        if (response.workflowRunId) {
-          keepLoading = true;
-
-          const serverUserMessage: Message = {
-            ...response.userMessage,
-            createdAt: new Date(response.userMessage.createdAt),
-          };
-
-          setMessages((prev) =>
-            prev.map((msg) => (msg.id === userMessage.id ? serverUserMessage : msg))
-          );
-
-          const runState: WorkflowRunState = {
-            id: response.workflowRunId,
-            status: "RUNNING",
-            steps: [],
-            anchorMessageId: serverUserMessage.id,
-            chatId: chatIdForRequest,
-            isNewChat,
-          };
-
-          setWorkflowRuns((prev) => {
-            const index = prev.findIndex((existing) => existing.id === runState.id);
-            if (index === -1) {
-              return [...prev, runState];
-            }
-            const next = [...prev];
-            next[index] = runState;
-            return next;
+      // If a workflow is selected, use the non-streaming endpoint
+      if (selectedWorkflow) {
+        try {
+          const response = await createMessage(chatIdForRequest, {
+            content: content.trim(),
+            modelId: selectedModel.id,
+            userId: user.id,
+            workflowId: selectedWorkflow,
           });
-          startWorkflowStream(runState);
-          return;
-        }
 
-        // Check if the response has an error (partial success - LLM failed but user message saved)
-        if (response.error || !response.assistantMessage) {
-          // Remove the optimistic user message (we'll fetch from server)
-          setMessages((prev) => prev.filter((msg) => msg.id !== userMessage.id));
+          if (response.workflowRunId) {
+            const serverUserMessage: Message = {
+              ...response.userMessage,
+              createdAt: new Date(response.userMessage.createdAt),
+            };
 
-          // Fetch messages from server to get the stored user message + system error message
-          const messageData = await getMessages(chatIdForRequest);
-          const messagesWithDates: Message[] = messageData.map((msg) => ({
-            ...msg,
-            createdAt: new Date(msg.createdAt),
-          }));
-          setMessages(messagesWithDates);
+            setMessages((prev) =>
+              prev.map((msg) => (msg.id === userMessage.id ? serverUserMessage : msg))
+            );
 
-          // Subscribe to chat events to know when title is set
-          if (isNewChat) {
-            subscribeToChatEvents(chatIdForRequest);
+            const runState: WorkflowRunState = {
+              id: response.workflowRunId,
+              status: "RUNNING",
+              steps: [],
+              anchorMessageId: serverUserMessage.id,
+              chatId: chatIdForRequest,
+              isNewChat,
+            };
+
+            setWorkflowRuns((prev) => {
+              const index = prev.findIndex((existing) => existing.id === runState.id);
+              if (index === -1) {
+                return [...prev, runState];
+              }
+              const next = [...prev];
+              next[index] = runState;
+              return next;
+            });
+            startWorkflowStream(runState);
+            return;
           }
-
-          // Show error toast for immediate feedback
-          const errorTitle =
-            response.error?.code === "WORKFLOW_RUN_FAILED"
-              ? "Failed to start workflow"
-              : "Failed to get AI response";
-          const errorDescription =
-            response.error?.message ??
-            "Please check that the selected model's API key is configured.";
-
-          toast.error(errorTitle, {
-            description: errorDescription,
+        } catch (error) {
+          console.error("Failed to send workflow message:", error);
+          setMessages((prev) => prev.filter((msg) => msg.id !== userMessage.id));
+          if (isNewChat) {
+            setCurrentChatId(null);
+            window.history.replaceState(null, "", "/");
+          }
+          toast.error("Failed to start workflow", {
+            description: "Please try again.",
             duration: 5000,
           });
-        } else {
-          // Success - convert assistant message dates and add to messages
-          const assistantMessage: Message = {
-            ...response.assistantMessage,
-            createdAt: new Date(response.assistantMessage.createdAt),
-          };
+          setIsLoading(false);
+          isSendingNewChatRef.current = false;
+        }
+        return;
+      }
 
-          setMessages((prev) => [...prev, assistantMessage]);
+      // For regular chat, use the streaming endpoint
+      closeMessageStream();
 
-          // If this was a new chat, subscribe to chat events to know when title is ready
-          if (isNewChat) {
-            subscribeToChatEvents(chatIdForRequest);
+      // Create a placeholder assistant message for streaming
+      const assistantMessageId = crypto.randomUUID();
+      const streamingAssistantMessage: Message = {
+        id: assistantMessageId,
+        role: "assistant",
+        content: "",
+        createdAt: new Date(),
+      };
+
+      // Build the streaming URL with query params
+      const streamUrl = new URL(`${API_BASE_URL}/api/chats/${chatIdForRequest}/messages/stream`);
+
+      // We need to POST to the stream endpoint, but EventSource only supports GET
+      // So we'll use fetch with ReadableStream instead
+      try {
+        const response = await fetch(streamUrl.toString(), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            content: content.trim(),
+            modelId: selectedModel.id,
+            userId: user.id,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Stream request failed: ${response.status}`);
+        }
+
+        const reader = response.body?.getReader();
+        if (!reader) {
+          throw new Error("No response body");
+        }
+
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let streamedContent = "";
+        let hasAddedAssistantMessage = false;
+        let finalAssistantMessage: Message | null = null;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+
+          // Process complete SSE messages
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || ""; // Keep incomplete line in buffer
+
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              const data = line.slice(6);
+              try {
+                const payload = JSON.parse(data) as {
+                  type: string;
+                  message?: {
+                    id: string;
+                    role: "user" | "assistant" | "system";
+                    content: string;
+                    createdAt: string;
+                    sources?: { url: string; title: string; description?: string }[];
+                  };
+                  token?: string;
+                  chatId?: string;
+                  error?: { message?: string; code?: string };
+                };
+
+                if (payload.type === "user_message" && payload.message) {
+                  // Update the optimistic user message with the server's version
+                  const serverUserMessage: Message = {
+                    ...payload.message,
+                    createdAt: new Date(payload.message.createdAt),
+                  };
+                  setMessages((prev) =>
+                    prev.map((msg) => (msg.id === userMessage.id ? serverUserMessage : msg))
+                  );
+                }
+
+                if (payload.type === "token" && payload.token) {
+                  streamedContent += payload.token;
+
+                  if (!hasAddedAssistantMessage) {
+                    // Add the streaming assistant message
+                    setMessages((prev) => [
+                      ...prev,
+                      { ...streamingAssistantMessage, content: streamedContent },
+                    ]);
+                    hasAddedAssistantMessage = true;
+                  } else {
+                    // Update the streaming assistant message
+                    setMessages((prev) =>
+                      prev.map((msg) =>
+                        msg.id === assistantMessageId
+                          ? { ...msg, content: streamedContent }
+                          : msg
+                      )
+                    );
+                  }
+                }
+
+                if (payload.type === "complete" && payload.message) {
+                  // Replace streaming message with final message
+                  finalAssistantMessage = {
+                    ...payload.message,
+                    createdAt: new Date(payload.message.createdAt),
+                  };
+
+                  setMessages((prev) =>
+                    prev.map((msg) =>
+                      msg.id === assistantMessageId ? finalAssistantMessage! : msg
+                    )
+                  );
+
+                  // Subscribe to chat events for title updates on new chats
+                  if (isNewChat) {
+                    subscribeToChatEvents(chatIdForRequest);
+                  }
+                }
+
+                if (payload.type === "error") {
+                  // Remove the streaming assistant message if we added one
+                  if (hasAddedAssistantMessage) {
+                    setMessages((prev) => prev.filter((msg) => msg.id !== assistantMessageId));
+                  }
+
+                  // Fetch messages from server to get any error messages
+                  const messageData = await getMessages(chatIdForRequest);
+                  const messagesWithDates: Message[] = messageData.map((msg) => ({
+                    ...msg,
+                    createdAt: new Date(msg.createdAt),
+                  }));
+                  setMessages(messagesWithDates);
+
+                  if (isNewChat) {
+                    subscribeToChatEvents(chatIdForRequest);
+                  }
+
+                  toast.error("Failed to get AI response", {
+                    description: payload.error?.message ?? "Please try again.",
+                    duration: 5000,
+                  });
+                }
+              } catch {
+                // Ignore JSON parse errors for incomplete messages
+              }
+            }
           }
         }
+
+        setIsLoading(false);
+        isSendingNewChatRef.current = false;
       } catch (error) {
         console.error("Failed to send message:", error);
         // Remove the optimistic user message on error
         setMessages((prev) => prev.filter((msg) => msg.id !== userMessage.id));
 
-        // If this was a new chat, revert the chat state so it doesn't appear in sidebar
+        // If this was a new chat, revert the chat state
         if (isNewChat) {
           setCurrentChatId(null);
           window.history.replaceState(null, "", "/");
         }
 
-        // Show error toast to user
-        const errorMessage = error instanceof Error ? error.message : "Failed to send message";
-        toast.error(errorMessage, {
-          description: "Please check that the selected model's API key is configured.",
+        toast.error("Failed to send message", {
+          description: "Please check your connection and try again.",
           duration: 5000,
         });
-      } finally {
-        if (!keepLoading) {
-          setIsLoading(false);
-        }
-        // Reset the ref so future URL changes can trigger message fetches
+        setIsLoading(false);
         isSendingNewChatRef.current = false;
       }
     },
@@ -705,6 +841,7 @@ export function ChatProvider({
       user,
       subscribeToChatEvents,
       startWorkflowStream,
+      closeMessageStream,
     ]
   );
 

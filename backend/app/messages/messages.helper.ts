@@ -4,12 +4,138 @@ import {
     , success
 } from '../../types';
 import { ResourceError } from '../../errors';
-import { generateLLMText } from '../../lib/llm';
+import { generateLLMText , ChatHistoryMessage } from '../../lib/llm';
 import { LLMRequestFailed } from './messages.errors';
 import { SourceResponse } from './messages.types';
 import { updateChatTitle } from './messages.service';
-import { buildChatTitlePrompt } from '../../utils/constants';
+import {
+    buildChatTitlePrompt
+    , buildChatHistorySummaryPrompt
+    , formatConversationHistoryForPrompt
+} from '../../utils/constants';
 import { chatEvents } from '../../lib/chatEvents';
+
+// history summarization thresholds (same as workflow chat)
+const HISTORY_SUMMARY_TRIGGER = 12;
+const HISTORY_RECENT_MESSAGES = 8;
+const HISTORY_SUMMARY_MAX_WORDS = 140;
+
+/**
+ * Summarize older chat history for context
+ *
+ * @param params - history + model configuration
+ * @returns summary string or null
+ */
+const summarizeChatHistory = async (
+    params: {
+        messages: ChatHistoryMessage[];
+        modelId: string;
+    }
+): Promise<string | null> => {
+
+    if ( params.messages.length === 0 ) {
+        return null;
+    }
+
+    const prompt = buildChatHistorySummaryPrompt( {
+        conversationHistory: formatConversationHistoryForPrompt( params.messages )
+        , maxWords: HISTORY_SUMMARY_MAX_WORDS
+    } );
+
+    const summaryResult = await generateLLMText( {
+        modelId: params.modelId
+        , prompt
+        , maxTokens: 300
+        , temperature: 0.2
+        , useRAG: false
+    } );
+
+    if ( summaryResult.isError() ) {
+        return null;
+    }
+
+    return summaryResult.value.content.trim();
+};
+
+/**
+ * Build conversation context from history with optional summarization
+ *
+ * @param summary - summary of older messages (or null)
+ * @param recentMessages - recent messages to include verbatim
+ * @returns formatted context string or null
+ */
+const buildConversationContext = (
+    summary: string | null
+    , recentMessages: ChatHistoryMessage[]
+): string | null => {
+
+    if ( recentMessages.length === 0 && !summary ) {
+        return null;
+    }
+
+    const recentBlock = recentMessages.length > 0
+        ? formatConversationHistoryForPrompt( recentMessages )
+        : '';
+
+    if ( summary && summary.length > 0 && recentBlock.length > 0 ) {
+        return `Summary of earlier messages:\n${ summary }\n\nRecent messages:\n${ recentBlock }`;
+    }
+
+    if ( summary && summary.length > 0 ) {
+        return `Summary of conversation:\n${ summary }`;
+    }
+
+    return recentBlock;
+};
+
+/**
+ * Process chat history: summarize older messages if needed, keep recent ones verbatim
+ *
+ * @param params - history processing parameters
+ * @returns processed conversation history ready for LLM
+ */
+export const processChatHistory = async (
+    params: {
+        messages: ChatHistoryMessage[];
+        modelId: string;
+    }
+): Promise<ChatHistoryMessage[]> => {
+
+    const { messages, modelId } = params;
+
+    if ( messages.length === 0 ) {
+        return [];
+    }
+
+    // if history is short enough, return as-is
+    if ( messages.length <= HISTORY_SUMMARY_TRIGGER ) {
+        return messages;
+    }
+
+    // split into older (to summarize) and recent (to keep verbatim)
+    const cutoffIndex = Math.max( messages.length - HISTORY_RECENT_MESSAGES, 0 );
+    const olderMessages = messages.slice( 0, cutoffIndex );
+    const recentMessages = messages.slice( cutoffIndex );
+
+    // summarize older messages
+    const summary = await summarizeChatHistory( {
+        messages: olderMessages
+        , modelId
+    } );
+
+    // build context and return as a system message + recent messages
+    const context = buildConversationContext( summary, [] );
+
+    if ( context ) {
+        // prepend summary as a system message, then include recent messages
+        return [
+            { role: 'system' as const, content: `[Conversation context]\n${ context }` }
+            , ...recentMessages
+        ];
+    }
+
+    return recentMessages;
+};
 
 /**
  * generate a response from the LLM based on the user's message
@@ -21,13 +147,15 @@ export const generateLLMResponse = async (
     params: {
         userMessage: string;
         modelId: string;
+        conversationHistory?: ChatHistoryMessage[];
     }
 ): Promise<Either<ResourceError, { content: string; sources: SourceResponse[] }>> => {
 
-    // call the LLM lib function
+    // call the LLM lib function with conversation history
     const result = await generateLLMText( {
         modelId: params.modelId
         , prompt: params.userMessage
+        , conversationHistory: params.conversationHistory
     } );
 
     // check for error

@@ -14,11 +14,50 @@ import {
     , GetMessagesByChatIdResponse
     , MessageResponse
 } from './messages.types';
-import { generateLLMResponse, generateAndUpdateChatTitle, generateFallbackChatTitle } from './messages.helper';
+import { generateLLMResponse, generateAndUpdateChatTitle, generateFallbackChatTitle, processChatHistory } from './messages.helper';
 import { runWorkflow } from '../../lib/workflowRunner';
-import { streamLLMText } from '../../lib/llm';
+import { streamLLMText, ChatHistoryMessage } from '../../lib/llm';
 import { ChatAccessForbidden, WorkflowRunInProgress } from './messages.errors';
 import { getRunningWorkflowRunByChatId } from '../workflowRuns/workflowRuns.service';
+
+/**
+ * Fetch and format chat history for LLM context
+ *
+ * @param chatId - the chat to fetch history for
+ * @param modelId - the model to use for summarization if needed
+ * @returns processed chat history
+ */
+const fetchAndProcessChatHistory = async (
+    chatId: string
+    , modelId: string
+): Promise<ChatHistoryMessage[]> => {
+
+    const messagesResult = await getMessagesByChatId( chatId );
+
+    if ( messagesResult.isError() ) {
+        // no history available, that's fine
+        return [];
+    }
+
+    const nodes = messagesResult.value?.messagesByChatId?.nodes ?? [];
+
+    // convert to ChatHistoryMessage format
+    const roleMap: Record<string, 'user' | 'assistant' | 'system'> = {
+        'USER': 'user'
+        , 'ASSISTANT': 'assistant'
+        , 'SYSTEM': 'system'
+    };
+
+    const messages: ChatHistoryMessage[] = nodes
+        .filter( ( msg ): msg is NonNullable<typeof msg> => msg !== null )
+        .map( msg => ( {
+            role: roleMap[ msg.role ] || 'assistant'
+            , content: msg.content
+        } ) );
+
+    // process history (summarize if too long)
+    return processChatHistory( { messages, modelId } );
+};
 
 /**
  * @title Create Message Handler
@@ -308,10 +347,14 @@ export const createMessageHandler = async (
         } );
     }
 
-    // generate LLM response
+    // fetch and process conversation history for context
+    const conversationHistory = await fetchAndProcessChatHistory( chatId, modelId );
+
+    // generate LLM response with conversation history
     const generateLLMResponseResult = await generateLLMResponse( {
         userMessage: content
         , modelId
+        , conversationHistory
     } );
 
     if ( generateLLMResponseResult && generateLLMResponseResult.isError() ) {
@@ -592,10 +635,14 @@ export const createMessageStreamHandler = async (
 
     try {
 
-        // stream LLM response
+        // fetch and process conversation history for context
+        const conversationHistory = await fetchAndProcessChatHistory( chatId, modelId );
+
+        // stream LLM response with conversation history
         const { textStream, sources } = await streamLLMText( {
             modelId
             , prompt: content
+            , conversationHistory
         } );
 
         // accumulate the full response
