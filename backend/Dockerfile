@@ -5,7 +5,8 @@ WORKDIR /app
 COPY package.json ./
 COPY package-lock.json ./
 
-RUN npm ci
+# Ensure dev dependencies are installed even if NODE_ENV=production.
+RUN npm ci --include=dev
 
 COPY tsconfig.json ./
 
@@ -27,7 +28,6 @@ RUN mkdir -p public
 
 RUN npm run build
 
-EXPOSE 3000
+EXPOSE 3026
 
-# Use `tsx` (via `npm run start`) so our extensionless/directory-style imports work in ESM.
-CMD ["npm", "run", "start"]
+CMD ["sh", "-c", "npm run migrate:up && npm run start"]

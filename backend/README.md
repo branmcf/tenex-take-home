@@ -50,55 +50,30 @@ This directory contains a **Node.js + Express REST API** serving the HardWire de
 
 ---
 
-## Usage
+## Quick Start
 
-### Prerequisites
+### Option 1: Docker (Recommended)
 
-- Node.js 20+
-- npm
-- Docker
-
-### Quick Start
+From the **repository root**:
 
 ```bash
-# move into the backend dir
+./scripts/setup.sh
+```
+
+This starts PostgreSQL, backend, frontend, and MCP tools server together. See [GETTING_STARTED.md](../GETTING_STARTED.md) for details.
+
+### Option 2: Local Development
+
+```bash
 cd backend
-
-# install the dependencies
+cp .env.example .env          # Then add your LLM API key
 npm install
-
-# start postgres
-docker compose up postgres -d
-
-# run the migrations to create/populate tables
+docker compose up postgres -d  # Start PostgreSQL only
 npm run migrate:up
-
-# in a new tab, run the backend
 npm run dev
 ```
 
-The HardWire API server will run at http://localhost:3026.
-
-### Environment Variables
-
-Create a `.env` file before running migrations.
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `DATABASE_URL` | Yes | `postgres://postgres:postgrespassword@localhost:5433/app` |
-| `AUTH_SECRET` | Yes | Random string, minimum 32 characters |
-| `API_URL` | Yes | `http://localhost:3026` |
-| `MCP_TOOLS_URL` | Yes | `http://localhost:4010` |
-| `OPENAI_API_KEY` | One LLM required | OpenAI API key |
-| `ANTHROPIC_API_KEY` | One LLM required | Anthropic API key |
-| `GOOGLE_GENERATIVE_AI_API_KEY` | One LLM required | Google AI API key |
-| `GOOGLE_CLIENT_ID` | No | For Google OAuth |
-| `GOOGLE_CLIENT_SECRET` | No | For Google OAuth |
-| `RESEND_API_KEY` | No | For email verification |
-| `EXA_API_KEY` | No | For web search tools |
-| `REDIS_URL` | No | For distributed rate limiting |
-| `LANGFUSE_PUBLIC_KEY` | No | For LLM observability |
-| `LANGFUSE_SECRET_KEY` | No | For LLM observability |
+The backend runs at http://localhost:3026.
 
 ---
 
@@ -333,22 +308,6 @@ npm run migrate:down
 ```
 
 Migration files are in `migrations/` with timestamp prefixes.
-
----
-
-## Docker
-
-```bash
-# start PostgreSQL only
-docker-compose up postgres -d
-
-# build and run full backend
-docker-compose up --build
-```
-
-Ports:
-- PostgreSQL: `5433` (mapped to container's `5432`)
-- Backend: `3026`
 
 ---
 

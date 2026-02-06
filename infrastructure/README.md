@@ -55,41 +55,25 @@ HardWire is deployed on [Railway](https://railway.com/) with the following confi
 
 ---
 
-## Usage (Quick start)
+## Quick Start
 
-### Prereqs
+> **Note:** This is reference architecture. HardWire is deployed on Railway, not AWS.
+
+```bash
+cd infrastructure/environments/prod
+cp terraform.tfvars.example terraform.tfvars
+# Edit terraform.tfvars with your values
+
+terraform init
+terraform plan
+# terraform apply  # Reference only — not intended for actual deployment
+```
+
+### Prerequisites
 
 - [Terraform](https://developer.hashicorp.com/terraform) >= 1.1.0
 - [AWS CLI](https://aws.amazon.com/cli/) configured with credentials
-- [GitHub connection ARN](https://docs.aws.amazon.com/dtconsole/latest/userguide/connections-create-github.html) (create manually in AWS Console)
-
-### Install
-
-```bash
-# move into the prod environment dir
-cd infrastructure/environments/prod
-```
-
-### Configure
-
-```bash
-# copy the example variables file
-cp terraform.tfvars.example terraform.tfvars
-```
-
-Edit `terraform.tfvars` with your values. Secrets are stored in AWS Secrets Manager at runtime.
-
-### Run
-
-```bash
-# initialize terraform
-terraform init
-
-# preview the infrastructure changes
-terraform plan
-
-# terraform apply  # Not intended to be applied—reference only
-```
+- [GitHub connection ARN](https://docs.aws.amazon.com/dtconsole/latest/userguide/connections-create-github.html)
 
 ---
 

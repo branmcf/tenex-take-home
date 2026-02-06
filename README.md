@@ -32,24 +32,17 @@ src="https://github.com/user-attachments/assets/7a6ad561-bbc7-49c5-b38f-ea8e586d
 - **Frontend:** Next.js 15 + React 19 + Tailwind with Swiss-Modernist design system
 - **Backend:** Express + PostgreSQL + PostGraphile + Vercel AI SDK
 - **MCP Tools Server:** Standalone tool registry and execution service
-- **Infrastructure:** Terraform for AWS (App Runner, RDS, ElastiCache, CloudFront)
+- **Infrastructure:** Railway/Terraform for AWS (App Runner, RDS, ElastiCache, CloudFront)
+
+---
+
+## Quick Start
+
+**See [GETTING_STARTED.md](./GETTING_STARTED.md) for complete step-by-step setup instructions.**
 
 ---
 
 ## Reviewer Notes
-
-### Quick Start (Single Command)
-
-```bash
-# Clone and start everything
-docker compose up --build
-```
-
-This spins up:
-- **PostgreSQL** at `localhost:5433`
-- **Backend API** at `localhost:3026`
-- **MCP Tools Server** at `localhost:4010`
-- **Frontend** at `localhost:3000`
 
 ### What to Look At First
 
@@ -67,20 +60,7 @@ This spins up:
 - **Code organization** — Consistent collection structure across all backend modules
 - **Error handling** — Either monad pattern throughout services
 - **Security** — MCP server URL allowlist, private IP blocking, session validation
-- **Test coverage** — Unit tests, integration tests, and LLM evals
-
-### Run Tests
-
-```bash
-# Backend integration tests
-cd backend && npm run test:int
-
-# Backend LLM evals (mocked)
-cd backend && npm run test:evals
-
-# MCP Tools Server tests
-cd mcp-tools-server && npm test
-```
+- **Test coverage** — Integration tests, and LLM evals
 
 ---
 
@@ -88,7 +68,7 @@ cd mcp-tools-server && npm test
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                              Client                                          │
+│                              Client                                         │
 │  ┌───────────────────────────────────────────────────────────────────────┐  │
 │  │  Next.js 15 + React 19 + Tailwind                                     │  │
 │  │  - Chat interface with workflow execution visualization               │  │
@@ -100,11 +80,11 @@ cd mcp-tools-server && npm test
                           HTTP/REST + SSE
                                      │
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                              Backend API (:3026)                             │
+│                              Backend API (:3026)                            │
 │  ┌───────────────────────────────────────────────────────────────────────┐  │
-│  │  Express + TypeScript + PostGraphile                                   │  │
+│  │  Express + TypeScript + PostGraphile                                  │  │
 │  │  - Session auth via Better Auth (email + Google OAuth)                │  │
-│  │  - Workflow DAG compilation, validation, execution                     │  │
+│  │  - Workflow DAG compilation, validation, execution                    │  │
 │  │  - Multi-provider LLM integration (OpenAI, Anthropic, Google)         │  │
 │  │  - Real-time workflow streaming via SSE                               │  │
 │  └───────────────────────────────────────────────────────────────────────┘  │
@@ -122,75 +102,6 @@ cd mcp-tools-server && npm test
                      │ summarize       │
                      │ extract_json    │
                      └─────────────────┘
-```
-
----
-
-## Quick Start
-
-### Prerequisites
-
-- Docker and Docker Compose
-- Node.js 20+ (for local development)
-- npm
-
-### Option 1: Docker Compose (Recommended)
-
-```bash
-# Start all services
-docker compose up --build
-```
-
-Services will be available at:
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:3026
-- MCP Tools: http://localhost:4010
-
-### Option 2: Local Development
-
-```bash
-# 1. Start PostgreSQL
-docker compose up postgres -d
-
-# 2. Start MCP Tools Server
-cd mcp-tools-server
-npm install
-npm run dev
-
-# 3. Start Backend (new terminal)
-cd backend
-npm install
-cp .env.example .env  # Configure your API keys
-npm run migrate:up
-npm run dev
-
-# 4. Start Frontend (new terminal)
-cd frontend
-npm install
-npm run dev
-```
-
-### Environment Variables
-
-Create `backend/.env` with:
-
-```env
-# Required
-DATABASE_URL=postgres://postgres:postgrespassword@localhost:5433/app
-AUTH_SECRET=your-secret-key-min-32-chars-here
-API_URL=http://localhost:3026
-MCP_TOOLS_URL=http://localhost:4010
-
-# LLM Providers (at least one required)
-OPENAI_API_KEY=sk-...
-ANTHROPIC_API_KEY=sk-ant-...
-GOOGLE_GENERATIVE_AI_API_KEY=...
-
-# Optional
-GOOGLE_CLIENT_ID=...
-GOOGLE_CLIENT_SECRET=...
-RESEND_API_KEY=...
-EXA_API_KEY=...
 ```
 
 ---
@@ -238,6 +149,7 @@ hardwire/
 │   └── DESIGN-SYSTEM.md     # Frontend design tokens
 │
 ├── docker-compose.yml       # Full-stack local development
+├── GETTING_STARTED.md       # Step-by-step setup guide
 └── AGENTS.md                # AI coding assistant context
 ```
 
@@ -249,44 +161,6 @@ See individual directory READMEs for detailed documentation:
 - [`docs/README.md`](./docs/README.md)
 - [`marketing/README.md`](./marketing/README.md)
 - [`context/README.md`](./context/README.md)
-
----
-
-## Tech Stack
-
-### Backend
-
-| Technology | Role |
-|------------|------|
-| **Express 4** | HTTP server |
-| **TypeScript (strict)** | Type safety |
-| **PostgreSQL 16** | Primary database |
-| **PostGraphile 4** | Auto-generated GraphQL from PostgreSQL |
-| **Better Auth** | Session authentication (email + OAuth) |
-| **Vercel AI SDK** | Unified LLM provider interface |
-| **node-pg-migrate** | Database migrations |
-| **Jest** | Testing framework |
-
-### Frontend
-
-| Technology | Role |
-|------------|------|
-| **Next.js 15** | React framework with App Router |
-| **React 19** | UI library |
-| **Tailwind CSS** | Utility-first styling |
-| **shadcn/ui (lyra)** | Component primitives |
-| **Better Auth Client** | Session management |
-| **Axios** | HTTP client |
-
-### Infrastructure
-
-| Technology | Role |
-|------------|------|
-| **Terraform** | Infrastructure as Code |
-| **AWS App Runner** | Container orchestration |
-| **RDS PostgreSQL** | Managed database |
-| **ElastiCache Redis** | Caching and rate limiting |
-| **CloudFront + S3** | Static site hosting |
 
 ---
 
@@ -355,106 +229,6 @@ Tools are served by a standalone microservice following the Model Context Protoc
 - **Security** — URL allowlist, private IP blocking, timeout handling
 
 **Evidence:** `mcp-tools-server/`, `backend/lib/mcpToolsServer/`
-
----
-
-## API Overview
-
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/api/auth/*` | * | Authentication (Better Auth) |
-| `/api/models` | GET | List available LLM models |
-| `/api/users/:id/chats` | GET | List user's chats |
-| `/api/chats/:id/messages` | GET, POST | Chat messages |
-| `/api/workflows` | GET, POST | Workflow CRUD |
-| `/api/workflows/:id/messages` | GET, POST | Workflow authoring chat |
-| `/api/chats/:id/workflow-runs/:runId/stream` | GET (SSE) | Workflow execution stream |
-| `/api/tools` | GET | List tools from MCP server |
-
-Full API documentation: [`docs/`](./docs/)
-
----
-
-## Tests
-
-### Backend
-
-```bash
-cd backend
-
-# Unit tests
-npm run test:unit
-
-# Integration tests (requires PostgreSQL)
-npm run test:int
-
-# LLM evals (mocked)
-npm run test:evals
-
-# LLM evals (live API calls)
-npm run test:evals-live
-
-# Lint
-npx eslint .
-```
-
-### MCP Tools Server
-
-```bash
-cd mcp-tools-server
-
-# All tests
-npm test
-
-# Watch mode
-npm run test:watch
-```
-
-### Frontend
-
-```bash
-cd frontend
-
-# Lint
-npm run lint
-
-# Type check
-npm run build
-```
-
----
-
-## Deployment
-
-### AWS (Production)
-
-```bash
-cd infrastructure/environments/prod
-cp terraform.tfvars.example terraform.tfvars
-# Edit terraform.tfvars with your values
-
-terraform init
-terraform plan
-terraform apply
-```
-
-Provisions:
-- VPC with public/private subnets
-- App Runner services (backend, frontend, MCP tools)
-- RDS PostgreSQL (Multi-AZ)
-- ElastiCache Redis
-- CloudFront + S3 for static sites
-
-See [`infrastructure/README.md`](./infrastructure/README.md) for details.
-
----
-
-## Contributing
-
-1. Read [`context/BRIEF.md`](./context/BRIEF.md) for product context
-2. Follow [`context/COLLECTION-STANDARDS.md`](./context/COLLECTION-STANDARDS.md) for backend patterns
-3. Follow [`context/DESIGN-SYSTEM.md`](./context/DESIGN-SYSTEM.md) for frontend styling
-4. Run tests before submitting PRs
 
 ---
 

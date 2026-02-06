@@ -44,46 +44,28 @@ This directory contains a standalone MCP ([Model Context Protocol](https://model
 
 ---
 
-## Usage (Quick start)
+## Quick Start
 
-### Prereqs
+### Option 1: Docker (Recommended)
 
-- [Node.js](https://nodejs.org/en) 18+ (see `Dockerfile` base image)
-- [npm](https://www.npmjs.com/)
-
-### Install
+From the **repository root**:
 
 ```bash
-# move into the mcp dir
+./scripts/setup.sh
+```
+
+This starts PostgreSQL, backend, frontend, and MCP tools server together. See [GETTING_STARTED.md](../GETTING_STARTED.md) for details.
+
+### Option 2: Local Development
+
+```bash
 cd mcp-tools-server
-
-# install the dependencies
+cp .env.example .env
 npm install
-```
-
-### Configure
-
-Create a `.env` file with the following vars:
-
-```env
-PORT=4010
-ENVIRONMENT=Local
-MCP_TOOLS_API_KEY=your_service_key_here
-MCP_HTTP_REQUEST_ALLOWLIST=api.example.com,*.trusted-domain.com
-```
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `PORT` | Server port | `4010` |
-| `MCP_TOOLS_API_KEY` | API key for service authentication | (none — auth disabled if empty) |
-| `MCP_HTTP_REQUEST_ALLOWLIST` | Comma-separated hostnames for HTTP requests | (all public hosts allowed) |
-
-### Run
-
-```bash
-# run the mcp server
 npm run dev
 ```
+
+The MCP server runs at http://localhost:4010.
 
 ---
 

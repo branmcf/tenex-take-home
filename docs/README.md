@@ -46,48 +46,27 @@ This directorry contains the **[MkDocs](https://www.mkdocs.org/) documentation s
 
 ---
 
-## Usage (Quick start)
-
-### Prerequisites
-- Python 3.x
-- pip
-
-### Install
+## Quick Start
 
 ```bash
-# move into the docs dir
 cd docs
 
-# create virtual environment (first time only)
+# First time setup
 python3 -m venv venv
-
-# activate the virtual environment
 source venv/bin/activate
-
-# install the dependencies
 pip install -r requirements.txt
-```
 
-### Run Development Server
-
-```bash
-# activate venv if not already active
-source venv/bin/activate
-
-# start dev server with hot reload
+# Run dev server
 mkdocs serve
 ```
 
-The HardWire MK Docs site will run at http://localhost:3026.
+The docs site runs at http://localhost:8000.
 
 ### Build for Production
 
 ```bash
-# build the docs
-mkdocs build
+mkdocs build    # Output goes to build/
 ```
-
-The build output goes to the `build/` directory.
 
 ---
 

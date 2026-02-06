@@ -44,41 +44,28 @@ This directory contains a [Next.js](https://nextjs.org/) 15 React application pr
 
 ---
 
-## Usage
+## Quick Start
 
-### Prereqs
+### Option 1: Docker (Recommended)
 
-- [Node.js](https://nodejs.org/en) 20+ (see `Dockerfile` base image)
-- [npm](https://www.npmjs.com/)
-
-### Install
+From the **repository root**:
 
 ```bash
-# move into the frontend dir
+./scripts/setup.sh
+```
+
+This starts PostgreSQL, backend, frontend, and MCP tools server together. See [GETTING_STARTED.md](../GETTING_STARTED.md) for details.
+
+### Option 2: Local Development
+
+```bash
 cd frontend
-
-# install the dependencies
+cp .env.local.example .env.local
 npm install
-```
-
-### Configure
-
-Create a `.env.local` file with the following vars:
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:3026
-```
-
-The `NEXT_PUBLIC_API_URL` environment variable is referenced in `src/lib/constants.ts` and `src/lib/auth-client.ts`. Defaults to `http://localhost:3026` if not set.
-
-### Run
-
-```bash
-# run the service
 npm run dev
 ```
 
-The HardWire UI will be available at http://localhost:3000 by default.
+The frontend runs at http://localhost:3000.
 
 ---
 

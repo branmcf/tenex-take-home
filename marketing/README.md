@@ -42,50 +42,21 @@ This application is hosted at: https://hardwire.branmcf.com.
 
 ---
 
-## Usage
-
-### Prereqs
-
-- [Node.js](https://nodejs.org/en) (any recent LTS version)
-- [npm](https://www.npmjs.com/)
-
-### Install
+## Quick Start
 
 ```bash
-# move into the marketing dir
 cd marketing
-
-# install the dependencies
 npm install
-```
-
-### Configure
-
-No environment variables required.
-
-### Run
-
-```bash
-# run the application
 npm run dev
 ```
 
-The HardWire marketing site opens at http://localhost:5173 with auto-open enabled.
+The marketing site runs at http://localhost:5173.
 
-### Build
-
-```bash
-# build the application
-npm run build
-```
-
-The build output location is the `dist/` directory.
-
-### Preview Production Build
+### Build for Production
 
 ```bash
-# serve a production optimized build locally
-npm run preview
+npm run build      # Output goes to dist/
+npm run preview    # Preview production build
 ```
 
 ---
