@@ -1,5 +1,13 @@
 # Getting Started
 
+<p align="center"> 
+    <img 
+src="https://github.com/user-attachments/assets/c1c538ac-e17b-456e-a051-497aa31dede1"
+        alt="Hardwire" 
+        height="70%"
+        width="100%">
+</p>
+
 This guide walks you through setting up HardWire locally.
 
 ---
