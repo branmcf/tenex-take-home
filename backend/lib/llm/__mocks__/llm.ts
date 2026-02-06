@@ -29,6 +29,7 @@ const generateLLMTextMock = jest.fn<
 const defaultGenerateResult: LLMGenerateResult = {
     content: 'Mock LLM response'
     , sources: []
+    , searchPerformed: false
     , usage: {
         inputTokens: 10
         , outputTokens: 20
@@ -92,7 +93,7 @@ streamLLMTextMock.mockResponseOnce = (
     , sources = []
 ) =>
     streamLLMTextMock.mockImplementationOnce(
-        async () => ( { textStream, sources } )
+        async () => ( { textStream, sources, searchPerformed: false } )
     );
 
 streamLLMTextMock.mockResponse = (
@@ -100,7 +101,7 @@ streamLLMTextMock.mockResponse = (
     , sources = []
 ) =>
     streamLLMTextMock.mockImplementation(
-        async () => ( { textStream, sources } )
+        async () => ( { textStream, sources, searchPerformed: false } )
     );
 
 jest.doMock( '../llm', () => ( {
