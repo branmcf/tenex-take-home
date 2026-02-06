@@ -41,7 +41,7 @@ export function ChatMessage({ message, isLast }: ChatMessageProps) {
           )}
         >
           <Warning className="h-5 w-5 shrink-0 mt-0.5" weight="fill" />
-          <p className="text-sm leading-relaxed">{message.content}</p>
+          <p className="chat-user-text">{message.content}</p>
         </div>
       </div>
     );
@@ -51,7 +51,7 @@ export function ChatMessage({ message, isLast }: ChatMessageProps) {
     return (
       <Message className="justify-end">
         <div className="group flex flex-col items-end gap-1 max-w-[85%] sm:max-w-[75%]">
-          <MessageContent className="bg-primary text-primary-foreground px-4 py-3 border border-primary">
+          <MessageContent className="chat-user-text bg-primary text-primary-foreground px-4 py-3 border border-primary">
             {message.content}
           </MessageContent>
           <MessageActions
@@ -84,7 +84,7 @@ export function ChatMessage({ message, isLast }: ChatMessageProps) {
     <Message className="justify-start">
       <div className="group flex w-full flex-col gap-2">
         <MessageContent
-          className="prose prose-sm dark:prose-invert max-w-none"
+          className="max-w-none"
           markdown
         >
           {message.content}

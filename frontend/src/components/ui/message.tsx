@@ -38,8 +38,11 @@ function MessageContent({
   className,
   ...props
 }: MessageContentProps) {
+  // For markdown content (assistant messages), use chat-prose
+  // For non-markdown (user messages), the parent applies chat-user-text
   const baseClasses = cn(
-    "break-words whitespace-pre-wrap",
+    "break-words",
+    markdown ? "chat-prose" : "whitespace-pre-wrap",
     className
   );
 
@@ -49,30 +52,22 @@ function MessageContent({
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           components={{
+            // Let the chat-prose CSS handle styling
+            p({ children: pChildren, ...pProps }) {
+              return <p {...pProps}>{pChildren}</p>;
+            },
             code({ className: codeClassName, children: codeChildren, ...codeProps }) {
               const isInline = !codeClassName;
               return isInline ? (
-                <code
-                  className="bg-secondary px-1.5 py-0.5 text-xs font-mono border border-border"
-                  {...codeProps}
-                >
-                  {codeChildren}
-                </code>
+                <code {...codeProps}>{codeChildren}</code>
               ) : (
-                <code className={cn(codeClassName, "text-xs")} {...codeProps}>
+                <code className={codeClassName} {...codeProps}>
                   {codeChildren}
                 </code>
               );
             },
             pre({ children: preChildren, ...preProps }) {
-              return (
-                <pre
-                  className="p-4 overflow-x-auto text-xs bg-secondary border border-border font-mono"
-                  {...preProps}
-                >
-                  {preChildren}
-                </pre>
-              );
+              return <pre {...preProps}>{preChildren}</pre>;
             },
             a({ href, children: linkChildren, ...linkProps }) {
               return (
@@ -80,7 +75,6 @@ function MessageContent({
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary underline underline-offset-2 hover:text-primary/80"
                   {...linkProps}
                 >
                   {linkChildren}

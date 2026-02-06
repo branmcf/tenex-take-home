@@ -6,7 +6,7 @@ import {
     useMemo,
     type ReactNode,
 } from "react";
-import { useSession, signOut as authSignOut, authClient } from "@/lib/auth-client";
+import { useSession, authClient } from "@/lib/auth-client";
 
 export type AuthProvider = "email" | "google" | "github";
 
@@ -68,7 +68,9 @@ export function AuthProvider( { children }: { children: ReactNode } ) {
     }, [ session ] );
 
     const signOut = async () => {
-        await authSignOut();
+        // Call Better Auth's signOut - this clears the session cookie
+        await authClient.signOut();
+        // Force a hard redirect to clear any cached React state
         window.location.href = "/login";
     };
 
