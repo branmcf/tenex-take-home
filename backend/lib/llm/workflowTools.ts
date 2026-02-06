@@ -94,7 +94,7 @@ export const workflowTools = {
         , outputSchema: emptyOutputSchema
     } )
     , reorder_steps: tool( {
-        description: 'Change dependencies for a workflow step.'
+        description: 'Change when a step runs by updating its dependencies. A step runs after ALL its dependencies complete. To make step X run before step Y, call this with stepId=Y and add X to newDependsOn.'
         , inputSchema: reorderStepsInputSchema
         , outputSchema: emptyOutputSchema
     } )

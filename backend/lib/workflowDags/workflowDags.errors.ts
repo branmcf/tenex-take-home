@@ -1,5 +1,6 @@
 import { ResourceError } from '../../errors';
 
+// error thrown when dag validation fails
 export class WorkflowDagValidationFailed extends ResourceError {
     public constructor ( message?: string ) {
         super( {
@@ -11,6 +12,7 @@ export class WorkflowDagValidationFailed extends ResourceError {
     }
 }
 
+// error thrown when applying dag modifications fails
 export class WorkflowDagModificationFailed extends ResourceError {
     public constructor ( message?: string ) {
         super( {

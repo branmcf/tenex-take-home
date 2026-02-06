@@ -4,7 +4,7 @@ import {
     , requestValidator
     , chatOwnershipValidator
 } from '../../middleware';
-import { deleteChatHandler } from './chats.ctrl';
+import { deleteChatHandler, streamChatEventsHandler } from './chats.ctrl';
 import { messagesRouter } from '../messages';
 import { workflowRunsRouter } from '../workflowRuns';
 
@@ -18,6 +18,11 @@ chatsRouter
         , requestValidator( 'DELETE_CHAT' )
         , chatOwnershipValidator
         , requestHandlerErrorWrapper( deleteChatHandler )
+    )
+    .get(
+        '/:chatId/events'
+        , chatOwnershipValidator
+        , requestHandlerErrorWrapper( streamChatEventsHandler )
     );
 
 // nested chat message routes - ownership validated for all nested routes

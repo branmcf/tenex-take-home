@@ -9,6 +9,7 @@ import { LLMRequestFailed } from './messages.errors';
 import { SourceResponse } from './messages.types';
 import { updateChatTitle } from './messages.service';
 import { buildChatTitlePrompt } from '../../utils/constants';
+import { chatEvents } from '../../lib/chatEvents';
 
 /**
  * generate a response from the LLM based on the user's message
@@ -97,6 +98,9 @@ export const generateAndUpdateChatTitle = async (
         return error( updateResult.value );
     }
 
+    // emit event so SSE listeners can notify frontend
+    chatEvents.emitTitleUpdated( params.chatId, title );
+
     // return success
     return success( undefined );
 
@@ -155,6 +159,9 @@ export const generateFallbackChatTitle = async (
         // return the error
         return error( updateResult.value );
     }
+
+    // emit event so SSE listeners can notify frontend
+    chatEvents.emitTitleUpdated( params.chatId, title );
 
     // return success
     return success( undefined );

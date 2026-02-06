@@ -242,6 +242,7 @@ export const buildWorkflowRunSnapshot = (
         , dependsOn: step.dependsOn ?? []
     } ) );
 
+    // keep response steps in dependency order for stable rendering
     const orderedDagSteps = sortWorkflowDagSteps( normalizedDagSteps );
 
     // map dag steps to snapshot steps

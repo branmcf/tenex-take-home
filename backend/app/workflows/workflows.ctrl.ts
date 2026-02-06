@@ -131,6 +131,7 @@ export const getWorkflowByIdHandler = async (
     // map the ordered steps to response format
     const steps: WorkflowStepResponse[] = orderedSteps.map( ( step, index ) => {
 
+        // normalize tools into a consistent response shape
         const tools = ( step.tools ?? [] ).map( ( tool: unknown ) => {
             if ( typeof tool === 'string' ) {
                 return {

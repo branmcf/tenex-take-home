@@ -50,7 +50,7 @@ export function AppSidebar() {
   const { startNewChat, currentChatId } = useChatContext();
   const pathname = usePathname();
   const { user } = useAuth();
-  const { registerRefetch } = useChatRefetch();
+  const { registerRefetch, triggerRefetch } = useChatRefetch();
 
   // Fetch user chats (start with 30 for sidebar)
   const { chats, isLoading, deleteChat, hasMore, fetchMore, refetch } = useChats({
@@ -61,10 +61,9 @@ export function AppSidebar() {
 
   // Register the refetch function so other components can trigger it
   React.useEffect(() => {
-    registerRefetch(refetch);
-    // Only register once, not on every refetch change
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [registerRefetch]);
+    const unregister = registerRefetch(refetch);
+    return unregister;
+  }, [registerRefetch, refetch]);
 
   // Ref for the scrollable content area
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
@@ -91,11 +90,13 @@ export function AppSidebar() {
 
   const handleDeleteChat = React.useCallback(async (chatId: string) => {
     await deleteChat(chatId);
+    // Trigger refetch so other consumers (e.g., search modal) update their state
+    triggerRefetch();
     // If we deleted the currently active chat, navigate to home
     if (chatId === currentChatId) {
       startNewChat();
     }
-  }, [deleteChat, currentChatId, startNewChat]);
+  }, [deleteChat, currentChatId, startNewChat, triggerRefetch]);
 
   // When collapsed, only show the toggle icon
   if (isCollapsed) {

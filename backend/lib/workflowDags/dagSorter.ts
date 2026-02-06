@@ -3,6 +3,11 @@ import {
     , WorkflowStep
 } from './workflowDags.types';
 
+/**
+ * @notice Build a stable ordering map so we can keep original ordering when ties occur.
+ * @param steps - workflow steps in their original order
+ * @returns Map of step id -> original index
+ */
 const buildStepOrderLookup = ( steps: WorkflowStep[] ) => {
     const orderLookup = new Map<string, number>();
 
@@ -13,6 +18,11 @@ const buildStepOrderLookup = ( steps: WorkflowStep[] ) => {
     return orderLookup;
 };
 
+/**
+ * @notice Build graph helpers for topological sorting.
+ * @param steps - workflow steps
+ * @returns step map, indegree counts, and dependents list
+ */
 const buildDependencyMaps = ( steps: WorkflowStep[] ) => {
     const stepMap = new Map( steps.map( step => [ step.id, step ] ) );
     const indegree = new Map<string, number>();
@@ -27,6 +37,7 @@ const buildDependencyMaps = ( steps: WorkflowStep[] ) => {
         const deps = step.dependsOn ?? [];
         deps.forEach( depId => {
             if ( !stepMap.has( depId ) ) {
+                // ignore unknown deps here; validator will catch this upstream
                 return;
             }
 
@@ -38,6 +49,11 @@ const buildDependencyMaps = ( steps: WorkflowStep[] ) => {
     return { stepMap, indegree, dependents };
 };
 
+/**
+ * @notice Keep the queue deterministic by original step order.
+ * @param queue - steps ready to process
+ * @param orderLookup - original ordering map
+ */
 const sortQueueByOriginalOrder = ( queue: WorkflowStep[], orderLookup: Map<string, number> ) => {
     queue.sort( ( left, right ) => {
         return ( orderLookup.get( left.id ) ?? 0 ) - ( orderLookup.get( right.id ) ?? 0 );
@@ -83,6 +99,7 @@ export const sortWorkflowDagSteps = ( steps: WorkflowStep[] ): WorkflowStep[] =>
             continue;
         }
 
+        // record the step, then reduce indegrees of its dependents
         sorted.push( step );
 
         const outgoing = dependents.get( step.id ) ?? [];

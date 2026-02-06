@@ -27,6 +27,11 @@ import {
     , formatConversationHistoryForPrompt
 } from '../../utils/constants';
 
+/**
+ * @notice Normalize cached tool records into workflow tool refs.
+ * @param tools - cached tools from MCP
+ * @returns workflow tool references
+ */
 const buildToolRefs = ( tools: Array<{ id: string; name: string; version?: string | null; externalId?: string | null }> ): WorkflowToolRef[] => {
     return tools.map( tool => ( {
         id: tool.externalId ?? tool.id
@@ -35,6 +40,11 @@ const buildToolRefs = ( tools: Array<{ id: string; name: string; version?: strin
     } ) );
 };
 
+/**
+ * @notice Normalize the dag payload into a safe structure.
+ * @param dag - raw dag input
+ * @returns normalized dag
+ */
 const normalizeDag = ( dag: unknown ): WorkflowDAG => {
     const fallback: WorkflowDAG = { steps: [] };
 
@@ -59,12 +69,22 @@ const normalizeDag = ( dag: unknown ): WorkflowDAG => {
     };
 };
 
+/**
+ * @notice Build a tool lookup key for comparisons.
+ * @param tool - tool reference
+ * @returns normalized key
+ */
 const normalizeToolKey = ( tool: WorkflowToolRef ) => {
     const id = tool.id;
     const version = tool.version ?? '';
     return `${ id }::${ version }`;
 };
 
+/**
+ * @notice Build a lookup map of tools by key.
+ * @param tools - available tool references
+ * @returns map of tool key -> tool ref
+ */
 const buildToolLookup = ( tools: WorkflowToolRef[] ) => {
     const lookup = new Map<string, WorkflowToolRef>();
 
@@ -76,6 +96,12 @@ const buildToolLookup = ( tools: WorkflowToolRef[] ) => {
     return lookup;
 };
 
+/**
+ * @notice Resolve tool ids to full tool refs for storage.
+ * @param tools - tool inputs from tool calls
+ * @param availableTools - available tools to resolve against
+ * @returns resolved tool refs
+ */
 const resolveToolRefs = (
     tools: Array<{ id: string; version?: string }> | undefined
     , availableTools: WorkflowToolRef[]
@@ -95,16 +121,32 @@ const resolveToolRefs = (
     } );
 };
 
+/**
+ * @notice Normalize tool lists for stable comparison.
+ * @param tools - tool refs on a step
+ * @returns sorted list of tool keys
+ */
 const normalizeToolList = ( tools?: WorkflowToolRef[] ) => {
     return ( tools ?? [] )
         .map( tool => `${ tool.id }::${ tool.version ?? '' }` )
         .sort();
 };
 
+/**
+ * @notice Normalize dependency lists for comparison.
+ * @param dependsOn - raw dependsOn list
+ * @returns normalized list
+ */
 const normalizeDependsOn = ( dependsOn?: string[] ) => {
     return dependsOn ?? [];
 };
 
+/**
+ * @notice Check whether two steps match by content and dependencies.
+ * @param left - step to compare
+ * @param right - step to compare
+ * @returns true if steps are equivalent
+ */
 const stepsMatch = ( left: WorkflowDAG['steps'][number], right: WorkflowDAG['steps'][number] ) => {
     if ( left.name !== right.name ) {
         return false;
@@ -143,6 +185,12 @@ const stepsMatch = ( left: WorkflowDAG['steps'][number], right: WorkflowDAG['ste
     return true;
 };
 
+/**
+ * @notice Identify steps that are new or changed and need tool usage decisions.
+ * @param currentDag - current dag
+ * @param proposedDag - proposed dag
+ * @returns steps needing tool usage decisions
+ */
 const getStepsNeedingToolUsageDecision = ( currentDag: WorkflowDAG, proposedDag: WorkflowDAG ) => {
     const currentStepMap = new Map( currentDag.steps.map( step => ( [ step.id, step ] ) ) );
 
@@ -156,6 +204,11 @@ const getStepsNeedingToolUsageDecision = ( currentDag: WorkflowDAG, proposedDag:
     } );
 };
 
+/**
+ * @notice Apply tool usage decisions to a dag.
+ * @param params - dag, decisions, and tool references
+ * @returns updated dag
+ */
 const applyToolUsageDecisions = (
     params: {
         dag: WorkflowDAG;
@@ -194,6 +247,11 @@ const applyToolUsageDecisions = (
     };
 };
 
+/**
+ * @notice Build a default "no tools" decision set.
+ * @param steps - steps requiring decisions
+ * @returns decisions with empty tool lists
+ */
 const buildNoToolsDecisions = ( steps: WorkflowDAG['steps'] ) => {
     return steps.map( step => ( {
         stepId: step.id
@@ -202,6 +260,11 @@ const buildNoToolsDecisions = ( steps: WorkflowDAG['steps'] ) => {
     } ) );
 };
 
+/**
+ * @notice Turn a step plan into add_step tool calls.
+ * @param steps - planned steps
+ * @returns tool calls to add steps
+ */
 const buildAddStepToolCalls = ( steps: Array<{ name: string; instruction: string }> ) => {
     return steps.map( ( step, index ) => {
         const tempId = `temp_step_${ index + 1 }`;
@@ -220,6 +283,11 @@ const buildAddStepToolCalls = ( steps: Array<{ name: string; instruction: string
     } );
 };
 
+/**
+ * @notice Build a friendly assistant message for draft steps.
+ * @param stepCount - number of steps planned
+ * @returns assistant message
+ */
 const buildDraftAssistantMessage = ( stepCount: number ) => {
     if ( stepCount <= 0 ) {
         return 'I prepared a draft workflow. Review the proposed changes below and apply if they look right.';
@@ -228,6 +296,7 @@ const buildDraftAssistantMessage = ( stepCount: number ) => {
     return `I drafted ${ stepCount } step${ stepCount !== 1 ? 's' : '' } for your workflow. Review the proposed changes below and apply if they look right.`;
 };
 
+// history summarization thresholds for prompt context
 const HISTORY_SUMMARY_TRIGGER = 12;
 const HISTORY_RECENT_MESSAGES = 8;
 const HISTORY_SUMMARY_MAX_WORDS = 140;
@@ -238,6 +307,11 @@ type WorkflowChatHistoryMessage = {
     createdAt: string;
 };
 
+/**
+ * @notice Normalize message roles to the workflow history enum.
+ * @param role - raw role string
+ * @returns normalized role
+ */
 const normalizeRole = ( role: string ): WorkflowChatHistoryMessage['role'] => {
     const normalized = role.toLowerCase();
 
@@ -248,6 +322,12 @@ const normalizeRole = ( role: string ): WorkflowChatHistoryMessage['role'] => {
     return 'assistant';
 };
 
+/**
+ * @notice Normalize workflow chat history for LLM context.
+ * @param messages - raw chat messages
+ * @param currentUserMessage - user message that triggered this request
+ * @returns normalized history
+ */
 const normalizeWorkflowHistory = (
     messages: Array<{ role: string; content: string; createdAt: string } | null>
     , currentUserMessage: string
@@ -277,6 +357,11 @@ const normalizeWorkflowHistory = (
 };
 
 
+/**
+ * @notice Summarize conversation history for prompt context.
+ * @param params - history + model configuration
+ * @returns summary string or null
+ */
 const summarizeWorkflowHistory = async (
     params: {
         messages: WorkflowChatHistoryMessage[];
@@ -310,6 +395,12 @@ const summarizeWorkflowHistory = async (
     return summaryResult.value.content.trim();
 };
 
+/**
+ * @notice Build the conversation context string for the LLM.
+ * @param summary - optional history summary
+ * @param recentMessages - recent messages to include
+ * @returns conversation context string or null
+ */
 const buildConversationContext = (
     summary: string | null
     , recentMessages: WorkflowChatHistoryMessage[]
@@ -334,10 +425,20 @@ const buildConversationContext = (
     return `Recent messages:\n${ recentBlock }`;
 };
 
+/**
+ * @notice Generate a unique step id.
+ * @returns step id string
+ */
 const generateStepId = () => {
     return `step_${ Date.now() }_${ Math.floor( Math.random() * 100000 ) }`;
 };
 
+/**
+ * @notice Normalize assistant content and handle empty outputs.
+ * @param content - raw assistant content
+ * @param hasProposedChanges - whether proposal data exists
+ * @returns normalized assistant content
+ */
 const normalizeAssistantContent = (
     content: string | null | undefined
     , hasProposedChanges: boolean
@@ -355,6 +456,11 @@ const normalizeAssistantContent = (
     return 'Could you clarify what you want to change in this workflow?';
 };
 
+/**
+ * @notice Append the proposal call-to-action to assistant content.
+ * @param content - assistant content
+ * @returns content with proposal prompt
+ */
 const appendProposalPrompt = ( content: string ): string => {
     const normalized = content.toLowerCase();
     const alreadyMentionsApproval = normalized.includes( 'apply' )
@@ -369,10 +475,9 @@ const appendProposalPrompt = ( content: string ): string => {
 };
 
 /**
- * generate a response from the LLM for workflow authoring
- *
- * @param params - the parameters for generating the response
- * @returns Either<ResourceError, { content: string }>
+ * @notice Generate assistant response and (optionally) a workflow proposal.
+ * @param params - workflow chat input params
+ * @returns assistant content and proposal payload
  */
 export const generateWorkflowChatResponse = async (
     params: {

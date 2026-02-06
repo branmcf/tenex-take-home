@@ -3,7 +3,11 @@
 import * as React from "react";
 
 interface ChatRefetchContextValue {
-  registerRefetch: (refetch: () => void) => void;
+  /**
+   * Register a refetch callback. Returns an unregister function.
+   * Multiple components can register their own refetch callbacks.
+   */
+  registerRefetch: (refetch: () => void) => () => void;
   triggerRefetch: () => void;
 }
 
@@ -14,7 +18,7 @@ export function useChatRefetch() {
   if (!context) {
     // Return no-op functions if provider isn't available
     return {
-      registerRefetch: () => {},
+      registerRefetch: () => () => {},
       triggerRefetch: () => {},
     };
   }
@@ -22,16 +26,22 @@ export function useChatRefetch() {
 }
 
 export function ChatRefetchProvider({ children }: { children: React.ReactNode }) {
-  const refetchCallbackRef = React.useRef<(() => void) | null>(null);
+  // Use a Set to support multiple refetch callbacks
+  const refetchCallbacksRef = React.useRef<Set<() => void>>(new Set());
 
   const registerRefetch = React.useCallback((refetch: () => void) => {
-    refetchCallbackRef.current = refetch;
+    refetchCallbacksRef.current.add(refetch);
+    // Return unregister function
+    return () => {
+      refetchCallbacksRef.current.delete(refetch);
+    };
   }, []);
 
   const triggerRefetch = React.useCallback(() => {
-    if (refetchCallbackRef.current) {
-      refetchCallbackRef.current();
-    }
+    // Call all registered refetch callbacks
+    refetchCallbacksRef.current.forEach((callback) => {
+      callback();
+    });
   }, []);
 
   const value = React.useMemo(

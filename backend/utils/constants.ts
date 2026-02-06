@@ -199,6 +199,30 @@ ${ conversationBlock }
 User request:
 ${ params.userMessage }
 
+CRITICAL - Understanding Step Ordering:
+Steps run in DEPENDENCY order, not list order. A step runs only after ALL its dependencies complete.
+- If step X has no dependencies, it runs first (can run in parallel with other no-dependency steps).
+- If step Y depends on X, then X runs first and Y runs after X completes.
+- To change when a step runs, you must change its "dependsOn" array using reorder_steps or update_step.
+
+Ordering Language Translation Guide:
+When users describe ordering, translate to dependency changes:
+
+| User says                                    | Meaning                        | Action                                      |
+|----------------------------------------------|--------------------------------|---------------------------------------------|
+| "X before Y" / "X then Y" / "X first, then Y"| Y waits for X                  | reorder_steps(stepId: Y, newDependsOn: [X]) |
+| "X after Y" / "Y then X" / "Y before X"      | X waits for Y                  | reorder_steps(stepId: X, newDependsOn: [Y]) |
+| "Move X before Y" / "Put X ahead of Y"       | Y waits for X                  | reorder_steps(stepId: Y, newDependsOn: [X]) |
+| "Move X after Y" / "Put X behind Y"          | X waits for Y                  | reorder_steps(stepId: X, newDependsOn: [Y]) |
+| "X should run first" / "Start with X"        | X has no dependencies          | reorder_steps(stepId: X, newDependsOn: [])  |
+| "X should run last" / "End with X"           | X depends on all other steps   | reorder_steps(stepId: X, newDependsOn: [all other step ids]) |
+| "X depends on Y" / "X needs Y" / "X requires Y" | X waits for Y               | reorder_steps(stepId: X, newDependsOn: [Y]) |
+| "Y feeds into X" / "Y's output goes to X"    | X waits for Y                  | reorder_steps(stepId: X, newDependsOn: [Y]) |
+| "Move X earlier" / "Move X up"               | Reduce X's dependencies        | reorder_steps with fewer/no dependencies    |
+| "Move X later" / "Move X down"               | Add dependencies to X          | reorder_steps with more dependencies        |
+
+Key insight: "X before Y" modifies Y (add X to Y's dependencies), NOT X.
+
 Guidelines:
 - If the request requires a change, call one or more tools.
 - Always use tool calls to add, update, delete, or reorder steps.
@@ -208,6 +232,7 @@ Guidelines:
 - Prefer adding prompt-only steps; tools are optional and handled separately.
 - Step instructions should explicitly reference either the user input or a prior step output when relevant.
 - Do not answer the user's question; only describe changes to the workflow definition.
+- When reordering, carefully identify WHICH step's dependencies need to change based on the translation guide above.
 
 After tool calls, respond with a short, user-facing summary of the changes.`;
 

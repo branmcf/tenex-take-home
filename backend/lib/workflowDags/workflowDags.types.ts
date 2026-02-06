@@ -1,9 +1,11 @@
+// tool reference stored on steps
 export interface WorkflowToolRef {
     id: string;
     name?: string;
     version?: string;
 }
 
+// single node in the workflow dag
 export interface WorkflowStep {
     id: string;
     name: string;
@@ -12,10 +14,12 @@ export interface WorkflowStep {
     dependsOn?: string[];
 }
 
+// dag wrapper used throughout the system
 export interface WorkflowDAG {
     steps: WorkflowStep[];
 }
 
+// llm tool call to add a step to the dag
 export interface AddStepToolCall {
     name: 'add_step';
     args: {
@@ -29,6 +33,7 @@ export interface AddStepToolCall {
     };
 }
 
+// llm tool call to update a step in the dag
 export interface UpdateStepToolCall {
     name: 'update_step';
     args: {
@@ -42,6 +47,7 @@ export interface UpdateStepToolCall {
     };
 }
 
+// llm tool call to delete a step from the dag
 export interface DeleteStepToolCall {
     name: 'delete_step';
     args: {
@@ -51,6 +57,7 @@ export interface DeleteStepToolCall {
     };
 }
 
+// llm tool call to change dependency order for a step
 export interface ReorderStepsToolCall {
     name: 'reorder_steps';
     args: {
@@ -59,6 +66,7 @@ export interface ReorderStepsToolCall {
     };
 }
 
+// union of all workflow authoring tool calls
 export type LLMToolCall =
     | AddStepToolCall
     | UpdateStepToolCall

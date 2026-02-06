@@ -462,7 +462,7 @@ export function WorkflowChat({ className }: WorkflowChatProps) {
             className="border border-border bg-background"
           >
             <PromptInputTextarea
-              placeholder="Describe how you want to modify this workflow..."
+              placeholder="Describe your workflow..."
               className="min-h-[48px] py-3 px-4 text-base"
             />
             <PromptInputActions className="flex items-center justify-between gap-2 px-3 pb-3">

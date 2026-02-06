@@ -34,6 +34,16 @@ export function ChatContainer({ className }: ChatContainerProps) {
 
   const isNewChat = messages.length === 0 && !isLoading;
 
+  // Generate a stable key that changes when workflow runs transition to terminal states
+  // This forces the scroll container to re-mount and recalculate scroll position
+  const scrollContainerKey = React.useMemo(() => {
+    const terminalRuns = workflowRuns
+      .filter((run) => run.status === "PASSED" || run.status === "FAILED" || run.status === "CANCELLED")
+      .map((run) => `${run.id}:${run.status}`)
+      .join(",");
+    return `chat-scroll-${terminalRuns || "none"}`;
+  }, [workflowRuns]);
+
   const handleSubmit = React.useCallback(() => {
     sendMessage(input);
   }, [input, sendMessage]);
@@ -41,7 +51,7 @@ export function ChatContainer({ className }: ChatContainerProps) {
   return (
     <div className={cn("flex h-full min-h-0 flex-col", className)}>
       {!isNewChat && (
-        <ChatContainerRoot className="relative flex-1 min-h-0 overflow-hidden">
+        <ChatContainerRoot key={scrollContainerKey} className="relative flex-1 min-h-0 overflow-hidden">
           <ChatContainerContent className="mx-auto w-full max-w-3xl px-4 py-8">
             <div className="space-y-8">
               {messages.map((message, index) => {

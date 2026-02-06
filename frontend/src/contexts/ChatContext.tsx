@@ -158,6 +158,9 @@ export function ChatProvider({
   const workflowStreamRef = React.useRef<EventSource | null>(null);
   const activeWorkflowRunIdRef = React.useRef<string | null>(null);
 
+  // Keep reference to the SSE connection for chat title updates
+  const chatEventsStreamRef = React.useRef<EventSource | null>(null);
+
   // Ref to track when we're actively sending a message in a new chat
   // This prevents the URL change from triggering a message fetch that would overwrite optimistic updates
   const isSendingNewChatRef = React.useRef(false);
@@ -229,6 +232,54 @@ export function ChatProvider({
     }
     activeWorkflowRunIdRef.current = null;
   }, []);
+
+  // Close the chat events SSE connection
+  const closeChatEventsStream = React.useCallback(() => {
+    if (chatEventsStreamRef.current) {
+      chatEventsStreamRef.current.close();
+      chatEventsStreamRef.current = null;
+    }
+  }, []);
+
+  // Subscribe to chat events (title updates) for a new chat
+  const subscribeToChatEvents = React.useCallback(
+    (chatId: string) => {
+      // Close any existing connection
+      closeChatEventsStream();
+
+      const streamUrl = `${API_BASE_URL}/api/chats/${chatId}/events`;
+      const eventSource = new EventSource(streamUrl, {
+        withCredentials: true,
+      });
+
+      chatEventsStreamRef.current = eventSource;
+
+      eventSource.onmessage = (event) => {
+        let payload: { type: string; chatId?: string; title?: string };
+        try {
+          payload = JSON.parse(event.data) as { type: string; chatId?: string; title?: string };
+        } catch {
+          return;
+        }
+
+        if (payload.type === "title_updated") {
+          // Title is ready - trigger refetch and close the stream
+          triggerRefetch();
+          closeChatEventsStream();
+        } else if (payload.type === "timeout") {
+          // Timed out waiting for title - still trigger refetch in case title was set
+          triggerRefetch();
+          closeChatEventsStream();
+        }
+      };
+
+      eventSource.onerror = () => {
+        // On error, close the stream - the chat may still appear on next manual refresh
+        closeChatEventsStream();
+      };
+    },
+    [closeChatEventsStream, triggerRefetch]
+  );
 
   const startWorkflowStream = React.useCallback(
     (run: WorkflowRunState) => {
@@ -318,9 +369,7 @@ export function ChatProvider({
             setIsLoading(false);
 
             if (run.isNewChat) {
-              setTimeout(() => {
-                triggerRefetch();
-              }, 3500);
+              subscribeToChatEvents(run.chatId);
             }
           }
 
@@ -358,14 +407,15 @@ export function ChatProvider({
         });
       };
     },
-    [closeWorkflowStream, triggerRefetch]
+    [closeWorkflowStream, subscribeToChatEvents]
   );
 
   React.useEffect(() => {
     return () => {
       closeWorkflowStream();
+      closeChatEventsStream();
     };
-  }, [closeWorkflowStream]);
+  }, [closeWorkflowStream, closeChatEventsStream]);
 
   // Extract chatId from URL pathname
   const chatIdFromUrl = React.useMemo(() => {
@@ -468,6 +518,7 @@ export function ChatProvider({
     setIsLoading(false);
     setWorkflowRuns([]);
     closeWorkflowStream();
+    closeChatEventsStream();
 
     // Check if we're on a non-chat page (like /workflows)
     // If so, use router.push to navigate to home
@@ -480,7 +531,7 @@ export function ChatProvider({
       // If on a chat page with existing chat, update URL to root without remount
       window.history.replaceState(null, "", "/");
     }
-  }, [hasMessages, currentChatId, pathname, router, closeWorkflowStream]);
+  }, [hasMessages, currentChatId, pathname, router, closeWorkflowStream, closeChatEventsStream]);
 
   // Load an existing chat (navigates to chat page)
   const loadChat = React.useCallback((chatId: string) => {
@@ -488,9 +539,10 @@ export function ChatProvider({
     setMessages([]);
     setWorkflowRuns([]);
     closeWorkflowStream();
+    closeChatEventsStream();
     // Use router.push for loading existing chats since we want full navigation
     router.push(`/chats/${chatId}`);
-  }, [router, closeWorkflowStream]);
+  }, [router, closeWorkflowStream, closeChatEventsStream]);
 
   // Send a message
   const sendMessage = React.useCallback(
@@ -587,11 +639,9 @@ export function ChatProvider({
           }));
           setMessages(messagesWithDates);
 
-          // Trigger sidebar refetch to show the new chat with fallback title
+          // Subscribe to chat events to know when title is set
           if (isNewChat) {
-            setTimeout(() => {
-              triggerRefetch();
-            }, 500);
+            subscribeToChatEvents(chatIdForRequest);
           }
 
           // Show error toast for immediate feedback
@@ -616,12 +666,9 @@ export function ChatProvider({
 
           setMessages((prev) => [...prev, assistantMessage]);
 
-          // If this was a new chat, trigger a refetch of the chat list
-          // Wait for the backend to generate the title (it happens async)
+          // If this was a new chat, subscribe to chat events to know when title is ready
           if (isNewChat) {
-            setTimeout(() => {
-              triggerRefetch();
-            }, 3500); // Increased to 3.5 seconds to give more time for title generation
+            subscribeToChatEvents(chatIdForRequest);
           }
         }
       } catch (error) {
@@ -656,7 +703,7 @@ export function ChatProvider({
       selectedModel,
       selectedWorkflow,
       user,
-      triggerRefetch,
+      subscribeToChatEvents,
       startWorkflowStream,
     ]
   );

@@ -45,3 +45,12 @@ export interface DeleteChatRequest extends Request {
 export interface DeleteChatResponse {
     success: boolean;
 }
+
+/**
+ * request type for streaming chat events
+ */
+export interface StreamChatEventsRequest extends Request {
+    params: {
+        chatId: string;
+    };
+}

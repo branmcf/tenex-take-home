@@ -3,9 +3,7 @@ import {
     , error
     , success
 } from '../../types';
-import {
-    WorkflowDagModificationFailed
-} from './workflowDags.errors';
+import { WorkflowDagModificationFailed } from './workflowDags.errors';
 import {
     WorkflowDAG
     , WorkflowStep
@@ -15,20 +13,32 @@ import {
 import { validateWorkflowDag } from './dagValidator';
 import { sortWorkflowDagSteps } from './dagSorter';
 
+/**
+ * @notice Deep-ish clone the DAG so we never mutate input.
+ * @param dag - source dag
+ * @returns cloned dag
+ */
 const cloneDag = ( dag: WorkflowDAG ): WorkflowDAG => ( {
     steps: dag.steps.map( step => ( {
         id: step.id
         , name: step.name
         , instruction: step.instruction
-        , tools: step.tools ? step.tools.map( tool => ( {
-            id: tool.id
-            , name: tool.name
-            , version: tool.version
-        } ) ) : []
+        , tools: step.tools
+            ? step.tools.map( tool => ( {
+                id: tool.id
+                , name: tool.name
+                , version: tool.version
+            } ) )
+            : []
         , dependsOn: step.dependsOn ? [ ...step.dependsOn ] : []
     } ) )
 } );
 
+/**
+ * @notice Build a lookup for available tools by id + version.
+ * @param tools - available tool refs
+ * @returns map of tool key -> tool ref
+ */
 const buildToolLookup = ( tools: WorkflowToolRef[] ) => {
     const lookup = new Map<string, WorkflowToolRef>();
 
@@ -41,6 +51,12 @@ const buildToolLookup = ( tools: WorkflowToolRef[] ) => {
     return lookup;
 };
 
+/**
+ * @notice Resolve tool inputs into full references for the dag.
+ * @param tools - tool inputs from tool calls
+ * @param availableTools - known tool references
+ * @returns resolved tool references
+ */
 const resolveToolRefs = (
     tools: Array<{ id: string; version: string }> | undefined
     , availableTools: WorkflowToolRef[]
@@ -61,10 +77,21 @@ const resolveToolRefs = (
 
 };
 
+/**
+ * @notice Resolve temporary ids into real ids.
+ * @param id - step id or temp id
+ * @param tempIdMap - map of temp id -> generated id
+ * @returns resolved step id
+ */
 const resolveStepId = ( id: string, tempIdMap: Map<string, string> ) => {
     return tempIdMap.get( id ) ?? id;
 };
 
+/**
+ * @notice Get the last step id in a list (used for "append to end").
+ * @param steps - workflow steps
+ * @returns last step id if present
+ */
 const getLastStepId = ( steps: WorkflowStep[] ) => {
     if ( steps.length === 0 ) {
         return undefined;
@@ -106,7 +133,7 @@ export const applyToolCallsToDag = (
                 tempIdMap.set( toolCall.args.tempId, generatedId );
             }
 
-            // resolve dependencies
+            // resolve dependencies (temp ids -> real ids)
             let dependsOn = toolCall.args.dependsOn?.map( id => resolveStepId( id, tempIdMap ) ) ?? [];
 
             // apply positional helpers if no dependsOn provided
@@ -125,7 +152,7 @@ export const applyToolCallsToDag = (
                 }
             }
 
-            // resolve tool references
+            // resolve tool references against available tools
             const resolvedTools = resolveToolRefs( toolCall.args.tools, params.availableTools );
 
             // add the new step
@@ -143,6 +170,7 @@ export const applyToolCallsToDag = (
 
             // find the step to update
             const step = updatedDag.steps.find( existingStep => existingStep.id === resolvedStepId );
+
             if ( !step ) {
                 return error( new WorkflowDagModificationFailed( `Step not found: ${ resolvedStepId }.` ) );
             }
@@ -151,6 +179,7 @@ export const applyToolCallsToDag = (
             if ( toolCall.args.name ) {
                 step.name = toolCall.args.name;
             }
+
             if ( toolCall.args.instruction ) {
                 step.instruction = toolCall.args.instruction;
             }
@@ -184,11 +213,12 @@ export const applyToolCallsToDag = (
 
             // find the step to delete
             const deleteIndex = updatedDag.steps.findIndex( step => step.id === resolvedStepId );
+
             if ( deleteIndex < 0 ) {
                 return error( new WorkflowDagModificationFailed( `Step not found: ${ resolvedStepId }.` ) );
             }
 
-            // capture dependencies for rewire
+            // capture dependencies for rewire so downstream steps stay connected
             const deletedStep = updatedDag.steps[ deleteIndex ];
             const deletedDependsOn = deletedStep.dependsOn ?? [];
 
@@ -222,11 +252,12 @@ export const applyToolCallsToDag = (
 
             // find the step to update
             const step = updatedDag.steps.find( existingStep => existingStep.id === resolvedStepId );
+
             if ( !step ) {
                 return error( new WorkflowDagModificationFailed( `Step not found: ${ resolvedStepId }.` ) );
             }
 
-            // update dependencies
+            // update dependencies directly to the provided order
             step.dependsOn = toolCall.args.newDependsOn.map( id => resolveStepId( id, tempIdMap ) );
         }
     }

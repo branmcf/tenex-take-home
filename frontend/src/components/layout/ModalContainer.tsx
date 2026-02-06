@@ -24,12 +24,11 @@ export function ModalContainer() {
     enabled: !!user?.id,
   });
 
-  // Register refetch for search modal
+  // Always register refetch so the search modal stays in sync even when closed
   React.useEffect(() => {
-    if (activeModal === "search") {
-      registerRefetch(refetch);
-    }
-  }, [activeModal, registerRefetch, refetch]);
+    const unregister = registerRefetch(refetch);
+    return unregister;
+  }, [registerRefetch, refetch]);
 
   return (
     <>

@@ -40,6 +40,11 @@ import {
 } from '../../lib/workflowDags';
 import { getCachedTools } from '../tools/tools.helper';
 
+/**
+ * @notice Normalize stored proposal status into the API enum.
+ * @param status - raw status string from storage
+ * @returns normalized proposal status
+ */
 const normalizeProposalStatus = (
     status?: string | null
 ): WorkflowChatProposalHistoryItem['status'] => {
@@ -50,6 +55,11 @@ const normalizeProposalStatus = (
     return 'pending';
 };
 
+/**
+ * @notice Build a proposal response payload with sorted preview steps.
+ * @param proposal - proposal record from storage
+ * @returns proposal response with normalized preview steps
+ */
 const buildPendingProposalResponse = (
     proposal: {
         id: string;

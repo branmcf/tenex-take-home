@@ -20,15 +20,13 @@ export const auth = betterAuth( {
                     , subject: 'Verify your email address'
                     , html: `
                         <p>Thank you for signing up for HardWire!</p>
-                        <br/><br/>
-                        <p>Please verify your email address <a href="${ url }">here</a> to log in and get started.</p>
-                        <br/><br/>
-                        <p>Don't hesitate to reach out to us if you need anything!</p>
-                        <br/><br/>
-                        <p>All the best,</p>
                         <br/>
+                        <p>Please verify your email address <a href="${ url }">here</a> to log in and get started.</p>
+                        <br/>
+                        <p>Don't hesitate to reach out to us if you need anything!</p>
+                        <br/>
+                        <p>All the best,</p>
                         <p>HardWire Team</p>
-                        
                     `
                 } );
                 Log.info( 'Resend result', result );
