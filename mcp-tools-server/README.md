@@ -10,7 +10,7 @@ src="https://github.com/user-attachments/assets/53422d95-0249-4bac-9f54-18ce87d6
 
 ## Overview
 
-Standalone MCP (Model Context Protocol) tools service providing tool discovery and execution via a JSON-RPC-style API. Enables AI agents to search, read URLs, make HTTP requests, summarize text, and extract JSON through a unified interface.
+This is a standalone MCP ([Model Context Protocol](https://modelcontextprotocol.io/docs/getting-started/intro)) tools service providing tool discovery and execution via a JSON-RPC-style API. This service enables AI agents to search the web, read URLs, make HTTP requests, summarize text, and extract JSON through a unified interface.
 
 - **Responsibilities**
   - Tool registry with list/search/get operations
@@ -21,7 +21,7 @@ Standalone MCP (Model Context Protocol) tools service providing tool discovery a
   - Does not manage user sessions — stateless service
   - Does not store execution history — fire-and-forget execution
 
-**Runtime:** Node.js with Express and TypeScript  
+**Runtime:** Node.js with Express and TypeScript
 **Entry point:** `index.ts`  
 **Default port:** 4010
 
@@ -48,19 +48,22 @@ Standalone MCP (Model Context Protocol) tools service providing tool discovery a
 
 ### Prereqs
 
-- Node.js 18+ (see `Dockerfile` base image)
-- npm (lockfile: `package-lock.json`)
+- [Node.js](https://nodejs.org/en) 18+ (see `Dockerfile` base image)
+- [npm](https://www.npmjs.com/)
 
 ### Install
 
 ```bash
+# move into the mcp dir
 cd mcp-tools-server
+
+# install the dependencies
 npm install
 ```
 
 ### Configure
 
-Create `.env` with:
+Create a `.env` file with the following vars:
 
 ```env
 PORT=4010
@@ -78,6 +81,7 @@ MCP_HTTP_REQUEST_ALLOWLIST=api.example.com,*.trusted-domain.com
 ### Run
 
 ```bash
+# run the mcp server
 npm run dev
 ```
 
@@ -262,7 +266,7 @@ npm run test:watch
    - Where: `app/v0/tools/tools.helper.ts` (runToolHelper)
 
 2. **Implement Rate Limiting**
-   - Why: No protection against abuse; external fetch calls could be exploited
+   - Why: No native protection against abuse (reliant on upstream API rate limiting)
    - Where: `middleware/` — add rate limiter before `serviceAuth`
 
 3. **Add Execution Metrics/Tracing**
@@ -272,7 +276,3 @@ npm run test:watch
 4. **Support Tool Versioning in Registry**
    - Why: Version field exists but only one version per tool currently
    - Where: `data/tools.json`, `app/v0/tools/tools.service.ts`
-
-5. **Add Health Check Endpoint**
-   - Why: No dedicated health endpoint for load balancer probes
-   - Where: `server/server.app.ts` — add `GET /health`

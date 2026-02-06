@@ -1,28 +1,41 @@
 # HardWire Infrastructure
 
-<p align="center"> 
-    <img 
-        src="https://github.com/user-attachments/assets/825e4c1a-c569-476e-89d4-42f1d9d4ea02" 
-        alt="Hardwire" 
+<p align="center">
+    <img
+        src="https://github.com/user-attachments/assets/825e4c1a-c569-476e-89d4-42f1d9d4ea02"
+        alt="Hardwire"
         height="70%"
         width="100%">
 </p>
 
 ## Overview
 
-Terraform configurations for deploying the Hardwire platform to AWS. Provisions a multi-AZ VPC with public/private subnets, App Runner services for backend/frontend/MCP tools, RDS PostgreSQL with ElastiCache Redis for data persistence, and S3 + CloudFront for static sites.
+This repository contains production-ready Terraform configurations demonstrating how to deploy the HardWire platform to [AWS](https://aws.amazon.com/). These configurations serve as reference architecture for enterprise deployments—suitable for `terraform plan` validation but should not be actively applied. The live HardWire demonstration is hosted on [Railway](https://railway.com/).
 
 - **Responsibilities:**
-  - VPC networking with NAT gateways for secure private subnet egress
-  - Container orchestration via AWS App Runner (auto-deploy from GitHub)
+  - VPC networking with public/private subnet isolation across 2 AZs
+  - Container orchestration via AWS App Runner with GitHub auto-deploy
   - Managed database (RDS PostgreSQL 16, Multi-AZ) and cache (ElastiCache Redis 7.1)
-  - Static site hosting (marketing + docs) via S3 + CloudFront with Origin Access Control
+  - Static site hosting via S3 + CloudFront with Origin Access Control
   - Secrets management via AWS Secrets Manager
   - CloudWatch monitoring, alarms, and dashboards
-
 - **Non-goals:**
-  - Does not manage DNS records or Route 53 hosted zones (custom domains require manual ACM certificate setup)
-  - Does not include CI/CD pipelines—deployment credentials are output for external use
+  - Does not manage DNS records or Route 53 hosted zones
+  - Not actively deployed—this is reference architecture only
+
+---
+
+## Current Deployment
+
+HardWire is deployed on [Railway](https://railway.com/) with the following configuration:
+
+| Service | Root Dir | Builder / Build | Start | Watch Paths | Public Domain |
+|---------|----------|-----------------|-------|-------------|---------------|
+| backend | /backend | Dockerfile | Dockerfile CMD | /backend/** | api.hardwire.branmcf.com |
+| frontend | /frontend | Dockerfile | Dockerfile CMD | /frontend/** | app.hardwire.branmcf.com |
+| marketing | /marketing | Nixpacks, `npm run build` | `npm run preview -- --host 0.0.0.0 --port $PORT` | /marketing/** | hardwire.branmcf.com |
+| docs | /docs | Nixpacks, `pip install -r requirements.txt && mkdocs build` | `python -m http.server $PORT -d build` | /docs/** | docs.hardwire.branmcf.com |
+| mcp-tools | /mcp-tools-server | Dockerfile | Dockerfile CMD | /mcp-tools-server/** | none (private) |
 
 ---
 
@@ -31,14 +44,14 @@ Terraform configurations for deploying the Hardwire platform to AWS. Provisions 
 - **Run:** `cd infrastructure/environments/prod && terraform init && terraform plan`
 - **What to look at first:**
   - `environments/prod/main.tf` — VPC, subnets, NAT gateways, route tables (core networking)
-  - `environments/prod/app_runner.tf` — Three App Runner services with VPC connector, auto-scaling, health checks
-  - `environments/prod/database.tf` — RDS PostgreSQL (Multi-AZ, encrypted, Performance Insights) + ElastiCache Redis
+  - `environments/prod/app_runner.tf` — Three App Runner services with VPC connector, auto-scaling
+  - `environments/prod/database.tf` — RDS PostgreSQL (Multi-AZ, encrypted) + ElastiCache Redis
 - **What to judge:**
-  - **Network isolation:** Private subnets for databases, VPC connector for App Runner ↔ RDS/Redis
-  - **Security posture:** Secrets in AWS Secrets Manager, no public DB access, TLS 1.2+ on CloudFront
-  - **Scalability:** App Runner auto-scaling configs with min/max instances and concurrency limits
-  - **Operability:** CloudWatch alarms (CPU, memory, storage), SNS alerts, 7-day backup retention
-  - **Environment parity:** `prod/` and `staging/` share identical structure (diff only in sizing defaults)
+  - **Network isolation:** Private subnets for databases, VPC connector for App Runner → RDS/Redis
+  - **Security posture:** Secrets in AWS Secrets Manager, no public DB access, TLS on CloudFront
+  - **Scalability:** App Runner auto-scaling configs with min/max instances
+  - **Operability:** CloudWatch alarms, 7-day backup retention, deletion protection enabled
+  - **Environment parity:** `prod/` and `staging/` share identical structure
 
 ---
 
@@ -46,39 +59,36 @@ Terraform configurations for deploying the Hardwire platform to AWS. Provisions 
 
 ### Prereqs
 
-- Terraform >= 1.1.0
-- AWS CLI configured with credentials
-- GitHub connection ARN (create manually in AWS Console → App Runner → GitHub connections)
+- [Terraform](https://developer.hashicorp.com/terraform) >= 1.1.0
+- [AWS CLI](https://aws.amazon.com/cli/) configured with credentials
+- [GitHub connection ARN](https://docs.aws.amazon.com/dtconsole/latest/userguide/connections-create-github.html) (create manually in AWS Console)
 
 ### Install
 
 ```bash
+# move into the prod environment dir
 cd infrastructure/environments/prod
 ```
 
 ### Configure
 
-Copy and edit the example variables file:
-
 ```bash
+# copy the example variables file
 cp terraform.tfvars.example terraform.tfvars
 ```
 
-Required variables in `terraform.tfvars`:
-
-| Variable | Description |
-|----------|-------------|
-| `db_password` | PostgreSQL master password |
-| `github_connection_arn` | ARN from AWS App Runner GitHub connection |
-| `better_auth_secret` | Secret key for Better Auth (generate: `openssl rand -base64 32`) |
-| `mcp_tools_api_key` | API key for MCP tools authentication |
+Edit `terraform.tfvars` with your values. Secrets are stored in AWS Secrets Manager at runtime.
 
 ### Run
 
 ```bash
+# initialize terraform
 terraform init
+
+# preview the infrastructure changes
 terraform plan
-terraform apply
+
+# terraform apply  # Not intended to be applied—reference only
 ```
 
 ---
@@ -99,7 +109,7 @@ infrastructure/
     │   ├── secrets.tf                # AWS Secrets Manager resources
     │   ├── logging.tf                # CloudWatch logs, alarms, dashboard
     │   ├── variables.tf              # Input variable definitions
-    │   ├── outputs.tf                # Output values (URLs, ARNs, creds)
+    │   ├── outputs.tf                # Output values (URLs, ARNs)
     │   └── terraform.tfvars.example  # Example variable values
     └── staging/                      # Staging environment (identical structure)
         └── ...
@@ -111,15 +121,15 @@ infrastructure/
 
 | Tech | Role | Evidence | Why |
 |------|------|----------|-----|
-| **Terraform** | Infrastructure as Code | `main.tf`, `required_version = ">=1.1.0"` | Declarative, reproducible AWS provisioning |
-| **AWS VPC** | Network isolation | `main.tf` — 10.0.0.0/16 CIDR, 4 subnets | Multi-AZ with public/private subnet separation |
-| **AWS App Runner** | Container orchestration | `app_runner.tf` — 3 services | Auto-deploy from GitHub, built-in scaling, no container registry needed |
-| **RDS PostgreSQL 16** | Primary database | `database.tf` — Multi-AZ, gp3 storage | Managed backups, encryption, Performance Insights |
-| **ElastiCache Redis 7.1** | Caching / rate limiting | `database.tf` — single node | Session store, rate limit counters |
-| **S3 + CloudFront** | Static site hosting | `marketing.tf`, `docs.tf` | Origin Access Control, HTTPS-only, cache invalidation |
-| **Secrets Manager** | Secrets storage | `secrets.tf` — DATABASE_URL, API keys | Runtime secrets injection into App Runner |
-| **CloudWatch** | Monitoring | `logging.tf` — alarms, dashboard | CPU/memory/storage alerts, SNS notifications |
-| **IAM** | Access control | `iam.tf` — least-privilege roles | App Runner instance role, RDS monitoring role, deploy users |
+| **Terraform** | Infrastructure as Code | `main.tf:11` — `required_version = ">=1.1.0"` | Declarative, reproducible AWS provisioning |
+| **AWS Provider** | Cloud platform | `main.tf:15-18` — `hashicorp/aws ~> 5.0` | Managed services, multi-AZ support |
+| **VPC** | Network isolation | `main.tf` — 10.0.0.0/16 CIDR, 4 subnets | Public/private subnet separation |
+| **App Runner** | Container orchestration | `app_runner.tf` — 3 services with VPC connector | Auto-deploy from GitHub, built-in scaling |
+| **RDS PostgreSQL 16** | Primary database | `database.tf:54` — Multi-AZ, gp3 storage | Managed backups, encryption, Performance Insights |
+| **ElastiCache Redis 7.1** | Caching | `database.tf` — single node cluster | Session store, rate limiting |
+| **S3 + CloudFront** | Static hosting | `marketing.tf`, `docs.tf` | Origin Access Control, HTTPS-only |
+| **Secrets Manager** | Secrets storage | `secrets.tf` | Runtime secrets injection into App Runner |
+| **CloudWatch** | Monitoring | `logging.tf` | CPU/memory alerts, SNS notifications |
 
 ---
 
@@ -127,24 +137,21 @@ infrastructure/
 
 ### Provides
 
-- Production-ready AWS infrastructure for the Hardwire platform
-- App Runner service URLs for backend (`/api`), frontend, and MCP tools
-- CloudFront URLs for marketing and documentation sites
-- Deployment credentials (IAM access keys) for static site CI/CD
+- Production-ready AWS infrastructure blueprint for HardWire
+- App Runner service definitions for backend, frontend, and MCP tools
+- CloudFront distributions for static sites (marketing, docs)
 
 ### Depends on
 
-- AWS account with appropriate permissions
+- AWS account with appropriate IAM permissions
 - GitHub connection (manual setup in AWS Console)
-- ACM certificates in `us-east-1` (only if using custom domains)
+- ACM certificates in `us-east-1` (only for custom domains)
 
 ### Interfaces
 
-- **Backend → RDS:** VPC connector routes traffic through private subnets
-- **Backend → Redis:** Same VPC connector, security group allows port 6379
-- **Backend → MCP Tools:** Public HTTPS via App Runner URLs
-- **Frontend → Backend:** `NEXT_PUBLIC_API_URL` injected at build time
-- **Static sites → S3:** Origin Access Control (OAC), not public bucket access
+- **App Runner → RDS:** VPC connector routes traffic through private subnets (port 5432)
+- **App Runner → Redis:** Same VPC connector, security group allows port 6379
+- **CloudFront → S3:** Origin Access Control, private bucket access only
 
 ---
 
@@ -152,23 +159,19 @@ infrastructure/
 
 ### 1. VPC Connector for App Runner
 
-**What it does:** Routes egress traffic from App Runner services through private subnets to reach RDS and Redis.
+**What it does:** Routes egress traffic from App Runner through private subnets to reach RDS and Redis.
 
-**Why it exists:** App Runner runs outside VPC by default; connector enables access to private resources without public exposure.
+**Why it exists:** App Runner runs outside VPC by default; connector enables private resource access.
 
-**Evidence:**
-- `environments/prod/app_runner.tf:38-56` — `aws_apprunner_vpc_connector.main`
-- `environments/prod/app_runner.tf:187-200` — backend network configuration
+**Evidence:** `environments/prod/app_runner.tf:38-56`
 
 ### 2. Secrets Injection via Secrets Manager
 
-**What it does:** Stores sensitive values (DATABASE_URL, API keys) in Secrets Manager; App Runner pulls them at runtime.
+**What it does:** Stores DATABASE_URL and API keys in Secrets Manager; App Runner pulls at runtime.
 
 **Why it exists:** Avoids hardcoding secrets in Terraform state or environment variables.
 
-**Evidence:**
-- `environments/prod/secrets.tf` — secret definitions
-- `environments/prod/app_runner.tf:157-166` — `runtime_environment_secrets`
+**Evidence:** `environments/prod/secrets.tf`
 
 ### 3. Origin Access Control for Static Sites
 
@@ -176,9 +179,7 @@ infrastructure/
 
 **Why it exists:** Prevents direct S3 access, enforces HTTPS and caching policies.
 
-**Evidence:**
-- `environments/prod/marketing.tf` — `aws_cloudfront_origin_access_control`
-- `environments/prod/docs.tf` — same pattern for docs site
+**Evidence:** `environments/prod/marketing.tf`, `environments/prod/docs.tf`
 
 ### 4. Multi-AZ Database with Automatic Failover
 
@@ -186,24 +187,13 @@ infrastructure/
 
 **Why it exists:** High availability—automatic failover if primary AZ fails.
 
-**Evidence:**
-- `environments/prod/database.tf:88` — `multi_az = true`
-- `environments/prod/main.tf` — private subnets in `us-east-2a` and `us-east-2b`
-
-### 5. CloudFront Function for Docs URL Rewriting
-
-**What it does:** Rewrites clean URLs (e.g., `/guide/`) to `/guide/index.html` for MkDocs compatibility.
-
-**Why it exists:** MkDocs generates `index.html` files in directories; CloudFront needs rewrite rules.
-
-**Evidence:**
-- `environments/prod/docs.tf` — `aws_cloudfront_function.docs_url_rewrite`
+**Evidence:** `environments/prod/database.tf:88` — `multi_az = true`
 
 ---
 
 ## Tests
 
-No automated infrastructure tests found in repo.
+This codebase has no tests.
 
 **Validation commands:**
 
@@ -224,22 +214,10 @@ terraform plan
 
 ## Future Work
 
-1. **Add Terraform state backend (S3 + DynamoDB)**
-   - Why: Currently uses local state; team collaboration requires remote state with locking.
-   - Where: `environments/*/main.tf` — uncomment and configure `terraform { backend "s3" { ... } }`
+1. **Add WAF (Web Application Firewall)**
+   - Why: Rate limiting at edge, SQL injection protection.
+   - Where: Attach to CloudFront distributions
 
-2. **Add Route 53 hosted zone and DNS records**
-   - Why: Custom domains require DNS records pointing to CloudFront/App Runner.
-   - Where: New `dns.tf` file in each environment
-
-3. **Add WAF (Web Application Firewall)**
-   - Why: Rate limiting at edge, SQL injection protection, geographic restrictions.
-   - Where: Attach to CloudFront distributions and App Runner services
-
-4. **Add infrastructure tests with Terratest**
+2. **Add infrastructure tests with Terratest**
    - Why: Validate infrastructure changes before apply.
    - Where: New `tests/` directory with Go-based Terratest suite
-
-5. **Add cost alerts via AWS Budgets**
-   - Why: Early warning for unexpected cost increases.
-   - Where: New `budgets.tf` file

@@ -10,15 +10,15 @@ src="https://github.com/user-attachments/assets/0ed4ecc6-0d7d-462d-9ae1-c5d81553
 
 ## Overview
 
-Vite-based static marketing/landing page for the HardWire platform. Built as a pixel-perfect replication of a Webflow design, using external Webflow CSS and minimal custom JavaScript for interactions.
+This is a static marketing/landing site for the HardWire chat platform built using [Vite](https://v3.vitejs.dev/).
+
+This application is hosted at: https://hardwire.branmcf.com.
 
 - **Responsibilities**
-  - Marketing landing page with hero, product features, testimonials, and CTAs
-  - Interactive elements: feature tabs accordion, testimonials slider, mobile menu
-  - Scroll-triggered fade-up animations
+  - Marketing page with hero, product features, "testimonials", and CTAs to introduce HardWire
+  - A central hub for accessing the HardWire documentation and application
 - **Non-goals**
-  - No backend integration — purely static content
-  - Does not share components with frontend app — standalone build
+  - No backend integrations — purely static content
 
 **Runtime:** Vite 5.4.8 with TypeScript  
 **Entry point:** `index.html`
@@ -32,25 +32,30 @@ Vite-based static marketing/landing page for the HardWire platform. Built as a p
   - `src/main.ts` — Intersection Observer animations, feature tabs, testimonials slider
   - `src/style.css` — Minimal custom styles complementing Webflow CSS
   - `TODO.md` — Detailed task list with line-by-line reference to REFERENCE.html
+  - `index.html` — Main site implementation
 - **What to judge:**
-  - Clean separation between Webflow CSS (CDN) and custom styles
   - Vanilla TypeScript interactions without framework overhead
   - Implementation approach documented in TODO.md
-- **Tests:** No automated tests found in repo.
+  - Clean separation between Webflow CSS (CDN) and custom styles
+- **Tests:**
+   - There are no tests for this application
 
 ---
 
-## Usage (Quick start)
+## Usage
 
 ### Prereqs
 
-- Node.js (any recent LTS version)
-- npm (lockfile: `package-lock.json`)
+- [Node.js](https://nodejs.org/en) (any recent LTS version)
+- [npm](https://www.npmjs.com/)
 
 ### Install
 
 ```bash
+# move into the marketing dir
 cd marketing
+
+# install the dependencies
 npm install
 ```
 
@@ -61,22 +66,25 @@ No environment variables required.
 ### Run
 
 ```bash
+# run the application
 npm run dev
 ```
 
-Opens at `http://localhost:5173` with auto-open enabled.
+The HardWire marketing site opens at http://localhost:5173 with auto-open enabled.
 
 ### Build
 
 ```bash
+# build the application
 npm run build
 ```
 
-Output to `dist/` directory.
+The build output location is the `dist/` directory.
 
 ### Preview Production Build
 
 ```bash
+# serve a production optimized build locally
 npm run preview
 ```
 
@@ -87,7 +95,7 @@ npm run preview
 ```
 marketing/
 ├── index.html              # Main landing page (~2000 lines)
-├── REFERENCE.html          # Webflow export — source of truth for structure
+├── REFERENCE.html          # Website design reference
 ├── index-old.html          # Previous version (backup)
 ├── src/
 │   ├── main.ts             # Animations, tabs accordion, slider, menu toggle
@@ -95,7 +103,7 @@ marketing/
 ├── dist/                   # Production build output
 │   ├── index.html
 │   └── assets/
-├── public/                 # Static assets (empty)
+├── public/                 # Static assets
 ├── TODO.md                 # Implementation task checklist
 ├── vite.config.ts          # Vite configuration
 ├── tsconfig.json           # TypeScript config
@@ -110,7 +118,7 @@ marketing/
 |------|------|----------|
 | **Vite 5.4.8** | Build tool, dev server | `package.json`, `vite.config.ts` |
 | **TypeScript** | Type-safe interactions | `tsconfig.json`, `src/main.ts` |
-| **Webflow CSS (CDN)** | Primary styling | `index.html` stylesheet link |
+| **Webflow CSS (CDN)** | Remote styles | `index.html` stylesheet link |
 | **Vanilla JS** | DOM interactions | `src/main.ts` — no framework |
 
 ---
@@ -121,18 +129,17 @@ marketing/
 
 - Public marketing landing page
 - Product positioning and feature explanations
-- CTAs linking to cloud app and demo booking
+- CTAs linking to cloud app and documentation
 
 ### Depends on
 
-- **Webflow CSS CDN** — External stylesheet at `cdn.prod.website-files.com`
-- **External media** — Video hosted on R2, SVG icons from Webflow CDN
+- **External media** — Stylesheets from the Webflow CDN
 
 ### Interfaces
 
-- Links to cloud app: `https://cloud.tensorlake.ai/`
-- Links to docs: `https://docs.tensorlake.ai/`
-- Links to demo booking: Calendly
+- Links to app: `https://hardwire.branmcf.com/`
+- Links to docs: `https://docs-hardwire.branmcf.com/`
+- Links to Postgraphile: `https://github.com/graphile/crystal`
 
 ---
 
@@ -140,9 +147,9 @@ marketing/
 
 ### 1. Webflow CSS Integration
 
-Styling is handled by an external Webflow-generated stylesheet. Custom CSS is minimal and only adds functional styles.
+Styling is largely handled by an external Webflow stylesheet. Some custom CSS is used to provide additional styles.
 
-- **What it does:** All visual styling comes from CDN; local CSS handles only animations and interactive states
+- **What it does:** Most styling comes from a CDN; local CSS handles animations and interactive states
 - **Why it exists:** Enables designers to update styles in Webflow without code changes
 - **Evidence:** `index.html` (line 25-26), `src/style.css` comment header
 
@@ -174,14 +181,7 @@ Interactive accordion for product feature sections with animated expand/collapse
 
 ## Tests
 
-No automated tests found in repo.
-
-**Available validation commands:**
-
-```bash
-# Type check via build
-npm run build
-```
+There are no tests for this application.
 
 ---
 
@@ -191,18 +191,6 @@ npm run build
    - Why: No test coverage; CSS changes could break layout
    - Where: `tests/` with Playwright screenshots
 
-2. **Extract Reusable Components**
-   - Why: 2000+ line HTML file is hard to maintain; repeated patterns could be templated
+2. **Create Reusable Components**
+   - Why: The Large HTML file will become hard to maintain; repeated patterns could be templated
    - Where: Consider templating system or partial includes
-
-3. **Implement Newsletter Form Submission**
-   - Why: Form exists but no backend integration
-   - Where: `src/main.ts`, connect to email service API
-
-4. **Add Performance Optimizations**
-   - Why: External CSS CDN is a blocking resource; video could be lazy-loaded
-   - Where: `index.html` — consider preload hints, lazy video loading
-
-5. **Remove index-old.html**
-   - Why: Appears to be backup; adds confusion
-   - Where: Delete after confirming not needed

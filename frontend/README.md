@@ -10,12 +10,12 @@ src="https://github.com/user-attachments/assets/ac336143-e359-4df7-aca1-1787942e
 
 ## Overview
 
-Next.js 15 React application providing the chat interface and workflow management UI for the Hardwire platform. Acts as the primary user-facing client, communicating with the backend API for authentication, chat sessions, and workflow execution.
+This repository contains a [Next.js](https://nextjs.org/) 15 React application providing the chat interface and workflow management UI for the Hardwire platform. This codebase acts as the primary user-facing client, communicating with the backend API for authentication, chat sessions, and workflow execution.
 
 - **Responsibilities**
-  - User authentication (email/password, Google OAuth) via Better Auth
+  - User authentication (email/password, Google OAuth) via [Better Auth](https://www.better-auth.com/)
   - Real-time chat interface with AI model selection
-  - Workflow execution visualization with SSE streaming
+  - Workflow execution visualization with SSE (server-sent events) streaming
   - Settings management (profile, password, model preferences)
 - **Non-goals**
   - Does not process AI requests directly — delegates to backend
@@ -39,27 +39,31 @@ Next.js 15 React application providing the chat interface and workflow managemen
   - Error handling approach with typed categories and toast notifications
   - Component composition and prop drilling boundaries
   - SSE streaming integration for workflow run updates
-- **Tests:** No automated tests found in repo.
+- **Tests:**
+   - There are no tests for this application 
 
 ---
 
-## Usage (Quick start)
+## Usage
 
 ### Prereqs
 
-- Node.js 20+ (see `Dockerfile` base image)
-- npm (lockfile: `package-lock.json`)
+- [Node.js](https://nodejs.org/en) 20+ (see `Dockerfile` base image)
+- [npm](https://www.npmjs.com/)
 
 ### Install
 
 ```bash
+# move into the frontend dir
 cd frontend
+
+# install the dependencies
 npm install
 ```
 
 ### Configure
 
-Create `.env.local` with:
+Create a `.env.local` file with the following vars:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:3026
@@ -70,10 +74,11 @@ The `NEXT_PUBLIC_API_URL` environment variable is referenced in `src/lib/constan
 ### Run
 
 ```bash
+# run the service
 npm run dev
 ```
 
-Opens at `http://localhost:3000` by default.
+The HardWire UI will be available at http://localhost:3000 by default.
 
 ---
 
@@ -127,7 +132,6 @@ frontend/
 | **Better Auth** | Authentication client | `src/lib/auth-client.ts` |
 | **Axios** | HTTP client | `src/lib/api-client.ts` |
 | **React Hook Form + Zod** | Form handling | `src/components/auth/LoginForm.tsx` |
-| **Sonner** | Toast notifications | `src/lib/errors.ts` |
 | **Phosphor Icons** | Icon library | `components.json` iconLibrary setting |
 
 ---
@@ -200,16 +204,16 @@ Protected routes are enforced client-side with redirect logic based on authentic
 
 ## Tests
 
-No automated tests found in repo.
+There are no tests for this application.
 
 **Available validation commands:**
 
 ```bash
-# Lint
+# lint the code for style and error checking
 npm run lint
 
-# Type check
-npm run build   # Includes type checking
+# build production bundle with TypeScript type checking
+npm run build
 ```
 
 ---
@@ -224,14 +228,6 @@ npm run build   # Includes type checking
    - Why: Currently refetches after new chat creation; could show immediately
    - Where: `src/hooks/useChats.ts`, `src/contexts/ChatContext.tsx`
 
-3. **Add Error Boundary Components**
-   - Why: Unhandled rendering errors crash the app; need graceful fallbacks
-   - Where: `src/components/` at page layout level
-
-4. **Extract Model/Workflow Selection to Dedicated Context**
+3. **Extract Model/Workflow Selection to Dedicated Context**
    - Why: ChatContext is large (~660 lines); selection logic could be isolated
    - Where: `src/contexts/SelectionContext.tsx`
-
-5. **Add Skeleton Loading States**
-   - Why: Currently shows spinner; skeleton screens provide better perceived performance
-   - Where: `src/components/chat/ChatList.tsx`, message loading
