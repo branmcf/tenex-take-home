@@ -17,10 +17,11 @@ This guide walks you through setting up HardWire locally.
 Before you begin, ensure you have:
 
 - **Docker Desktop** installed and running ([download](https://www.docker.com/products/docker-desktop/))
+- **A Resend API key** for email verification ([get key](https://resend.com/))
 - **At least one LLM API key** from:
-  - OpenAI ([get key](https://platform.openai.com/api-keys))
-  - Anthropic ([get key](https://console.anthropic.com/settings/keys))
-  - Google AI ([get key](https://aistudio.google.com/app/apikey))
+  - OpenAI ([get key](https://platform.openai.com/))
+  - Anthropic ([get key](https://console.anthropic.com/))
+  - Google AI ([get key](https://aistudio.google.com/))
 
 ---
 
@@ -49,20 +50,27 @@ cp mcp-tools-server/.env.example mcp-tools-server/.env
 
 ---
 
-## Step 3: Add Your LLM API Key
+## Step 3: Add Your API Keys
 
-Open `backend/.env` in your editor and add at least one API key:
+Open `backend/.env` in your editor:
 
 ```bash
 # edit with your preferred editor
 cursor .
 ```
 
-Find and open the # open the backend/.env file. In the LLM section find and replace the placeholder with your actual key:
+Find and open the `backend/.env` file. You need to set:
+
+**1. Resend API key (required for email verification):**
+
+```env
+RESEND_API_KEY="re_your-actual-key-here"
+```
+
+**2. At least one LLM provider API key:**
 
 ```env
 # LLM Providers (at least ONE required)
-
 OPENAI_API_KEY="sk-your-actual-key-here"
 ANTHROPIC_API_KEY="sk-ant-your-actual-key-here"
 GOOGLE_GENERATIVE_AI_API_KEY="your-actual-key-here"
@@ -99,9 +107,12 @@ Once the script completes, you should see the services starting. Open your brows
 |---------|-----|-------------|
 | Frontend | http://localhost:3000 | Main application |
 | Backend API | http://localhost:3026 | REST API |
+| GraphiQL | http://localhost:3026/graphiql | PostGraphile query explorer |
 | MCP Tools | http://localhost:4010 | Tool execution server |
 
 The frontend should load and you can create an account to start using the app.
+
+**GraphiQL** is PostGraphile's interactive query explorer. Use it to browse the auto-generated GraphQL schema and test queries against the database.
 
 ---
 
@@ -191,12 +202,12 @@ cd marketing && npm install && npm run dev
 | `AUTH_SECRET` | Yes | Session secret (min 32 chars) |
 | `API_URL` | Yes | Backend URL (http://localhost:3026) |
 | `MCP_TOOLS_URL` | Yes | MCP server URL (http://localhost:4010) |
+| `RESEND_API_KEY` | Yes | Resend API key for email verification |
 | `OPENAI_API_KEY` | One of these | OpenAI API key |
 | `ANTHROPIC_API_KEY` | One of these | Anthropic API key |
 | `GOOGLE_GENERATIVE_AI_API_KEY` | One of these | Google AI API key |
 | `GOOGLE_CLIENT_ID` | No | For Google OAuth sign-in |
 | `GOOGLE_CLIENT_SECRET` | No | For Google OAuth sign-in |
-| `RESEND_API_KEY` | No | For email verification |
 | `EXA_API_KEY` | No | For web search feature |
 
 ### frontend/.env.local

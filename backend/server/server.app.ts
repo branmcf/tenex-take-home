@@ -77,69 +77,70 @@ if ( process.env.NODE_ENV !== 'production' ) {
 }
 
 /**
- * Rate Limiting
+ * Routes
  *
- * Applied globally to all API routes with different limits per endpoint type:
+ * Rate limits:
  * - Auth endpoints: 10 requests/minute (stricter to prevent brute force)
- * - Standard API: 100 requests/minute
+ * - Session polling: 100 requests/minute (standard)
+ * - All other API: 100 requests/minute (standard)
  */
 
-const isAuthSessionPath = ( req: express.Request ) =>
+/*
+ * Helper function to check if rate limiting should be bypassed
+ * Used for development/testing environments where rate limits would interfere
+ */
+const skipRateLimit = () => process.env.SKIP_RATE_LIMIT === 'true';
+
+/*
+ * Helper function to identify session polling endpoints
+ * These endpoints are called frequently by the frontend to check auth status
+ * and need different rate limiting rules than other auth endpoints
+ */
+const isSessionPath = ( req: { path: string } ) =>
     req.path === '/get-session' || req.path === '/mcp/get-session';
 
-const isApiAuthPath = ( req: express.Request ) =>
-    req.path.startsWith( '/auth/' );
+// Convert the better-auth handler to work with Express middleware
+const authHandler = toNodeHandler( auth );
 
-// Standard rate limit for session polling endpoints under /api/auth
+/*
+ * Auth routes with dual rate limiting strategy:
+ * 1. Stricter limits for auth operations (login, signup, etc.) to prevent brute force
+ * 2. Standard limits for session polling to allow frequent status checks
+ * The skip logic ensures session endpoints get standard limits, others get auth limits
+ */
 expressApp.use(
     '/api/auth'
-    , rateLimiter( {
-        ...RATE_LIMIT_PRESETS.standard
-        , skip: ( req ) => {
-            return process.env.SKIP_RATE_LIMIT === 'true' || !isAuthSessionPath( req );
-        }
-    } )
-);
 
-// Stricter rate limit for auth endpoints
-expressApp.use(
-    '/api/auth'
+    // First rate limiter: strict auth limits, but skip for session endpoints
     , rateLimiter( {
         ...RATE_LIMIT_PRESETS.auth
-        , skip: ( req ) => {
-            // Skip rate limiting in test/development if needed
-            return process.env.SKIP_RATE_LIMIT === 'true' || isAuthSessionPath( req );
-        }
+        , skip: ( req ) => skipRateLimit() || isSessionPath( req )
     } )
-);
 
-// Standard rate limit for all other API endpoints
-expressApp.use(
-    '/api'
+    // Second rate limiter: standard limits, but only for session endpoints
     , rateLimiter( {
         ...RATE_LIMIT_PRESETS.standard
-        , skip: ( req ) => {
-            // Skip rate limiting in test/development if needed
-            return process.env.SKIP_RATE_LIMIT === 'true' || isApiAuthPath( req );
-        }
+        , skip: ( req ) => skipRateLimit() || !isSessionPath( req )
     } )
-);
 
-/**
- * Routes
- */
-
-const authHandler = toNodeHandler( auth );
-expressApp.use(
-    '/api/auth'
+    // Logging middleware to track auth route usage for debugging
     , ( req, res ) => {
         Log.info( '[AUTH] Matched route:', { method: req.method, url: req.url, originalUrl: req.originalUrl } );
         authHandler( req, res );
     }
 );
 
+/*
+ * All other API routes get standard rate limiting
+ * This includes workflow operations, chat endpoints, etc.
+ * JSON parsing is applied here since auth routes handle their own parsing
+ */
 expressApp.use(
     '/api'
+    , rateLimiter( {
+        ...RATE_LIMIT_PRESETS.standard
+        , skip: skipRateLimit
+    } )
     , express.json()
     , apiRouter
 );

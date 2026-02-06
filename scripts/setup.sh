@@ -47,7 +47,7 @@ check_var() {
     fi
     # Check if it's set to a placeholder or empty
     local value=$(grep "^${var}=" "$file" | cut -d'=' -f2- | tr -d '"' | tr -d "'")
-    if [[ -z "$value" || "$value" == "sk-..." || "$value" == "sk-ant-..." || "$value" == "AIza..." || "$value" == "your-super-secret-key-minimum-32-characters-long" ]]; then
+    if [[ -z "$value" || "$value" == "sk-..." || "$value" == "sk-ant-..." || "$value" == "AIza..." || "$value" == "re_..." ]]; then
         ERRORS+=("Placeholder value: $var in $file\n  → Please set a real value. $description")
         return 1
     fi
@@ -62,7 +62,7 @@ check_llm_keys() {
     for var in OPENAI_API_KEY ANTHROPIC_API_KEY GOOGLE_GENERATIVE_AI_API_KEY; do
         if grep -q "^${var}=" "$file" 2>/dev/null; then
             local value=$(grep "^${var}=" "$file" | cut -d'=' -f2- | tr -d '"' | tr -d "'")
-            if [[ -n "$value" && "$value" != "sk-..." && "$value" != "sk-ant-..." && "$value" != "AIza..." ]]; then
+            if [[ -n "$value" && "$value" != "sk-..." && "$value" != "sk-ant-..." && "$value" != "AIza..." && "$value" != "re_..." ]]; then
                 has_key=true
                 break
             fi
@@ -146,6 +146,13 @@ fi
 
 echo -n "    MCP_TOOLS_URL... "
 if check_var "$ROOT_DIR/backend/.env" "MCP_TOOLS_URL" "MCP Tools Server URL (e.g., http://localhost:4010)"; then
+    echo -e "${GREEN}set${NC}"
+else
+    echo -e "${RED}missing/invalid${NC}"
+fi
+
+echo -n "    RESEND_API_KEY... "
+if check_var "$ROOT_DIR/backend/.env" "RESEND_API_KEY" "Resend API key for email verification (get one at https://resend.com)"; then
     echo -e "${GREEN}set${NC}"
 else
     echo -e "${RED}missing/invalid${NC}"
