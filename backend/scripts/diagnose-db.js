@@ -50,10 +50,11 @@ try {
     console.error('[diagnose-db] failed to read migrations directory', error);
   }
 
-  const missingInDb = fileNames.filter((name) => !appliedNames.has(name));
-  const extraInDb = Array.from(appliedNames).filter((name) => !fileNames.includes(name));
+  const fileBaseNames = fileNames.map((name) => name.replace(/\.ts$/, ''));
+  const missingInDb = fileBaseNames.filter((name) => !appliedNames.has(name));
+  const extraInDb = Array.from(appliedNames).filter((name) => !fileBaseNames.includes(name));
 
-  console.log('[diagnose-db] migrations in repo', fileNames.length);
+  console.log('[diagnose-db] migrations in repo', fileBaseNames.length);
   console.log('[diagnose-db] missing in db', missingInDb);
   console.log('[diagnose-db] extra in db', extraInDb);
 } catch (error) {
