@@ -106,6 +106,7 @@ export function SignUpForm({ className }: SignUpFormProps) {
             id="name"
             type="text"
             placeholder="John Doe"
+            autoComplete="off"
             {...register("name")}
             aria-invalid={!!errors.name}
           />
@@ -120,6 +121,7 @@ export function SignUpForm({ className }: SignUpFormProps) {
             id="email"
             type="email"
             placeholder="m@example.com"
+            autoComplete="off"
             {...register("email")}
             aria-invalid={!!errors.email}
           />
@@ -137,6 +139,7 @@ export function SignUpForm({ className }: SignUpFormProps) {
           <Input
             id="password"
             type="password"
+            autoComplete="off"
             {...register("password")}
             aria-invalid={!!errors.password}
           />
@@ -155,6 +158,7 @@ export function SignUpForm({ className }: SignUpFormProps) {
           <Input
             id="confirmPassword"
             type="password"
+            autoComplete="off"
             {...register("confirmPassword")}
             aria-invalid={!!errors.confirmPassword}
           />

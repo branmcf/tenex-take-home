@@ -104,6 +104,7 @@ export function LoginForm({ className }: LoginFormProps) {
             id="email"
             type="email"
             placeholder="m@example.com"
+            autoComplete="off"
             {...register("email")}
             aria-invalid={!!errors.email}
           />
@@ -117,6 +118,7 @@ export function LoginForm({ className }: LoginFormProps) {
           <Input
             id="password"
             type="password"
+            autoComplete="off"
             {...register("password")}
             aria-invalid={!!errors.password}
           />
