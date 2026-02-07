@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {
     tool
     , jsonSchema
@@ -34,7 +35,14 @@ const addStepInputSchema = jsonSchema( {
             type: 'array'
             , items: { type: 'string' }
         }
-        , position: { type: 'string', enum: [ 'start', 'end', 'after' ] }
+        , position: {
+            type: 'string'
+            , enum: [
+                'start'
+                , 'end'
+                , 'after'
+            ]
+        }
         , afterStepId: { type: 'string' }
     }
     , required: [ 'name', 'instruction' ]

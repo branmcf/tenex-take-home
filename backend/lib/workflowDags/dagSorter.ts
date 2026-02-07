@@ -1,3 +1,4 @@
+/* eslint-disable @stylistic/max-len */
 import {
     WorkflowDAG
     , WorkflowStep
@@ -95,6 +96,7 @@ export const sortWorkflowDagSteps = ( steps: WorkflowStep[] ): WorkflowStep[] =>
 
     while ( queue.length > 0 ) {
         const step = queue.shift();
+
         if ( !step ) {
             continue;
         }
@@ -109,6 +111,7 @@ export const sortWorkflowDagSteps = ( steps: WorkflowStep[] ): WorkflowStep[] =>
 
             if ( nextIndegree === 0 ) {
                 const nextStep = stepMap.get( nextId );
+
                 if ( nextStep ) {
                     queue.push( nextStep );
                     sortQueueByOriginalOrder( queue, orderLookup );
