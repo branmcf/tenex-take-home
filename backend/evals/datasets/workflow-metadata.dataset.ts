@@ -9,9 +9,7 @@ export const workflowMetadataDataset: WorkflowMetadataDatasetCase[] = [
             userMessage: 'Summarize the quarterly report for leadership.'
             , modelId: 'gpt-4o'
         }
-        , mocks: {
-            llmContent: '{ "name": "Quick Summary", "description": "Summarizes the report." }'
-        }
+        , mocks: { llmContent: '{ "name": "Quick Summary", "description": "Summarizes the report." }' }
         , expected: {
             isSuccess: true
             , name: 'Quick Summary'
@@ -26,9 +24,7 @@ export const workflowMetadataDataset: WorkflowMetadataDatasetCase[] = [
             userMessage: 'Create a workflow that collects notes and produces a concise summary.'
             , modelId: 'gpt-4o'
         }
-        , mocks: {
-            llmContent: 'not json output'
-        }
+        , mocks: { llmContent: 'not json output' }
         , expected: {
             isSuccess: true
             , name: 'Create a workflow that collects notes'

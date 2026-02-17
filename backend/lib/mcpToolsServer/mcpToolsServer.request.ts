@@ -28,12 +28,15 @@ const getBaseUrl = () => {
 
 const normalizeServiceKey = ( value: string ) => {
     const trimmed = value.trim();
+
     if ( trimmed.startsWith( '"' ) && trimmed.endsWith( '"' ) ) {
         return trimmed.slice( 1, -1 );
     }
+
     if ( trimmed.startsWith( '\'' ) && trimmed.endsWith( '\'' ) ) {
         return trimmed.slice( 1, -1 );
     }
+
     return trimmed;
 };
 
@@ -43,7 +46,9 @@ const getServiceKey = () => {
 
 const axiosInstance = axios.create( {
     headers: {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         'Content-Type': 'application/json'
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         , 'x-service-key': getServiceKey()
     }
     , baseURL: getBaseUrl()
@@ -77,6 +82,7 @@ const mcpToolsRequest = async <T>(
         const errorCode = responseData && typeof responseData === 'object'
             ? ( responseData as { code?: string } ).code
             : undefined;
+
         const errorMessage = responseData && typeof responseData === 'object'
             ? ( responseData as { message?: string; clientMessage?: string } ).message
                 ?? ( responseData as { clientMessage?: string } ).clientMessage

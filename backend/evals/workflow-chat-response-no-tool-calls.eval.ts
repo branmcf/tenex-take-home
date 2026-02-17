@@ -23,17 +23,11 @@ jest.mock( '../app/workflows/workflows.service', () => ( {
     , getLatestWorkflowVersion: jest.fn()
 } ) );
 
-jest.mock( '../app/workflowChatMessages/workflowChatMessages.service', () => ( {
-    getWorkflowChatMessages: jest.fn()
-} ) );
+jest.mock( '../app/workflowChatMessages/workflowChatMessages.service', () => ( { getWorkflowChatMessages: jest.fn() } ) );
 
-jest.mock( '../app/tools/tools.helper', () => ( {
-    getCachedTools: jest.fn()
-} ) );
+jest.mock( '../app/tools/tools.helper', () => ( { getCachedTools: jest.fn() } ) );
 
-jest.mock( '../lib/workflowProposals', () => ( {
-    storeWorkflowProposal: jest.fn()
-} ) );
+jest.mock( '../lib/workflowProposals', () => ( { storeWorkflowProposal: jest.fn() } ) );
 
 /* ----------------- Tests ----------------------- */
 

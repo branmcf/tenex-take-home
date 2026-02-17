@@ -1,10 +1,6 @@
 import express, { Express } from 'express';
 import supertest from 'supertest';
-import {
-    rateLimiter
-    , userRateLimiter
-    , endpointRateLimiter
-} from './rateLimiter';
+import { rateLimiter } from './rateLimiter';
 import { RateLimitExceededError } from './rateLimiter.errors';
 import { RATE_LIMIT_PRESETS } from './rateLimiter.types';
 
@@ -258,7 +254,7 @@ describe( 'rateLimiter', () => {
 /**
  * RateLimitExceededError
  */
-describe( 'RateLimitExceededError', () => {
+describe( 'rateLimitExceededError', () => {
 
     it(
         'has correct properties'
@@ -291,7 +287,7 @@ describe( 'RateLimitExceededError', () => {
 /**
  * RATE_LIMIT_PRESETS
  */
-describe( 'RATE_LIMIT_PRESETS', () => {
+describe( 'rATE_LIMIT_PRESETS', () => {
 
     it(
         'has standard preset'

@@ -16,7 +16,10 @@ import {
     , RejectWorkflowProposalRequest
     , RejectWorkflowProposalResponse
 } from './workflowChatMessages.types';
-import { generateWorkflowChatResponse } from './workflowChatMessages.helper';
+import {
+    generateWorkflowChatResponse
+    , buildPendingProposalResponse
+} from './workflowChatMessages.helper';
 import {
     getWorkflowProposal
     , getWorkflowProposalsByWorkflowId
@@ -33,79 +36,13 @@ import {
     , WorkflowProposalRejectFailed
     , WorkflowProposalVersionMismatch
 } from './workflowChatMessages.errors';
+import { Log } from '../../utils';
 import {
     WorkflowDAG
     , sortWorkflowDagSteps
     , validateWorkflowDag
-} from '../../lib/workflowDags';
+} from '../../utils/workflowDags';
 import { getCachedTools } from '../tools/tools.helper';
-
-/**
- * @notice Normalize stored proposal status into the API enum.
- * @param status - raw status string from storage
- * @returns normalized proposal status
- */
-const normalizeProposalStatus = (
-    status?: string | null
-): WorkflowChatProposalHistoryItem['status'] => {
-    if ( status === 'applied' || status === 'rejected' || status === 'expired' ) {
-        return status;
-    }
-
-    return 'pending';
-};
-
-/**
- * @notice Build a proposal response payload with sorted preview steps.
- * @param proposal - proposal record from storage
- * @returns proposal response with normalized preview steps
- */
-const buildPendingProposalResponse = (
-    proposal: {
-        id: string;
-        baseVersionId?: string | null;
-        toolCalls: unknown;
-        proposedDag: unknown;
-        status?: string | null;
-        createdAt: string;
-        resolvedAt?: string | null;
-    }
-): WorkflowChatProposalHistoryItem => {
-
-    // extract proposed steps from the stored dag payload
-    const dag = proposal.proposedDag as {
-        steps?: Array<{
-            id: string;
-            name: string;
-            instruction: string;
-            tools?: Array<{ id: string; name?: string; version?: string }>;
-            dependsOn?: string[];
-        }>;
-    };
-
-    const previewSteps = Array.isArray( dag?.steps )
-        ? sortWorkflowDagSteps( dag.steps as WorkflowDAG['steps'] ).map( step => ( {
-            id: step.id
-            , name: step.name
-            , instruction: step.instruction
-            , tools: step.tools ?? []
-            , dependsOn: step.dependsOn ?? []
-        } ) )
-        : [];
-
-    const normalizedStatus = normalizeProposalStatus( proposal.status );
-
-    return {
-        proposalId: proposal.id
-        , baseVersionId: proposal.baseVersionId ?? null
-        , toolCalls: proposal.toolCalls
-        , previewSteps
-        , status: normalizedStatus
-        , createdAt: proposal.createdAt
-        , resolvedAt: proposal.resolvedAt ?? null
-    };
-
-};
 
 /**
  * @title Get Workflow Chat Messages Handler
@@ -142,11 +79,8 @@ export const getWorkflowChatMessagesHandler = async (
         .map( message => {
 
             // map MessageRole enum to response role type
-            const roleMap: Record<string, 'user' | 'assistant'> = {
-                'USER': 'user'
-                , 'ASSISTANT': 'assistant'
-            };
-            const role = roleMap[ message.role ] || 'assistant';
+            const normalizedRole = ( message.role ?? '' ).toLowerCase();
+            const role = normalizedRole === 'user' ? 'user' : 'assistant';
 
             // return the message in response format
             return {
@@ -164,7 +98,7 @@ export const getWorkflowChatMessagesHandler = async (
     let pendingProposal: GetWorkflowChatMessagesResponse['pendingProposal'] = null;
 
     if ( proposalsResult.isError() ) {
-        console.warn( 'workflow chat: failed to load proposals', proposalsResult.value );
+        Log.warn( 'workflow chat: failed to load proposals', proposalsResult.value );
     } else {
         const latestVersionResult = await getLatestWorkflowVersion( workflowId );
         const latestVersionId = latestVersionResult.isError()
@@ -209,7 +143,8 @@ export const getWorkflowChatMessagesHandler = async (
 
 /**
  * @title Create Workflow Chat Message Handler
- * @notice Creates a new user message and generates an assistant response for workflow authoring.
+ * @notice Creates a new user message and generates an assistant response for
+ * workflow authoring.
  * @param req Express request
  * @param res Express response
  */
@@ -387,7 +322,7 @@ export const applyWorkflowProposalHandler = async (
     let cachedToolsResult = await getCachedTools( false );
 
     if ( cachedToolsResult.isError() ) {
-        console.warn( 'workflow proposal: failed to load cached tools, continuing without tools', cachedToolsResult.value );
+        Log.warn( 'workflow proposal: failed to load cached tools, continuing without tools', cachedToolsResult.value );
     } else if ( cachedToolsResult.value.length > 0 ) {
         availableTools = cachedToolsResult.value.map( tool => ( {
             id: tool.externalId ?? tool.id
@@ -396,8 +331,9 @@ export const applyWorkflowProposalHandler = async (
         } ) );
     } else {
         cachedToolsResult = await getCachedTools( true );
+
         if ( cachedToolsResult.isError() ) {
-            console.warn( 'workflow proposal: failed to refresh tools, continuing without tools', cachedToolsResult.value );
+            Log.warn( 'workflow proposal: failed to refresh tools, continuing without tools', cachedToolsResult.value );
         } else {
             availableTools = cachedToolsResult.value.map( tool => ( {
                 id: tool.externalId ?? tool.id

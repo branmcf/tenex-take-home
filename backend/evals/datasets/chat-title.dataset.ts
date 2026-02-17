@@ -45,9 +45,7 @@ export const chatTitleDataset: ChatTitleDatasetCase[] = [
             chatId: 'chat-3'
             , userMessage: 'Draft a brief sales pipeline update.'
         }
-        , mocks: {
-            action: 'fallback'
-        }
+        , mocks: { action: 'fallback' }
         , expected: {
             success: true
             , title: 'Draft a brief sales pipeline update.'

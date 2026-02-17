@@ -9,13 +9,8 @@ import '../../lib/betterAuth/__mocks__/auth';
 import supertest from 'supertest';
 import { testApp } from '../tests.server';
 
-// set up server for testing
-const server = testApp.listen();
-const request = supertest( server );
-
-afterAll( async () => {
-    server.close();
-} );
+// set up server for testing - supertest handles server lifecycle internally
+const request = supertest( testApp );
 
 /**
  * GET /api/liveness

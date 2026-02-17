@@ -5,28 +5,13 @@ import {
     , generateWorkflowToolCalls as trueGenerateWorkflowToolCalls
     , generateWorkflowStepToolUsage as trueGenerateWorkflowStepToolUsage
     , generateWorkflowStepPlan as trueGenerateWorkflowStepPlan
-} from '../llmWithTools';
-import type { LLMToolCall } from '../../workflowDags/workflowDags.types';
-
-/**
- * WorkflowIntent result types
- */
-interface WorkflowIntentResult {
-    intent: 'modify_workflow' | 'ask_clarifying' | 'answer_only';
-    assistantMessage: string;
-    clarificationQuestion: string | null;
-}
-
-interface WorkflowToolUsageDecision {
-    stepId: string;
-    useTools: boolean;
-    tools: Array<{ id: string; version: string }>;
-}
-
-interface WorkflowStepPlan {
-    name: string;
-    instruction: string;
-}
+} from '../llm.workflowIntents';
+import type { LLMToolCall } from '../../../utils/workflowDags';
+import type {
+    WorkflowIntentResult
+    , WorkflowToolUsageDecision
+    , WorkflowStepPlan
+} from '../llm.types';
 
 /**
  * generateWorkflowIntent mock
@@ -141,9 +126,7 @@ const generateWorkflowStepToolUsageMock = jest.fn<
     , Parameters<typeof trueGenerateWorkflowStepToolUsage>
 >( trueGenerateWorkflowStepToolUsage ) as GenerateWorkflowStepToolUsageMock;
 
-const defaultToolUsageResult = {
-    steps: [] as WorkflowToolUsageDecision[]
-};
+const defaultToolUsageResult = { steps: [] as WorkflowToolUsageDecision[] };
 
 generateWorkflowStepToolUsageMock.mockResponseOnce = ( result = defaultToolUsageResult ) =>
     generateWorkflowStepToolUsageMock.mockImplementationOnce(
@@ -187,9 +170,7 @@ const generateWorkflowStepPlanMock = jest.fn<
     , Parameters<typeof trueGenerateWorkflowStepPlan>
 >( trueGenerateWorkflowStepPlan ) as GenerateWorkflowStepPlanMock;
 
-const defaultStepPlanResult = {
-    steps: [] as WorkflowStepPlan[]
-};
+const defaultStepPlanResult = { steps: [] as WorkflowStepPlan[] };
 
 generateWorkflowStepPlanMock.mockResponseOnce = ( result = defaultStepPlanResult ) =>
     generateWorkflowStepPlanMock.mockImplementationOnce(
@@ -215,7 +196,7 @@ generateWorkflowStepPlanMock.mockResponseError = (
         async () => error( resourceError )
     );
 
-jest.doMock( '../llmWithTools', () => ( {
+jest.doMock( '../llm.workflowIntents', () => ( {
     generateWorkflowIntent: generateWorkflowIntentMock
     , generateWorkflowToolCalls: generateWorkflowToolCallsMock
     , generateWorkflowStepToolUsage: generateWorkflowStepToolUsageMock
@@ -223,6 +204,9 @@ jest.doMock( '../llmWithTools', () => ( {
 } ) );
 
 export const generateWorkflowIntent = generateWorkflowIntentMock;
+
 export const generateWorkflowToolCalls = generateWorkflowToolCallsMock;
+
 export const generateWorkflowStepToolUsage = generateWorkflowStepToolUsageMock;
+
 export const generateWorkflowStepPlan = generateWorkflowStepPlanMock;

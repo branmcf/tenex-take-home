@@ -2,14 +2,12 @@
 import ls from './evals.ls';
 import { logAndAssertExactMatch } from './evals.helper';
 import { searchWeb } from '../lib/exa';
-import { generateSources } from '../lib/llm/rag';
+import { generateSources } from '../lib/llm/llm.rag';
 import { success, error } from '../types';
 import { ragGenerateSourcesDataset } from './datasets/rag-generate-sources.dataset';
 
 /* ----------------- Mocks ----------------------- */
-jest.mock( '../lib/exa', () => ( {
-    searchWeb: jest.fn()
-} ) );
+jest.mock( '../lib/exa', () => ( { searchWeb: jest.fn() } ) );
 
 /* ----------------- Tests ----------------------- */
 

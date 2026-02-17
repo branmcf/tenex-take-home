@@ -1,7 +1,7 @@
 /* ----------------- Imports --------------------- */
 import ls from './evals.ls';
 import { logAndAssertExactMatch } from './evals.helper';
-import { validateWorkflowDag } from '../lib/workflowDags/dagValidator';
+import { validateWorkflowDag } from '../utils/workflowDags';
 import { workflowDagValidatorDataset } from './datasets/workflow-dag-validator.dataset';
 
 /* ----------------- Tests ----------------------- */

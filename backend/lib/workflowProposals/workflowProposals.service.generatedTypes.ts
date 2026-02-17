@@ -21,6 +21,23 @@ export type GetWorkflowProposalByIdQueryVariables = Types.Exact<{
 
 export type GetWorkflowProposalByIdQuery = { __typename: 'Query', workflowProposalById?: { __typename: 'WorkflowProposal', id: any, workflowId: any, baseVersionId?: any | null, userMessage: string, modelId?: string | null, toolCalls: any, proposedDag: any, createdAt: any, expiresAt: any } | null };
 
+export type GetWorkflowProposalsByWorkflowIdQueryVariables = Types.Exact<{
+  workflowId: Types.Scalars['UUID']['input'];
+  limit: Types.Scalars['Int']['input'];
+}>;
+
+
+export type GetWorkflowProposalsByWorkflowIdQuery = { __typename: 'Query', workflowById?: { __typename: 'Workflow', id: any, workflowProposalsByWorkflowId: { __typename: 'WorkflowProposalsConnection', nodes: Array<{ __typename: 'WorkflowProposal', id: any, workflowId: any, baseVersionId?: any | null, userMessage: string, modelId?: string | null, toolCalls: any, proposedDag: any, createdAt: any, expiresAt: any, status: string, resolvedAt?: any | null } | null> } } | null };
+
+export type UpdateWorkflowProposalStatusMutationVariables = Types.Exact<{
+  proposalId: Types.Scalars['UUID']['input'];
+  status: Types.Scalars['String']['input'];
+  resolvedAt?: Types.InputMaybe<Types.Scalars['Datetime']['input']>;
+}>;
+
+
+export type UpdateWorkflowProposalStatusMutation = { __typename: 'Mutation', updateWorkflowProposalById?: { __typename: 'UpdateWorkflowProposalPayload', workflowProposal?: { __typename: 'WorkflowProposal', id: any } | null } | null };
+
 export type DeleteWorkflowProposalByIdMutationVariables = Types.Exact<{
   proposalId: Types.Scalars['UUID']['input'];
 }>;

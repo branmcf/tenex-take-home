@@ -1,4 +1,4 @@
-import { NextFunction, Response } from 'express';
+import { Response } from 'express';
 import { ResourceError } from '../../errors';
 import {
     buildWorkflowRunSnapshot
@@ -6,22 +6,20 @@ import {
     , getWorkflowRunsByChatId
     , normalizeWorkflowRunSnapshotSource
 } from './workflowRuns.service';
-import { StreamWorkflowRunRequest } from './workflowRuns.types';
+import { isTerminalStatus } from './workflowRuns.helper';
+import {
+    StreamWorkflowRunRequest
+    , GetWorkflowRunsRequest
+    , GetWorkflowRunsResponse
+} from './workflowRuns.types';
 import {
     WorkflowRunAccessForbidden
     , WorkflowRunStreamFailed
 } from './workflowRuns.errors';
 import {
-    GetWorkflowRunsRequest
-    , GetWorkflowRunsResponse
-} from './workflowRuns.types';
-
-const POLL_INTERVAL_MS = 1000;
-const TERMINAL_GRACE_MS = 15000;
-
-const isTerminalStatus = ( status: string ) => {
-    return status === 'PASSED' || status === 'FAILED' || status === 'CANCELLED';
-};
+    WORKFLOW_RUN_POLL_INTERVAL_MS
+    , WORKFLOW_RUN_TERMINAL_GRACE_MS
+} from '../../utils/constants';
 
 /**
  * @title Stream Workflow Run Handler
@@ -32,7 +30,6 @@ const isTerminalStatus = ( status: string ) => {
 export const streamWorkflowRunHandler = async (
     req: StreamWorkflowRunRequest
     , res: Response<ResourceError>
-    , _next: NextFunction
 ): Promise<Response<ResourceError>> => {
 
     // get params
@@ -114,7 +111,7 @@ export const streamWorkflowRunHandler = async (
                 const hasMessage = Boolean( snapshot.message );
                 const terminalElapsed = Date.now() - terminalSince;
 
-                if ( hasMessage || terminalElapsed > TERMINAL_GRACE_MS ) {
+                if ( hasMessage || terminalElapsed > WORKFLOW_RUN_TERMINAL_GRACE_MS ) {
                     sendEvent( {
                         type: 'complete'
                         , workflowRunId
@@ -127,7 +124,7 @@ export const streamWorkflowRunHandler = async (
             } else {
                 terminalSince = null;
             }
-        } catch ( err ) {
+        } catch {
             const error = new WorkflowRunStreamFailed();
             sendEvent( {
                 type: 'error'
@@ -149,7 +146,7 @@ export const streamWorkflowRunHandler = async (
     // poll for updates
     const interval = setInterval( () => {
         void fetchAndSendSnapshot();
-    }, POLL_INTERVAL_MS );
+    }, WORKFLOW_RUN_POLL_INTERVAL_MS );
 
     // stop polling on client disconnect
     req.on( 'close', () => {

@@ -27,13 +27,8 @@ import {
 } from '../../app/tools/tools.errors';
 import { ResourceError } from '../../errors';
 
-// set up server for testing
-const server = testApp.listen();
-const request = supertest( server );
-
-afterAll( async () => {
-    server.close();
-} );
+// set up server for testing - supertest handles server lifecycle internally
+const request = supertest( testApp );
 
 /**
  * Helper to create a valid session mock
@@ -174,11 +169,7 @@ describe( 'GET /api/tools', () => {
                 } );
 
                 // mock getToolByExternalId
-                postGraphileRequest.mockResponseOnce( {
-                    allTools: {
-                        nodes: []
-                    }
-                } );
+                postGraphileRequest.mockResponseOnce( { allTools: { nodes: [] } } );
 
                 // mock createTool
                 postGraphileRequest.mockResponseOnce( {
@@ -365,11 +356,7 @@ describe( 'GET /api/tools/search', () => {
                 } );
 
                 // mock getToolByExternalId
-                postGraphileRequest.mockResponseOnce( {
-                    allTools: {
-                        nodes: []
-                    }
-                } );
+                postGraphileRequest.mockResponseOnce( { allTools: { nodes: [] } } );
 
                 // mock createTool
                 postGraphileRequest.mockResponseOnce( {
@@ -455,9 +442,7 @@ describe( 'GET /api/tools/:toolId', () => {
                 mockValidSession( sessionUserId );
 
                 // mock database lookup - tool not found
-                postGraphileRequest.mockResponseOnce( {
-                    toolById: null
-                } );
+                postGraphileRequest.mockResponseOnce( { toolById: null } );
 
                 // send request
                 const result = await request
@@ -539,9 +524,7 @@ describe( 'GET /api/tools/:toolId', () => {
                 // create mocks
                 mockValidSession( sessionUserId );
 
-                postGraphileRequest.mockResponseOnce( {
-                    toolById: null
-                } );
+                postGraphileRequest.mockResponseOnce( { toolById: null } );
 
                 // send request
                 const result = await request
@@ -570,7 +553,7 @@ describe( 'GET /api/tools/:toolId', () => {
 describe( 'tools error classes', () => {
 
     it(
-        'ToolsFetchFailed has correct properties'
+        'toolsFetchFailed has correct properties'
         , () => {
 
             // create error instance
@@ -585,7 +568,7 @@ describe( 'tools error classes', () => {
     );
 
     it(
-        'ToolNotFound has correct properties'
+        'toolNotFound has correct properties'
         , () => {
 
             // create error instance

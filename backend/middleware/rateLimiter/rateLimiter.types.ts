@@ -1,7 +1,10 @@
+import type { RequestHandler } from 'express';
+
 /**
  * Configuration options for rate limiter
  */
 export interface RateLimiterConfig {
+
     // Maximum number of requests allowed in the window
     maxRequests: number;
 
@@ -32,9 +35,15 @@ export interface RateLimiterRequest {
 }
 
 /**
+ * Express middleware type for rate limiter
+ */
+export type RateLimiterMiddleware = RequestHandler;
+
+/**
  * Rate limit info returned by the limiter
  */
 export interface RateLimitInfo {
+
     // Whether the request is allowed
     allowed: boolean;
 

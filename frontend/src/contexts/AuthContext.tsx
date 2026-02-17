@@ -7,18 +7,9 @@ import {
     type ReactNode,
 } from "react";
 import { useSession, authClient } from "@/lib/auth-client";
+import type { AuthProvider, User } from "@/types/user";
 
-export type AuthProvider = "email" | "google" | "github";
-
-export interface User {
-    id: string;
-    email: string;
-    name: string;
-    initials: string;
-    image?: string;
-    emailVerified: boolean;
-    provider: AuthProvider;
-}
+export type { User };
 
 interface AuthContextValue {
     user: User | null;
@@ -68,10 +59,15 @@ export function AuthProvider( { children }: { children: ReactNode } ) {
     }, [ session ] );
 
     const signOut = async () => {
-        // Call Better Auth's signOut - this clears the session cookie
-        await authClient.signOut();
-        // Force a hard redirect to clear any cached React state
-        window.location.href = "/login";
+        // Let Better Auth handle both session invalidation and redirect
+        // This ensures the cookie is fully cleared before navigation
+        await authClient.signOut( {
+            fetchOptions: {
+                onSuccess: () => {
+                    window.location.href = "/login";
+                }
+            }
+        } );
     };
 
     const updateName = async ( newName: string ) => {

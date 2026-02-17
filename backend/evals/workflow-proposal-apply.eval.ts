@@ -20,20 +20,16 @@ jest.mock( '../app/workflows/workflows.service', () => ( {
     , getWorkflowById: jest.fn()
 } ) );
 
-jest.mock( '../app/workflows/workflows.helper', () => ( {
-    updateWorkflowMetadataIfAuto: jest.fn()
-} ) );
+jest.mock( '../app/workflows/workflows.helper', () => ( { updateWorkflowMetadataIfAuto: jest.fn() } ) );
 
-jest.mock( '../app/tools/tools.helper', () => ( {
-    getCachedTools: jest.fn()
-} ) );
+jest.mock( '../app/tools/tools.helper', () => ( { getCachedTools: jest.fn() } ) );
 
 jest.mock( '../app/workflowChatMessages/workflowChatMessages.service', () => ( {
     getWorkflowChatMessages: jest.fn()
     , createWorkflowChatMessage: jest.fn()
 } ) );
 
-jest.mock( '../lib/workflowDags', () => ( {
+jest.mock( '../utils/workflowDags', () => ( {
     validateWorkflowDag: jest.fn()
     , sortWorkflowDagSteps: jest.fn( steps => steps )
 } ) );
@@ -72,9 +68,9 @@ ls.describe( 'Workflow proposal apply handler', () => {
 
                 if ( example.mocks?.proposalResult.type === 'success' ) {
                     getWorkflowProposal.mockResolvedValueOnce( success( example.mocks.proposalResult.proposal ) );
-                    getLatestWorkflowVersion.mockResolvedValueOnce( success( {
-                        id: example.mocks.proposalResult.latestVersionId
-                    } ) );
+                    getLatestWorkflowVersion.mockResolvedValueOnce(
+                        success( { id: example.mocks.proposalResult.latestVersionId } )
+                    );
                 }
 
                 const req = {

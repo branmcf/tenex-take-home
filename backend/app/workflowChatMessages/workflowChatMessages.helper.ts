@@ -17,15 +17,24 @@ import {
     , WorkflowDAG
     , WorkflowToolRef
     , validateWorkflowDag
-} from '../../lib/workflowDags';
+} from '../../utils/workflowDags';
 import { getWorkflowById, getLatestWorkflowVersion } from '../workflows/workflows.service';
 import { getWorkflowChatMessages } from './workflowChatMessages.service';
 import { getCachedTools } from '../tools/tools.helper';
 import { storeWorkflowProposal } from '../../lib/workflowProposals';
+import { Log } from '../../utils';
 import {
     buildWorkflowHistorySummaryPrompt
     , formatConversationHistoryForPrompt
+    , HISTORY_SUMMARY_TRIGGER
+    , HISTORY_RECENT_MESSAGES
+    , HISTORY_SUMMARY_MAX_WORDS
 } from '../../utils/constants';
+import {
+    WorkflowChatHistoryMessage
+    , WorkflowChatProposalHistoryItem
+} from './workflowChatMessages.types';
+import { sortWorkflowDagSteps } from '../../utils/workflowDags';
 
 /**
  * @notice Normalize cached tool records into workflow tool refs.
@@ -196,6 +205,7 @@ const getStepsNeedingToolUsageDecision = ( currentDag: WorkflowDAG, proposedDag:
 
     return proposedDag.steps.filter( step => {
         const currentStep = currentStepMap.get( step.id );
+
         if ( !currentStep ) {
             return true;
         }
@@ -293,18 +303,7 @@ const buildDraftAssistantMessage = ( stepCount: number ) => {
         return 'I prepared a draft workflow. Review the proposed changes below and apply if they look right.';
     }
 
-    return `I drafted ${ stepCount } step${ stepCount !== 1 ? 's' : '' } for your workflow. Review the proposed changes below and apply if they look right.`;
-};
-
-// history summarization thresholds for prompt context
-const HISTORY_SUMMARY_TRIGGER = 12;
-const HISTORY_RECENT_MESSAGES = 8;
-const HISTORY_SUMMARY_MAX_WORDS = 140;
-
-type WorkflowChatHistoryMessage = {
-    role: 'user' | 'assistant' | 'system';
-    content: string;
-    createdAt: string;
+    return `I drafted ${ stepCount } step${ stepCount === 1 ? '' : 's' } for your workflow. Review the proposed changes below and apply if they look right.`;
 };
 
 /**
@@ -537,14 +536,15 @@ export const generateWorkflowChatResponse = async (
     let cachedToolsResult = await getCachedTools( false );
 
     if ( cachedToolsResult.isError() ) {
-        console.warn( 'workflow chat: failed to load cached tools, continuing without tools', cachedToolsResult.value );
+        Log.warn( 'workflow chat: failed to load cached tools, continuing without tools', cachedToolsResult.value );
     } else if ( cachedToolsResult.value.length > 0 ) {
         availableTools = buildToolRefs( cachedToolsResult.value );
     } else {
         // attempt a refresh, but don't fail if MCP is unavailable
         cachedToolsResult = await getCachedTools( true );
+
         if ( cachedToolsResult.isError() ) {
-            console.warn( 'workflow chat: failed to refresh tools, continuing without tools', cachedToolsResult.value );
+            Log.warn( 'workflow chat: failed to refresh tools, continuing without tools', cachedToolsResult.value );
         } else {
             availableTools = buildToolRefs( cachedToolsResult.value );
         }
@@ -575,9 +575,7 @@ export const generateWorkflowChatResponse = async (
     }
 
     if ( intentResult.value.intent === 'answer_only' ) {
-        return success( {
-            content: normalizeAssistantContent( intentResult.value.assistantMessage, false )
-        } );
+        return success( { content: normalizeAssistantContent( intentResult.value.assistantMessage, false ) } );
     }
 
     // generate tool calls
@@ -599,7 +597,10 @@ export const generateWorkflowChatResponse = async (
     let proposedToolCalls = toolCallResult.value.toolCalls;
     let assistantMessage = toolCallResult.value.assistantMessage;
 
-    // fall back to step planning when no tool calls were produced for an empty workflow
+    /*
+     * fall back to step planning when no tool calls were produced for an empty
+     * workflow
+     */
     if ( proposedToolCalls.length === 0 && currentDag.steps.length === 0 ) {
 
         // generate a step plan
@@ -622,9 +623,7 @@ export const generateWorkflowChatResponse = async (
 
     // return early if we still have no tool calls to apply
     if ( proposedToolCalls.length === 0 ) {
-        return success( {
-            content: normalizeAssistantContent( assistantMessage, false )
-        } );
+        return success( { content: normalizeAssistantContent( assistantMessage, false ) } );
     }
 
     // apply tool calls to generate proposal dag
@@ -680,7 +679,7 @@ export const generateWorkflowChatResponse = async (
     }
 
     // store proposal
-    const expiresAt = new Date( Date.now() + 5 * 60 * 1000 ).toISOString();
+    const expiresAt = new Date( Date.now() + ( 5 * 60 * 1000 ) ).toISOString();
 
     const storeResult = await storeWorkflowProposal( {
         workflowId: params.workflowId
@@ -710,5 +709,72 @@ export const generateWorkflowChatResponse = async (
             , resolvedAt: null
         }
     } );
+
+};
+
+/**
+ * @notice Normalize stored proposal status into the API enum.
+ * @param status - raw status string from storage
+ * @returns normalized proposal status
+ */
+export const normalizeProposalStatus = (
+    status?: string | null
+): WorkflowChatProposalHistoryItem['status'] => {
+    if ( status === 'applied' || status === 'rejected' || status === 'expired' ) {
+        return status;
+    }
+
+    return 'pending';
+};
+
+/**
+ * @notice Build a proposal response payload with sorted preview steps.
+ * @param proposal - proposal record from storage
+ * @returns proposal response with normalized preview steps
+ */
+export const buildPendingProposalResponse = (
+    proposal: {
+        id: string;
+        baseVersionId?: string | null;
+        toolCalls: unknown;
+        proposedDag: unknown;
+        status?: string | null;
+        createdAt: string;
+        resolvedAt?: string | null;
+    }
+): WorkflowChatProposalHistoryItem => {
+
+    // extract proposed steps from the stored dag payload
+    const dag = proposal.proposedDag as {
+        steps?: Array<{
+            id: string;
+            name: string;
+            instruction: string;
+            tools?: Array<{ id: string; name?: string; version?: string }>;
+            dependsOn?: string[];
+        }>;
+    };
+
+    const previewSteps = Array.isArray( dag?.steps )
+        ? sortWorkflowDagSteps( dag.steps as WorkflowDAG['steps'] ).map( step => ( {
+            id: step.id
+            , name: step.name
+            , instruction: step.instruction
+            , tools: step.tools ?? []
+            , dependsOn: step.dependsOn ?? []
+        } ) )
+        : [];
+
+    const normalizedStatus = normalizeProposalStatus( proposal.status );
+
+    return {
+        proposalId: proposal.id
+        , baseVersionId: proposal.baseVersionId ?? null
+        , toolCalls: proposal.toolCalls
+        , previewSteps
+        , status: normalizedStatus
+        , createdAt: proposal.createdAt
+        , resolvedAt: proposal.resolvedAt ?? null
+    };
 
 };

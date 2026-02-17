@@ -6,6 +6,15 @@ import { Request } from 'express';
 export type WorkflowChatMessageRole = 'user' | 'assistant';
 
 /**
+ * History message type for workflow chat context building
+ */
+export type WorkflowChatHistoryMessage = {
+    role: 'user' | 'assistant' | 'system';
+    content: string;
+    createdAt: string;
+};
+
+/**
  * individual workflow chat message in response
  */
 export interface WorkflowChatMessageResponse {

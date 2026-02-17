@@ -44,6 +44,7 @@ export const serverErrorHandler = (
      * though we do not need the 'next' argument, we need
      * to keep it here.
      */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     , next: NextFunction
 ): Response<ResourceError> => {
     const internalError = new ServerInternalError( undefined, err );

@@ -42,7 +42,7 @@ const createMockSession = ( overrides = {} ) => ( {
     , session: {
         id: 'mock-session-id'
         , userId: 'mock-user-id'
-        , expiresAt: new Date( Date.now() + 24 * 60 * 60 * 1000 )
+        , expiresAt: new Date( Date.now() + ( 24 * 60 * 60 * 1000 ) )
         , createdAt: new Date()
         , updatedAt: new Date()
     }
@@ -63,7 +63,7 @@ const mockApi: MockAuthApi = {
 const mockHandler: MockAuthHandler = jest.fn().mockResolvedValue(
     new Response( JSON.stringify( { success: true } ), {
         status: 200
-        , headers: { 'Content-Type': 'application/json' }
+        , headers: { [ 'Content-Type' ]: 'application/json' }
     } )
 );
 
@@ -75,7 +75,7 @@ export const auth: MockAuth = {
 /**
  * Helper to reset all mocks
  */
-export const resetAuthMocks = () => {
+export const resetAuthMocks = (): void => {
     Object.values( mockApi ).forEach( mock => mock.mockClear() );
     ( mockHandler as jest.Mock ).mockClear();
 };
@@ -83,21 +83,21 @@ export const resetAuthMocks = () => {
 /**
  * Helper to mock session response
  */
-export const mockSessionOnce = ( session = createMockSession() ) => {
+export const mockSessionOnce = ( session = createMockSession() ): void => {
     mockApi.getSession.mockResolvedValueOnce( session );
 };
 
 /**
  * Helper to mock no session (unauthenticated)
  */
-export const mockNoSessionOnce = () => {
+export const mockNoSessionOnce = (): void => {
     mockApi.getSession.mockResolvedValueOnce( null );
 };
 
 /**
  * Helper to mock session error
  */
-export const mockSessionErrorOnce = ( errorMessage = 'Session error' ) => {
+export const mockSessionErrorOnce = ( errorMessage = 'Session error' ): void => {
     mockApi.getSession.mockRejectedValueOnce( new Error( errorMessage ) );
 };
 

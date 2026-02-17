@@ -18,7 +18,7 @@ const createDefaultProposal = ( overrides: Partial<WorkflowProposalRecord> = {} 
     , toolCalls: []
     , proposedDag: { steps: [] }
     , createdAt: new Date().toISOString()
-    , expiresAt: new Date( Date.now() + 5 * 60 * 1000 ).toISOString()
+    , expiresAt: new Date( Date.now() + ( 5 * 60 * 1000 ) ).toISOString()
     , status: 'pending'
     , resolvedAt: null
     , ...overrides
@@ -224,8 +224,11 @@ jest.doMock( '../workflowProposals.helper', () => ( {
 } ) );
 
 export const storeWorkflowProposal = storeWorkflowProposalMock;
+
 export const getWorkflowProposal = getWorkflowProposalMock;
+
 export const removeWorkflowProposal = removeWorkflowProposalMock;
+
 export const getLatestWorkflowProposalForWorkflow = getLatestWorkflowProposalForWorkflowMock;
 
 /**

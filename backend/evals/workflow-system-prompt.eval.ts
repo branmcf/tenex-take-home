@@ -2,7 +2,7 @@
 import {
     buildWorkflowIntentPrompt
     , buildWorkflowToolUsagePrompt
-} from '../lib/llm/workflowSystemPrompt';
+} from '../lib/llm/llm.prompts';
 import ls from './evals.ls';
 import { logAndAssertExactMatch } from './evals.helper';
 import { workflowSystemPromptDataset } from './datasets/workflow-system-prompt.dataset';

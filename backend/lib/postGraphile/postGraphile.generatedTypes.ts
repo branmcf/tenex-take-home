@@ -645,6 +645,43 @@ export type CreateUserInput = {
   user: UserInput;
 };
 
+/** All input for the create `UserModelPreference` mutation. */
+export type CreateUserModelPreferenceInput = {
+  /**
+   * An arbitrary string value with no semantic meaning. Will be included in the
+   * payload verbatim. May be used to track mutations by the client.
+   */
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+  /** The `UserModelPreference` to be created by this mutation. */
+  userModelPreference: UserModelPreferenceInput;
+};
+
+/** The output of our create `UserModelPreference` mutation. */
+export type CreateUserModelPreferencePayload = {
+  __typename?: 'CreateUserModelPreferencePayload';
+  /**
+   * The exact same `clientMutationId` that was provided in the mutation input,
+   * unchanged and unused. May be used by a client to track mutations.
+   */
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  /** Reads a single `Model` that is related to this `UserModelPreference`. */
+  modelByModelId?: Maybe<Model>;
+  /** Our root query field type. Allows us to run any query from our mutation payload. */
+  query?: Maybe<Query>;
+  /** Reads a single `User` that is related to this `UserModelPreference`. */
+  userByUserId?: Maybe<User>;
+  /** The `UserModelPreference` that was created by this mutation. */
+  userModelPreference?: Maybe<UserModelPreference>;
+  /** An edge for our `UserModelPreference`. May be used by Relay 1. */
+  userModelPreferenceEdge?: Maybe<UserModelPreferencesEdge>;
+};
+
+
+/** The output of our create `UserModelPreference` mutation. */
+export type CreateUserModelPreferencePayloadUserModelPreferenceEdgeArgs = {
+  orderBy?: InputMaybe<Array<UserModelPreferencesOrderBy>>;
+};
+
 /** The output of our create `User` mutation. */
 export type CreateUserPayload = {
   __typename?: 'CreateUserPayload';
@@ -1412,6 +1449,54 @@ export type DeleteUserInput = {
   nodeId: Scalars['ID']['input'];
 };
 
+/** All input for the `deleteUserModelPreferenceById` mutation. */
+export type DeleteUserModelPreferenceByIdInput = {
+  /**
+   * An arbitrary string value with no semantic meaning. Will be included in the
+   * payload verbatim. May be used to track mutations by the client.
+   */
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['UUID']['input'];
+};
+
+/** All input for the `deleteUserModelPreference` mutation. */
+export type DeleteUserModelPreferenceInput = {
+  /**
+   * An arbitrary string value with no semantic meaning. Will be included in the
+   * payload verbatim. May be used to track mutations by the client.
+   */
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+  /** The globally unique `ID` which will identify a single `UserModelPreference` to be deleted. */
+  nodeId: Scalars['ID']['input'];
+};
+
+/** The output of our delete `UserModelPreference` mutation. */
+export type DeleteUserModelPreferencePayload = {
+  __typename?: 'DeleteUserModelPreferencePayload';
+  /**
+   * The exact same `clientMutationId` that was provided in the mutation input,
+   * unchanged and unused. May be used by a client to track mutations.
+   */
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  deletedUserModelPreferenceId?: Maybe<Scalars['ID']['output']>;
+  /** Reads a single `Model` that is related to this `UserModelPreference`. */
+  modelByModelId?: Maybe<Model>;
+  /** Our root query field type. Allows us to run any query from our mutation payload. */
+  query?: Maybe<Query>;
+  /** Reads a single `User` that is related to this `UserModelPreference`. */
+  userByUserId?: Maybe<User>;
+  /** The `UserModelPreference` that was deleted by this mutation. */
+  userModelPreference?: Maybe<UserModelPreference>;
+  /** An edge for our `UserModelPreference`. May be used by Relay 1. */
+  userModelPreferenceEdge?: Maybe<UserModelPreferencesEdge>;
+};
+
+
+/** The output of our delete `UserModelPreference` mutation. */
+export type DeleteUserModelPreferencePayloadUserModelPreferenceEdgeArgs = {
+  orderBy?: InputMaybe<Array<UserModelPreferencesOrderBy>>;
+};
+
 /** The output of our delete `User` mutation. */
 export type DeleteUserPayload = {
   __typename?: 'DeleteUserPayload';
@@ -1992,6 +2077,8 @@ export type Model = Node & {
   updatedAt: Scalars['Datetime']['output'];
   /** Reads and enables pagination through a set of `UsageRecord`. */
   usageRecordsByModelId: UsageRecordsConnection;
+  /** Reads and enables pagination through a set of `UserModelPreference`. */
+  userModelPreferencesByModelId: UserModelPreferencesConnection;
   /** Reads and enables pagination through a set of `WorkflowChatMessage`. */
   workflowChatMessagesByModelId: WorkflowChatMessagesConnection;
 };
@@ -2016,6 +2103,17 @@ export type ModelUsageRecordsByModelIdArgs = {
   last?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
   orderBy?: InputMaybe<Array<UsageRecordsOrderBy>>;
+};
+
+
+export type ModelUserModelPreferencesByModelIdArgs = {
+  after?: InputMaybe<Scalars['Cursor']['input']>;
+  before?: InputMaybe<Scalars['Cursor']['input']>;
+  condition?: InputMaybe<UserModelPreferenceCondition>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Array<UserModelPreferencesOrderBy>>;
 };
 
 
@@ -2143,6 +2241,8 @@ export type Mutation = {
   createUsageRecord?: Maybe<CreateUsageRecordPayload>;
   /** Creates a single `User`. */
   createUser?: Maybe<CreateUserPayload>;
+  /** Creates a single `UserModelPreference`. */
+  createUserModelPreference?: Maybe<CreateUserModelPreferencePayload>;
   /** Creates a single `Verification`. */
   createVerification?: Maybe<CreateVerificationPayload>;
   /** Creates a single `Workflow`. */
@@ -2207,6 +2307,10 @@ export type Mutation = {
   deleteUserByEmail?: Maybe<DeleteUserPayload>;
   /** Deletes a single `User` using a unique key. */
   deleteUserById?: Maybe<DeleteUserPayload>;
+  /** Deletes a single `UserModelPreference` using its globally unique id. */
+  deleteUserModelPreference?: Maybe<DeleteUserModelPreferencePayload>;
+  /** Deletes a single `UserModelPreference` using a unique key. */
+  deleteUserModelPreferenceById?: Maybe<DeleteUserModelPreferencePayload>;
   /** Deletes a single `Verification` using its globally unique id. */
   deleteVerification?: Maybe<DeleteVerificationPayload>;
   /** Deletes a single `Verification` using a unique key. */
@@ -2285,6 +2389,10 @@ export type Mutation = {
   updateUserByEmail?: Maybe<UpdateUserPayload>;
   /** Updates a single `User` using a unique key and a patch. */
   updateUserById?: Maybe<UpdateUserPayload>;
+  /** Updates a single `UserModelPreference` using its globally unique id and a patch. */
+  updateUserModelPreference?: Maybe<UpdateUserModelPreferencePayload>;
+  /** Updates a single `UserModelPreference` using a unique key and a patch. */
+  updateUserModelPreferenceById?: Maybe<UpdateUserModelPreferencePayload>;
   /** Updates a single `Verification` using its globally unique id and a patch. */
   updateVerification?: Maybe<UpdateVerificationPayload>;
   /** Updates a single `Verification` using a unique key and a patch. */
@@ -2377,6 +2485,12 @@ export type MutationCreateUsageRecordArgs = {
 /** The root mutation type which contains root level fields which mutate data. */
 export type MutationCreateUserArgs = {
   input: CreateUserInput;
+};
+
+
+/** The root mutation type which contains root level fields which mutate data. */
+export type MutationCreateUserModelPreferenceArgs = {
+  input: CreateUserModelPreferenceInput;
 };
 
 
@@ -2569,6 +2683,18 @@ export type MutationDeleteUserByEmailArgs = {
 /** The root mutation type which contains root level fields which mutate data. */
 export type MutationDeleteUserByIdArgs = {
   input: DeleteUserByIdInput;
+};
+
+
+/** The root mutation type which contains root level fields which mutate data. */
+export type MutationDeleteUserModelPreferenceArgs = {
+  input: DeleteUserModelPreferenceInput;
+};
+
+
+/** The root mutation type which contains root level fields which mutate data. */
+export type MutationDeleteUserModelPreferenceByIdArgs = {
+  input: DeleteUserModelPreferenceByIdInput;
 };
 
 
@@ -2807,6 +2933,18 @@ export type MutationUpdateUserByIdArgs = {
 
 
 /** The root mutation type which contains root level fields which mutate data. */
+export type MutationUpdateUserModelPreferenceArgs = {
+  input: UpdateUserModelPreferenceInput;
+};
+
+
+/** The root mutation type which contains root level fields which mutate data. */
+export type MutationUpdateUserModelPreferenceByIdArgs = {
+  input: UpdateUserModelPreferenceByIdInput;
+};
+
+
+/** The root mutation type which contains root level fields which mutate data. */
 export type MutationUpdateVerificationArgs = {
   input: UpdateVerificationInput;
 };
@@ -2999,6 +3137,8 @@ export type Query = Node & {
   allTools?: Maybe<ToolsConnection>;
   /** Reads and enables pagination through a set of `UsageRecord`. */
   allUsageRecords?: Maybe<UsageRecordsConnection>;
+  /** Reads and enables pagination through a set of `UserModelPreference`. */
+  allUserModelPreferences?: Maybe<UserModelPreferencesConnection>;
   /** Reads and enables pagination through a set of `User`. */
   allUsers?: Maybe<UsersConnection>;
   /** Reads and enables pagination through a set of `Verification`. */
@@ -3056,6 +3196,9 @@ export type Query = Node & {
   user?: Maybe<User>;
   userByEmail?: Maybe<User>;
   userById?: Maybe<User>;
+  /** Reads a single `UserModelPreference` using its globally unique `ID`. */
+  userModelPreference?: Maybe<UserModelPreference>;
+  userModelPreferenceById?: Maybe<UserModelPreference>;
   /** Reads a single `Verification` using its globally unique `ID`. */
   verification?: Maybe<Verification>;
   verificationById?: Maybe<Verification>;
@@ -3207,6 +3350,18 @@ export type QueryAllUsageRecordsArgs = {
   last?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
   orderBy?: InputMaybe<Array<UsageRecordsOrderBy>>;
+};
+
+
+/** The root query type which gives access points into the data universe. */
+export type QueryAllUserModelPreferencesArgs = {
+  after?: InputMaybe<Scalars['Cursor']['input']>;
+  before?: InputMaybe<Scalars['Cursor']['input']>;
+  condition?: InputMaybe<UserModelPreferenceCondition>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Array<UserModelPreferencesOrderBy>>;
 };
 
 
@@ -3443,6 +3598,18 @@ export type QueryUserByEmailArgs = {
 /** The root query type which gives access points into the data universe. */
 export type QueryUserByIdArgs = {
   id: Scalars['String']['input'];
+};
+
+
+/** The root query type which gives access points into the data universe. */
+export type QueryUserModelPreferenceArgs = {
+  nodeId: Scalars['ID']['input'];
+};
+
+
+/** The root query type which gives access points into the data universe. */
+export type QueryUserModelPreferenceByIdArgs = {
+  id: Scalars['UUID']['input'];
 };
 
 
@@ -4474,6 +4641,57 @@ export type UpdateUserInput = {
   userPatch: UserPatch;
 };
 
+/** All input for the `updateUserModelPreferenceById` mutation. */
+export type UpdateUserModelPreferenceByIdInput = {
+  /**
+   * An arbitrary string value with no semantic meaning. Will be included in the
+   * payload verbatim. May be used to track mutations by the client.
+   */
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['UUID']['input'];
+  /** An object where the defined keys will be set on the `UserModelPreference` being updated. */
+  userModelPreferencePatch: UserModelPreferencePatch;
+};
+
+/** All input for the `updateUserModelPreference` mutation. */
+export type UpdateUserModelPreferenceInput = {
+  /**
+   * An arbitrary string value with no semantic meaning. Will be included in the
+   * payload verbatim. May be used to track mutations by the client.
+   */
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+  /** The globally unique `ID` which will identify a single `UserModelPreference` to be updated. */
+  nodeId: Scalars['ID']['input'];
+  /** An object where the defined keys will be set on the `UserModelPreference` being updated. */
+  userModelPreferencePatch: UserModelPreferencePatch;
+};
+
+/** The output of our update `UserModelPreference` mutation. */
+export type UpdateUserModelPreferencePayload = {
+  __typename?: 'UpdateUserModelPreferencePayload';
+  /**
+   * The exact same `clientMutationId` that was provided in the mutation input,
+   * unchanged and unused. May be used by a client to track mutations.
+   */
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  /** Reads a single `Model` that is related to this `UserModelPreference`. */
+  modelByModelId?: Maybe<Model>;
+  /** Our root query field type. Allows us to run any query from our mutation payload. */
+  query?: Maybe<Query>;
+  /** Reads a single `User` that is related to this `UserModelPreference`. */
+  userByUserId?: Maybe<User>;
+  /** The `UserModelPreference` that was updated by this mutation. */
+  userModelPreference?: Maybe<UserModelPreference>;
+  /** An edge for our `UserModelPreference`. May be used by Relay 1. */
+  userModelPreferenceEdge?: Maybe<UserModelPreferencesEdge>;
+};
+
+
+/** The output of our update `UserModelPreference` mutation. */
+export type UpdateUserModelPreferencePayloadUserModelPreferenceEdgeArgs = {
+  orderBy?: InputMaybe<Array<UserModelPreferencesOrderBy>>;
+};
+
 /** The output of our update `User` mutation. */
 export type UpdateUserPayload = {
   __typename?: 'UpdateUserPayload';
@@ -4961,6 +5179,8 @@ export type User = Node & {
   updatedAt: Scalars['Datetime']['output'];
   /** Reads and enables pagination through a set of `UsageRecord`. */
   usageRecordsByUserId: UsageRecordsConnection;
+  /** Reads and enables pagination through a set of `UserModelPreference`. */
+  userModelPreferencesByUserId: UserModelPreferencesConnection;
   /** Reads and enables pagination through a set of `Workflow`. */
   workflowsByUserId: WorkflowsConnection;
 };
@@ -5021,6 +5241,17 @@ export type UserUsageRecordsByUserIdArgs = {
 };
 
 
+export type UserUserModelPreferencesByUserIdArgs = {
+  after?: InputMaybe<Scalars['Cursor']['input']>;
+  before?: InputMaybe<Scalars['Cursor']['input']>;
+  condition?: InputMaybe<UserModelPreferenceCondition>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Array<UserModelPreferencesOrderBy>>;
+};
+
+
 export type UserWorkflowsByUserIdArgs = {
   after?: InputMaybe<Scalars['Cursor']['input']>;
   before?: InputMaybe<Scalars['Cursor']['input']>;
@@ -5059,6 +5290,95 @@ export type UserInput = {
   name: Scalars['String']['input'];
   updatedAt?: InputMaybe<Scalars['Datetime']['input']>;
 };
+
+export type UserModelPreference = Node & {
+  __typename?: 'UserModelPreference';
+  createdAt: Scalars['Datetime']['output'];
+  id: Scalars['UUID']['output'];
+  /** Reads a single `Model` that is related to this `UserModelPreference`. */
+  modelByModelId?: Maybe<Model>;
+  modelId: Scalars['String']['output'];
+  /** A globally unique identifier. Can be used in various places throughout the system to identify this single value. */
+  nodeId: Scalars['ID']['output'];
+  updatedAt: Scalars['Datetime']['output'];
+  /** Reads a single `User` that is related to this `UserModelPreference`. */
+  userByUserId?: Maybe<User>;
+  userId: Scalars['String']['output'];
+};
+
+/**
+ * A condition to be used against `UserModelPreference` object types. All fields
+ * are tested for equality and combined with a logical ‘and.’
+ */
+export type UserModelPreferenceCondition = {
+  /** Checks for equality with the object’s `createdAt` field. */
+  createdAt?: InputMaybe<Scalars['Datetime']['input']>;
+  /** Checks for equality with the object’s `id` field. */
+  id?: InputMaybe<Scalars['UUID']['input']>;
+  /** Checks for equality with the object’s `modelId` field. */
+  modelId?: InputMaybe<Scalars['String']['input']>;
+  /** Checks for equality with the object’s `updatedAt` field. */
+  updatedAt?: InputMaybe<Scalars['Datetime']['input']>;
+  /** Checks for equality with the object’s `userId` field. */
+  userId?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** An input for mutations affecting `UserModelPreference` */
+export type UserModelPreferenceInput = {
+  createdAt?: InputMaybe<Scalars['Datetime']['input']>;
+  id?: InputMaybe<Scalars['UUID']['input']>;
+  modelId: Scalars['String']['input'];
+  updatedAt?: InputMaybe<Scalars['Datetime']['input']>;
+  userId: Scalars['String']['input'];
+};
+
+/** Represents an update to a `UserModelPreference`. Fields that are set will be updated. */
+export type UserModelPreferencePatch = {
+  createdAt?: InputMaybe<Scalars['Datetime']['input']>;
+  id?: InputMaybe<Scalars['UUID']['input']>;
+  modelId?: InputMaybe<Scalars['String']['input']>;
+  updatedAt?: InputMaybe<Scalars['Datetime']['input']>;
+  userId?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** A connection to a list of `UserModelPreference` values. */
+export type UserModelPreferencesConnection = {
+  __typename?: 'UserModelPreferencesConnection';
+  /** A list of edges which contains the `UserModelPreference` and cursor to aid in pagination. */
+  edges: Array<UserModelPreferencesEdge>;
+  /** A list of `UserModelPreference` objects. */
+  nodes: Array<Maybe<UserModelPreference>>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+  /** The count of *all* `UserModelPreference` you could get from the connection. */
+  totalCount: Scalars['Int']['output'];
+};
+
+/** A `UserModelPreference` edge in the connection. */
+export type UserModelPreferencesEdge = {
+  __typename?: 'UserModelPreferencesEdge';
+  /** A cursor for use in pagination. */
+  cursor?: Maybe<Scalars['Cursor']['output']>;
+  /** The `UserModelPreference` at the end of the edge. */
+  node?: Maybe<UserModelPreference>;
+};
+
+/** Methods to use when ordering `UserModelPreference`. */
+export enum UserModelPreferencesOrderBy {
+  CreatedAtAsc = 'CREATED_AT_ASC',
+  CreatedAtDesc = 'CREATED_AT_DESC',
+  IdAsc = 'ID_ASC',
+  IdDesc = 'ID_DESC',
+  ModelIdAsc = 'MODEL_ID_ASC',
+  ModelIdDesc = 'MODEL_ID_DESC',
+  Natural = 'NATURAL',
+  PrimaryKeyAsc = 'PRIMARY_KEY_ASC',
+  PrimaryKeyDesc = 'PRIMARY_KEY_DESC',
+  UpdatedAtAsc = 'UPDATED_AT_ASC',
+  UpdatedAtDesc = 'UPDATED_AT_DESC',
+  UserIdAsc = 'USER_ID_ASC',
+  UserIdDesc = 'USER_ID_DESC'
+}
 
 /** Represents an update to a `User`. Fields that are set will be updated. */
 export type UserPatch = {
@@ -5432,6 +5752,8 @@ export type WorkflowProposal = Node & {
   /** A globally unique identifier. Can be used in various places throughout the system to identify this single value. */
   nodeId: Scalars['ID']['output'];
   proposedDag: Scalars['JSON']['output'];
+  resolvedAt?: Maybe<Scalars['Datetime']['output']>;
+  status: Scalars['String']['output'];
   toolCalls: Scalars['JSON']['output'];
   userMessage: Scalars['String']['output'];
   /** Reads a single `Workflow` that is related to this `WorkflowProposal`. */
@@ -5458,6 +5780,10 @@ export type WorkflowProposalCondition = {
   modelId?: InputMaybe<Scalars['String']['input']>;
   /** Checks for equality with the object’s `proposedDag` field. */
   proposedDag?: InputMaybe<Scalars['JSON']['input']>;
+  /** Checks for equality with the object’s `resolvedAt` field. */
+  resolvedAt?: InputMaybe<Scalars['Datetime']['input']>;
+  /** Checks for equality with the object’s `status` field. */
+  status?: InputMaybe<Scalars['String']['input']>;
   /** Checks for equality with the object’s `toolCalls` field. */
   toolCalls?: InputMaybe<Scalars['JSON']['input']>;
   /** Checks for equality with the object’s `userMessage` field. */
@@ -5474,6 +5800,8 @@ export type WorkflowProposalInput = {
   id?: InputMaybe<Scalars['UUID']['input']>;
   modelId?: InputMaybe<Scalars['String']['input']>;
   proposedDag: Scalars['JSON']['input'];
+  resolvedAt?: InputMaybe<Scalars['Datetime']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
   toolCalls: Scalars['JSON']['input'];
   userMessage: Scalars['String']['input'];
   workflowId: Scalars['UUID']['input'];
@@ -5487,6 +5815,8 @@ export type WorkflowProposalPatch = {
   id?: InputMaybe<Scalars['UUID']['input']>;
   modelId?: InputMaybe<Scalars['String']['input']>;
   proposedDag?: InputMaybe<Scalars['JSON']['input']>;
+  resolvedAt?: InputMaybe<Scalars['Datetime']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
   toolCalls?: InputMaybe<Scalars['JSON']['input']>;
   userMessage?: InputMaybe<Scalars['String']['input']>;
   workflowId?: InputMaybe<Scalars['UUID']['input']>;
@@ -5531,6 +5861,10 @@ export enum WorkflowProposalsOrderBy {
   PrimaryKeyDesc = 'PRIMARY_KEY_DESC',
   ProposedDagAsc = 'PROPOSED_DAG_ASC',
   ProposedDagDesc = 'PROPOSED_DAG_DESC',
+  ResolvedAtAsc = 'RESOLVED_AT_ASC',
+  ResolvedAtDesc = 'RESOLVED_AT_DESC',
+  StatusAsc = 'STATUS_ASC',
+  StatusDesc = 'STATUS_DESC',
   ToolCallsAsc = 'TOOL_CALLS_ASC',
   ToolCallsDesc = 'TOOL_CALLS_DESC',
   UserMessageAsc = 'USER_MESSAGE_ASC',

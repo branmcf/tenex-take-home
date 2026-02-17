@@ -232,7 +232,8 @@ export const getWorkflowMetadata = async (
  *
  * @param workflowId - the workflow id
  * @param workflowPatch - metadata patch
- * @returns Either<ResourceError, { id }>\n */
+ * @returns Either<ResourceError, { id }>\n
+ */
 export const updateWorkflowMetadata = async (
     workflowId: string
     , workflowPatch: { name?: string; description?: string; nameSource?: 'auto' | 'user'; descriptionSource?: 'auto' | 'user' }
@@ -275,9 +276,7 @@ export const updateWorkflowMetadata = async (
     }
 
     // return success
-    return success( {
-        id: result.value.updateWorkflowById.workflow.id
-    } );
+    return success( { id: result.value.updateWorkflowById.workflow.id } );
 
 };
 
@@ -371,13 +370,18 @@ export const updateWorkflow = async (
     }
 ): Promise<Either<ResourceError, NonNullable<NonNullable<UpdateWorkflowMutation['updateWorkflowById']>['workflow']>>> => {
 
-    // build the patch object with only provided fields
-    // omitting fields entirely (vs passing null) preserves existing values in PostGraphile
+    /*
+     * build the patch object with only provided fields
+     * omitting fields entirely (vs passing null) preserves existing values in
+     * PostGraphile
+     */
     const workflowPatch: { name?: string; description?: string; nameSource?: string; descriptionSource?: string } = {};
+
     if ( params.name !== undefined ) {
         workflowPatch.name = params.name;
         workflowPatch.nameSource = 'user';
     }
+
     if ( params.description !== undefined ) {
         workflowPatch.description = params.description;
         workflowPatch.descriptionSource = 'user';
@@ -501,7 +505,8 @@ export const deleteWorkflow = async (
  * get the latest workflow version for a workflow
  *
  * @param workflowId - workflow id
- * @returns Either<ResourceError, { id, versionNumber, dag } | null>\n */
+ * @returns Either<ResourceError, { id, versionNumber, dag } | null>\n
+ */
 export const getLatestWorkflowVersion = async (
     workflowId: string
 ): Promise<Either<ResourceError, { id: string; versionNumber: number; dag: unknown } | null>> => {
@@ -555,7 +560,8 @@ export const getLatestWorkflowVersion = async (
  *
  * @param workflowId - workflow id
  * @param dag - workflow dag
- * @returns Either<ResourceError, { id, versionNumber, dag }>\n */
+ * @returns Either<ResourceError, { id, versionNumber, dag }>\n
+ */
 export const createWorkflowVersion = async (
     workflowId: string
     , dag: unknown

@@ -2,8 +2,7 @@
 
 import { postGraphileRequest } from '../../lib/postGraphile/__mocks__/postGraphile.request';
 import {
-    auth
-    , mockSessionOnce
+    mockSessionOnce
     , mockNoSessionOnce
 } from '../../lib/betterAuth/__mocks__/auth';
 
@@ -17,9 +16,7 @@ jest.mock( '../../lib/workflowProposals', () => ( {
 } ) );
 
 // Mock workflow chat messages helper
-jest.mock( '../../app/workflowChatMessages/workflowChatMessages.helper', () => ( {
-    generateWorkflowChatResponse: jest.fn()
-} ) );
+jest.mock( '../../app/workflowChatMessages/workflowChatMessages.helper', () => ( { generateWorkflowChatResponse: jest.fn() } ) );
 
 import supertest from 'supertest';
 import { testApp } from '../tests.server';
@@ -39,13 +36,8 @@ import {
     , WorkflowProposalRejectFailed
 } from '../../app/workflowChatMessages/workflowChatMessages.errors';
 
-// set up server for testing
-const server = testApp.listen();
-const request = supertest( server );
-
-afterAll( async () => {
-    server.close();
-} );
+// set up server for testing - supertest handles server lifecycle internally
+const request = supertest( testApp );
 
 /**
  * GET /api/workflows/:workflowId/messages
@@ -163,10 +155,14 @@ describe( 'GET /api/workflows/:workflowId/messages', () => {
 
     } );
 
-    // NOTE: Invalid UUID validation tests are not included for workflowId because
-    // the workflowOwnershipValidator middleware runs before requestValidator
-    // in this route configuration. Invalid UUIDs result in ownership check failures
-    // rather than request validation errors.
+    /*
+     * NOTE: Invalid UUID validation tests are not included for workflowId
+     * because the workflowOwnershipValidator middleware runs before
+     * requestValidator
+     * in this route configuration. Invalid UUIDs result in ownership check
+     * failures
+     * rather than request validation errors.
+     */
 
     describe( 'the request to endpoint is valid', () => {
 
@@ -248,9 +244,7 @@ describe( 'GET /api/workflows/:workflowId/messages', () => {
                 postGraphileRequest.mockResponseOnce( {
                     workflowById: {
                         id: workflowId
-                        , workflowVersionsByWorkflowId: {
-                            nodes: []
-                        }
+                        , workflowVersionsByWorkflowId: { nodes: [] }
                     }
                 } );
 
@@ -327,9 +321,7 @@ describe( 'GET /api/workflows/:workflowId/messages', () => {
                 postGraphileRequest.mockResponseOnce( {
                     workflowById: {
                         id: workflowId
-                        , workflowChatMessagesByWorkflowId: {
-                            nodes: []
-                        }
+                        , workflowChatMessagesByWorkflowId: { nodes: [] }
                     }
                 } );
 
@@ -342,9 +334,7 @@ describe( 'GET /api/workflows/:workflowId/messages', () => {
                 postGraphileRequest.mockResponseOnce( {
                     workflowById: {
                         id: workflowId
-                        , workflowVersionsByWorkflowId: {
-                            nodes: []
-                        }
+                        , workflowVersionsByWorkflowId: { nodes: [] }
                     }
                 } );
 
@@ -415,9 +405,7 @@ describe( 'GET /api/workflows/:workflowId/messages', () => {
                 } );
 
                 // mock getWorkflowChatMessages failure (workflow not found)
-                postGraphileRequest.mockResponseOnce( {
-                    workflowById: null
-                } );
+                postGraphileRequest.mockResponseOnce( { workflowById: null } );
 
                 // send request
                 const result = await request
@@ -544,9 +532,7 @@ describe( 'POST /api/workflows/:workflowId/messages', () => {
                 // send request
                 const result = await request
                     .post( `/api/workflows/${ workflowId }/messages` )
-                    .send( {
-                        modelId: 'gpt-4o'
-                    } );
+                    .send( { modelId: 'gpt-4o' } );
 
                 // get spy results - NONE
 
@@ -609,9 +595,7 @@ describe( 'POST /api/workflows/:workflowId/messages', () => {
                 // send request
                 const result = await request
                     .post( `/api/workflows/${ workflowId }/messages` )
-                    .send( {
-                        content: 'Test message'
-                    } );
+                    .send( { content: 'Test message' } );
 
                 // get spy results - NONE
 
@@ -829,9 +813,7 @@ describe( 'POST /api/workflows/:workflowId/messages', () => {
                     , role: 'user'
                 } );
                 expect( result.body.assistantMessage ).toBeNull();
-                expect( result.body.error ).toMatchObject( {
-                    code: 'LLM_ERROR'
-                } );
+                expect( result.body.error ).toMatchObject( { code: 'LLM_ERROR' } );
 
                 // check status code
                 expect( result.status ).toBe( 201 );
@@ -1152,7 +1134,7 @@ describe( 'POST /api/workflows/:workflowId/messages/reject', () => {
 describe( 'workflowChatMessages error classes', () => {
 
     it(
-        'WorkflowChatMessagesNotFound has correct properties'
+        'workflowChatMessagesNotFound has correct properties'
         , () => {
 
             // create error instance
@@ -1167,7 +1149,7 @@ describe( 'workflowChatMessages error classes', () => {
     );
 
     it(
-        'GetWorkflowChatMessagesFailed has correct properties'
+        'getWorkflowChatMessagesFailed has correct properties'
         , () => {
 
             // create error instance
@@ -1182,7 +1164,7 @@ describe( 'workflowChatMessages error classes', () => {
     );
 
     it(
-        'CreateWorkflowChatMessageFailed has correct properties'
+        'createWorkflowChatMessageFailed has correct properties'
         , () => {
 
             // create error instance
@@ -1197,7 +1179,7 @@ describe( 'workflowChatMessages error classes', () => {
     );
 
     it(
-        'WorkflowProposalVersionMismatch has correct properties'
+        'workflowProposalVersionMismatch has correct properties'
         , () => {
 
             // create error instance
@@ -1212,7 +1194,7 @@ describe( 'workflowChatMessages error classes', () => {
     );
 
     it(
-        'WorkflowProposalApplyFailed has correct properties'
+        'workflowProposalApplyFailed has correct properties'
         , () => {
 
             // create error instance
@@ -1227,7 +1209,7 @@ describe( 'workflowChatMessages error classes', () => {
     );
 
     it(
-        'WorkflowProposalRejectFailed has correct properties'
+        'workflowProposalRejectFailed has correct properties'
         , () => {
 
             // create error instance

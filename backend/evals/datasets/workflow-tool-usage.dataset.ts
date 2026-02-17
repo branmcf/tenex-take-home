@@ -1,4 +1,5 @@
 /* ----------------- Imports --------------------- */
+/* eslint-disable @typescript-eslint/naming-convention */
 import { WorkflowToolUsageDatasetCase } from './datasets.types';
 
 export const workflowToolUsageDataset: WorkflowToolUsageDatasetCase[] = [
@@ -29,9 +30,7 @@ export const workflowToolUsageDataset: WorkflowToolUsageDatasetCase[] = [
                 }
             ]
         }
-        , mocks: {
-            llmText: '{"steps":[{"stepId":"step_1","useTools":true,"tools":[{"id":"web_search","version":"1.0.0"}]},{"stepId":"step_2","useTools":false,"tools":[]}]}'
-        }
+        , mocks: { llmText: '{"steps":[{"stepId":"step_1","useTools":true,"tools":[{"id":"web_search","version":"1.0.0"}]},{"stepId":"step_2","useTools":false,"tools":[]}]}' }
         , expected: {
             isSuccess: true
             , isError: false
@@ -65,9 +64,7 @@ export const workflowToolUsageDataset: WorkflowToolUsageDatasetCase[] = [
                 }
             ]
         }
-        , mocks: {
-            llmText: 'not json'
-        }
+        , mocks: { llmText: 'not json' }
         , expected: {
             isSuccess: false
             , isError: true

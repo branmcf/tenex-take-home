@@ -1,5 +1,7 @@
 import { ResourceError } from '../../../errors';
-import { Either, success, error } from '../../../types';
+import {
+    Either, success, error
+} from '../../../types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MockResult = Promise<Either<ResourceError, any>>;

@@ -11,8 +11,8 @@ import {
     , WorkflowToolRef
     , LLMToolCall
 } from './workflowDags.types';
-import { validateWorkflowDag } from './dagValidator';
-import { sortWorkflowDagSteps } from './dagSorter';
+import { validateWorkflowDag } from './workflowDags.validator';
+import { sortWorkflowDagSteps } from './workflowDags.sorter';
 
 /**
  * @notice Deep-ish clone the DAG so we never mutate input.

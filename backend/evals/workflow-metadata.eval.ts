@@ -7,9 +7,7 @@ import { success } from '../types';
 import { workflowMetadataDataset } from './datasets/workflow-metadata.dataset';
 
 /* ----------------- Mocks ----------------------- */
-jest.mock( '../lib/llm', () => ( {
-    generateLLMText: jest.fn()
-} ) );
+jest.mock( '../lib/llm', () => ( { generateLLMText: jest.fn() } ) );
 
 jest.mock( '../app/workflows/workflows.service', () => ( {
     getWorkflowMetadata: jest.fn()
@@ -29,9 +27,7 @@ ls.describe( 'Workflow metadata generation (generateWorkflowMetadata)', () => {
             example.name
             , async () => {
 
-                generateLLMText.mockResolvedValueOnce( success( {
-                    content: example.mocks?.llmContent ?? ''
-                } ) );
+                generateLLMText.mockResolvedValueOnce( success( { content: example.mocks?.llmContent ?? '' } ) );
 
                 const result = await generateWorkflowMetadata( {
                     userMessage: example.inputs.userMessage

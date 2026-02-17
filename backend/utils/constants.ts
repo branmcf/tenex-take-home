@@ -7,7 +7,7 @@ import type {
     WorkflowDAG
     , WorkflowToolRef
     , WorkflowStep
-} from '../lib/workflowDags';
+} from './workflowDags';
 
 /**
  * Format workflow steps for display in prompts
@@ -199,14 +199,48 @@ ${ conversationBlock }
 User request:
 ${ params.userMessage }
 
-CRITICAL - Understanding Step Ordering:
-Steps run in DEPENDENCY order, not list order. A step runs only after ALL its dependencies complete.
+=== CRITICAL: UNDERSTANDING STEP ORDERING ===
+
+Steps run in DEPENDENCY ORDER, not list order. A step runs only after ALL its dependencies complete.
 - If step X has no dependencies, it runs first (can run in parallel with other no-dependency steps).
 - If step Y depends on X, then X runs first and Y runs after X completes.
-- To change when a step runs, you must change its "dependsOn" array using reorder_steps or update_step.
+- To change when a step runs, you must change its "dependsOn" array.
 
-Ordering Language Translation Guide:
-When users describe ordering, translate to dependency changes:
+=== ADDING NEW STEPS WITH CORRECT POSITIONING ===
+
+When adding a new step, you MUST think carefully about where it fits in the dependency chain.
+
+SCENARIO 1: "Add/Do X before Y" (insert new step before existing step)
+This is the MOST COMMON request. It requires TWO tool calls:
+1. add_step: Create the new step X (use tempId so you can reference it)
+2. reorder_steps: Make Y depend on X (stepId: Y's id, newDependsOn: [X's tempId, ...Y's other dependencies])
+
+Example: Current workflow has "Write Report" (id: step_123) with dependsOn: ["step_100"]
+User says: "Do research before writing the report"
+Correct action:
+  1. add_step(tempId: "temp_research", name: "Research", instruction: "...", dependsOn: ["step_100"])
+  2. reorder_steps(stepId: "step_123", newDependsOn: ["temp_research"])
+This inserts Research between step_100 and Write Report.
+
+SCENARIO 2: "Add X after Y" (append new step after existing step)
+Single tool call - set dependsOn to include Y:
+  add_step(name: "X", instruction: "...", dependsOn: ["Y's id"])
+
+SCENARIO 3: "Add X at the beginning" / "Start with X"
+Single tool call - no dependencies:
+  add_step(name: "X", instruction: "...", dependsOn: [])
+Then reorder any steps that should come after X.
+
+SCENARIO 4: "Add X at the end" / "Finish with X"
+Single tool call - X depends on the current final step(s):
+  add_step(name: "X", instruction: "...", dependsOn: [ids of current final steps])
+
+SCENARIO 5: "Insert X between Y and Z" (where Z depends on Y)
+Two tool calls:
+  1. add_step(tempId: "temp_x", name: "X", instruction: "...", dependsOn: ["Y's id"])
+  2. reorder_steps(stepId: "Z's id", newDependsOn: ["temp_x"])
+
+=== REORDERING EXISTING STEPS ===
 
 | User says                                    | Meaning                        | Action                                      |
 |----------------------------------------------|--------------------------------|---------------------------------------------|
@@ -216,14 +250,11 @@ When users describe ordering, translate to dependency changes:
 | "Move X after Y" / "Put X behind Y"          | X waits for Y                  | reorder_steps(stepId: X, newDependsOn: [Y]) |
 | "X should run first" / "Start with X"        | X has no dependencies          | reorder_steps(stepId: X, newDependsOn: [])  |
 | "X should run last" / "End with X"           | X depends on all other steps   | reorder_steps(stepId: X, newDependsOn: [all other step ids]) |
-| "X depends on Y" / "X needs Y" / "X requires Y" | X waits for Y               | reorder_steps(stepId: X, newDependsOn: [Y]) |
-| "Y feeds into X" / "Y's output goes to X"    | X waits for Y                  | reorder_steps(stepId: X, newDependsOn: [Y]) |
-| "Move X earlier" / "Move X up"               | Reduce X's dependencies        | reorder_steps with fewer/no dependencies    |
-| "Move X later" / "Move X down"               | Add dependencies to X          | reorder_steps with more dependencies        |
 
 Key insight: "X before Y" modifies Y (add X to Y's dependencies), NOT X.
 
-Guidelines:
+=== GUIDELINES ===
+
 - If the request requires a change, call one or more tools.
 - Always use tool calls to add, update, delete, or reorder steps.
 - Use the tool ids and versions exactly as listed.
@@ -232,7 +263,9 @@ Guidelines:
 - Prefer adding prompt-only steps; tools are optional and handled separately.
 - Step instructions should explicitly reference either the user input or a prior step output when relevant.
 - Do not answer the user's question; only describe changes to the workflow definition.
-- When reordering, carefully identify WHICH step's dependencies need to change based on the translation guide above.
+- ALWAYS analyze the current dependency chain before adding steps.
+- When user says "before [step]", you MUST use reorder_steps to update that step's dependencies.
+- When reordering, carefully identify WHICH step's dependencies need to change based on the examples above.
 
 After tool calls, respond with a short, user-facing summary of the changes.`;
 
@@ -588,3 +621,24 @@ export const formatSourcesForRAGPrompt = (
         return `[${ index + 1 }] ${ source.title }\nURL: ${ source.url }\n${ source.description || '' }`;
     } ).join( '\n\n' );
 };
+
+/*
+ * ============================================================================
+ * Shared Constants
+ * ============================================================================
+ */
+
+// history summarization thresholds
+export const HISTORY_SUMMARY_TRIGGER = 12;
+
+export const HISTORY_RECENT_MESSAGES = 8;
+
+export const HISTORY_SUMMARY_MAX_WORDS = 140;
+
+// chat events SSE timeout (ms)
+export const CHAT_EVENTS_TIMEOUT_MS = 30000;
+
+// workflow run polling constants (ms)
+export const WORKFLOW_RUN_POLL_INTERVAL_MS = 1000;
+
+export const WORKFLOW_RUN_TERMINAL_GRACE_MS = 15000;

@@ -2,8 +2,7 @@
 
 import { postGraphileRequest } from '../../lib/postGraphile/__mocks__/postGraphile.request';
 import {
-    auth
-    , mockSessionOnce
+    mockSessionOnce
     , mockNoSessionOnce
 } from '../../lib/betterAuth/__mocks__/auth';
 
@@ -16,13 +15,8 @@ import { v4 as uuidv4 } from 'uuid';
 import * as ChatsService from '../../app/chats/chats.service';
 import * as WorkflowsService from '../../app/workflows/workflows.service';
 
-// set up server for testing
-const server = testApp.listen();
-const request = supertest( server );
-
-afterAll( async () => {
-    server.close();
-} );
+// set up server for testing - supertest handles server lifecycle internally
+const request = supertest( testApp );
 
 /**
  * GET /api/users/:userId/chats
@@ -422,11 +416,7 @@ describe( 'GET /api/users/:userId/workflows', () => {
                                     , name: 'Test Workflow'
                                     , description: 'A test workflow'
                                     , updatedAt: '2024-01-01T00:00:00Z'
-                                    , workflowVersionsByWorkflowId: {
-                                        nodes: [
-                                            { versionNumber: 1 }
-                                        ]
-                                    }
+                                    , workflowVersionsByWorkflowId: { nodes: [ { versionNumber: 1 } ] }
                                 }
                             ]
                         }
@@ -507,9 +497,7 @@ describe( 'GET /api/users/:userId/workflows', () => {
                                     , name: 'Test Workflow'
                                     , description: null
                                     , updatedAt: '2024-01-01T00:00:00Z'
-                                    , workflowVersionsByWorkflowId: {
-                                        nodes: []
-                                    }
+                                    , workflowVersionsByWorkflowId: { nodes: [] }
                                 }
                             ]
                         }
@@ -581,9 +569,7 @@ describe( 'GET /api/users/:userId/workflows', () => {
                     }
                 } );
 
-                postGraphileRequest.mockResponseOnce( {
-                    userById: null
-                } );
+                postGraphileRequest.mockResponseOnce( { userById: null } );
 
                 // send request
                 const result = await request
@@ -654,9 +640,7 @@ describe( 'GET /api/users/:userId/workflows', () => {
                                     , name: 'Test Workflow'
                                     , description: null
                                     , updatedAt: '2024-01-01T00:00:00Z'
-                                    , workflowVersionsByWorkflowId: {
-                                        nodes: []
-                                    }
+                                    , workflowVersionsByWorkflowId: { nodes: [] }
                                 }
                                 , null
                             ]

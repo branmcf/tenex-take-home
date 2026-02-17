@@ -1,42 +1,13 @@
 import { apiClient } from "../api-client";
+import type { Workflow, WorkflowTool, WorkflowStep } from "@/types";
+
+export type { Workflow, WorkflowTool, WorkflowStep };
 
 /**
- * Workflow as returned by the API (list view)
- * Contains all fields needed for both chat modal and workflows list view
+ * Full workflow detail as returned by the API (string dates — wire format).
+ * Distinct from the UI-layer WorkflowDetail which uses Date objects.
  */
-export interface Workflow {
-    id: string;
-    name: string;
-    description: string | null;
-    version: number | null;
-    updatedAt: string;
-}
-
-/**
- * Tool in a workflow step
- */
-export interface WorkflowTool {
-    id: string;
-    name: string;
-    description?: string;
-    version?: string;
-}
-
-/**
- * Step in a workflow
- */
-export interface WorkflowStep {
-    id: string;
-    name: string;
-    prompt: string;
-    tools: WorkflowTool[];
-    order: number;
-}
-
-/**
- * Full workflow detail with steps
- */
-export interface WorkflowDetail {
+export interface ApiWorkflowDetail {
     id: string;
     name: string;
     description: string | null;
@@ -67,7 +38,7 @@ interface GetWorkflowsResponse {
  * Response type for GET /api/workflows/:workflowId
  */
 interface GetWorkflowByIdResponse {
-    workflow: WorkflowDetail;
+    workflow: ApiWorkflowDetail;
 }
 
 /**
@@ -204,7 +175,7 @@ export async function getWorkflows(userId: string): Promise<Workflow[]> {
  * @param workflowId - The workflow ID to fetch
  * @returns The workflow detail
  */
-export async function getWorkflowById(workflowId: string): Promise<WorkflowDetail> {
+export async function getWorkflowById(workflowId: string): Promise<ApiWorkflowDetail> {
     const response = await apiClient.get<GetWorkflowByIdResponse>(
         `/api/workflows/${workflowId}`
     );

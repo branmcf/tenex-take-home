@@ -1,7 +1,7 @@
 /* ----------------- Imports --------------------- */
 import ls from './evals.ls';
 import { logAndAssertExactMatch } from './evals.helper';
-import { workflowTools } from '../lib/llm/workflowTools';
+import { workflowTools } from '../lib/llm/llm.workflowToolDefs';
 import { workflowToolsSchemaDataset } from './datasets/workflow-tools-schema.dataset';
 
 /* ----------------- Mocks ----------------------- */

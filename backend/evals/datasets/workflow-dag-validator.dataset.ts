@@ -30,8 +30,12 @@ export const workflowDagValidatorDataset: WorkflowDagValidatorDatasetCase[] = [
         , inputs: {
             dag: {
                 steps: [
-                    { id: 'step_1', name: 'A', instruction: 'A', dependsOn: [] }
-                    , { id: 'step_1', name: 'B', instruction: 'B', dependsOn: [] }
+                    {
+                        id: 'step_1', name: 'A', instruction: 'A', dependsOn: []
+                    }
+                    , {
+                        id: 'step_1', name: 'B', instruction: 'B', dependsOn: []
+                    }
                 ]
             }
         }
@@ -46,7 +50,9 @@ export const workflowDagValidatorDataset: WorkflowDagValidatorDatasetCase[] = [
         , inputs: {
             dag: {
                 steps: [
-                    { id: 'step_1', name: 'A', instruction: 'A', dependsOn: [ 'step_2' ] }
+                    {
+                        id: 'step_1', name: 'A', instruction: 'A', dependsOn: [ 'step_2' ]
+                    }
                 ]
             }
         }
@@ -61,8 +67,12 @@ export const workflowDagValidatorDataset: WorkflowDagValidatorDatasetCase[] = [
         , inputs: {
             dag: {
                 steps: [
-                    { id: 'step_1', name: 'A', instruction: 'A', dependsOn: [ 'step_2' ] }
-                    , { id: 'step_2', name: 'B', instruction: 'B', dependsOn: [ 'step_1' ] }
+                    {
+                        id: 'step_1', name: 'A', instruction: 'A', dependsOn: [ 'step_2' ]
+                    }
+                    , {
+                        id: 'step_2', name: 'B', instruction: 'B', dependsOn: [ 'step_1' ]
+                    }
                 ]
             }
         }

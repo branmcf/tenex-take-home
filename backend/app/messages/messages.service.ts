@@ -18,6 +18,8 @@ import {
     , GetMessagesByChatIdQueryVariables
     , CreateMessageSourceMutation
     , CreateMessageSourceMutationVariables
+    , UpdateChatByIdMutation
+    , UpdateChatByIdMutationVariables
 } from './messages.service.generatedTypes';
 import {
     ChatNotFound
@@ -164,7 +166,7 @@ export const createMessage = async (
         , assistant: MessageRole.Assistant
         , system: MessageRole.System
     };
-    const graphqlRole = roleMap[params.role];
+    const graphqlRole = roleMap[ params.role ];
 
     // create the graphql mutation
     const CREATE_MESSAGE = gql`
@@ -338,7 +340,7 @@ export const updateChatTitle = async (
     `;
 
     // execute the graphql mutation
-    const result = await postGraphileRequest<any, any>(
+    const result = await postGraphileRequest<UpdateChatByIdMutation, UpdateChatByIdMutationVariables>(
         {
             mutation: UPDATE_CHAT
             , variables: {

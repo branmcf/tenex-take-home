@@ -29,7 +29,10 @@ export const getModelsHandler = async (
             .json( getActiveModelsResult.value );
     }
 
-    // get the models nodes (allModels is guaranteed to exist from service validation)
+    /*
+     * get the models nodes
+     * allModels is guaranteed to exist from service validation
+     */
     const modelsNodes = getActiveModelsResult.value?.nodes ?? [];
 
     // map the models to response format, filtering out null values

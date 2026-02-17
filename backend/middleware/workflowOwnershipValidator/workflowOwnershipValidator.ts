@@ -7,7 +7,8 @@ import { ResourceError } from '../../errors';
 import { validateWorkflowOwnership } from './workflowOwnershipValidator.helper';
 
 /**
- * Express middleware to validate that a workflow belongs to the authenticated user
+ * Express middleware to validate that a workflow belongs to the authenticated
+ * user
  *
  * @description
  * This middleware validates that:

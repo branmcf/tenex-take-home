@@ -15,17 +15,11 @@ jest.mock( 'ai', () => ( {
     , jsonSchema: jest.fn( () => ( {} ) )
 } ) );
 
-jest.mock( '../lib/llm/providers', () => ( {
-    getModelProvider: jest.fn( () => ( { name: 'mock-model' } ) )
-} ) );
+jest.mock( '../lib/llm/llm.providers', () => ( { getModelProvider: jest.fn( () => ( { name: 'mock-model' } ) ) } ) );
 
-jest.mock( '../app/workflows/workflows.service', () => ( {
-    getWorkflowById: jest.fn()
-} ) );
+jest.mock( '../app/workflows/workflows.service', () => ( { getWorkflowById: jest.fn() } ) );
 
-jest.mock( '../lib/postGraphile', () => ( {
-    postGraphileRequest: jest.fn()
-} ) );
+jest.mock( '../lib/postGraphile', () => ( { postGraphileRequest: jest.fn() } ) );
 
 /* ----------------- Tests ----------------------- */
 
@@ -43,9 +37,7 @@ ls.describe( 'Workflow runner (runWorkflow)', () => {
                 getWorkflowById.mockResolvedValueOnce( success( example.mocks.workflow ) );
 
                 postGraphileRequest
-                    .mockResolvedValueOnce( success( {
-                        createWorkflowRun: { workflowRun: { id: 'run-1' } }
-                    } ) )
+                    .mockResolvedValueOnce( success( { createWorkflowRun: { workflowRun: { id: 'run-1' } } } ) )
                     .mockResolvedValue( success( {} ) );
 
                 generateText.mockResolvedValueOnce( {

@@ -4,13 +4,9 @@ import * as React from "react";
 import Link from "next/link";
 import { ChatCircle } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
+import type { SearchResultItemData } from "@/types";
 
-export interface SearchResultItemData {
-  id: string;
-  title: string | null;
-  snippet?: string;
-  updatedAt: Date;
-}
+export type { SearchResultItemData };
 
 interface SearchResultItemProps {
   item: SearchResultItemData;

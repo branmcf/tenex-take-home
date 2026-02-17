@@ -7,49 +7,26 @@ import {
     Either
     , error
     , success
-} from '../types';
-import { ResourceError } from '../errors';
-import { getModelProvider } from './llm/providers';
-import { postGraphileRequest } from './postGraphile';
-import { runMcpTool, MCPTool } from './mcpToolsServer';
-import { getCachedTools } from '../app/tools/tools.helper';
-import { getWorkflowById } from '../app/workflows/workflows.service';
+} from '../../types';
+import { ResourceError } from '../../errors';
+import { getModelProvider } from '../llm/llm.providers';
+import { postGraphileRequest } from '../postGraphile';
+import { runMcpTool, MCPTool } from '../mcpToolsServer';
+import { getCachedTools } from '../../app/tools/tools.helper';
+import { getWorkflowById } from '../../app/workflows/workflows.service';
 import {
     validateWorkflowDag
+    , sortWorkflowDagSteps
     , WorkflowDAG
-    , WorkflowStep
     , WorkflowToolRef
-} from './workflowDags';
-import { buildWorkflowStepExecutionPrompt } from '../utils/constants';
-
-interface WorkflowRunResult {
-    workflowRunId: string;
-    content: string;
-}
-
-interface WorkflowRunCallbacks {
-    onRunCreated?: ( workflowRunId: string ) => void;
-}
-
-interface WorkflowToolLogEntry {
-    toolName: string;
-    input: Record<string, unknown>;
-    output?: unknown;
-    error?: string;
-    errorCode?: string;
-    errorDetails?: unknown;
-    status: 'RUNNING' | 'PASSED' | 'FAILED';
-    startedAt: string;
-    completedAt?: string;
-    toolCallId?: string | null;
-}
-
-interface ToolExecutionSummary {
-    total: number;
-    passed: number;
-    failed: number;
-    failedTools: string[];
-}
+} from '../../utils/workflowDags';
+import { buildWorkflowStepExecutionPrompt } from '../../utils/constants';
+import type {
+    WorkflowRunResult
+    , WorkflowRunCallbacks
+    , WorkflowToolLogEntry
+    , ToolExecutionSummary
+} from './workflowRunner.types';
 
 /**
  * @notice Build a lookup key from a tool reference.
@@ -108,71 +85,6 @@ const findMissingToolRefs = ( toolRefs: WorkflowToolRef[], lookup: Map<string, M
     } );
 };
 
-
-/**
- * @notice Topologically sort steps so dependencies come first.
- * @param steps - workflow steps
- * @returns sorted steps
- */
-const topologicalSortSteps = ( steps: WorkflowStep[] ) => {
-    const stepMap = new Map( steps.map( step => [ step.id, step ] ) );
-    const indegree = new Map<string, number>();
-    const dependents = new Map<string, string[]>();
-
-    steps.forEach( step => {
-        indegree.set( step.id, 0 );
-        dependents.set( step.id, [] );
-    } );
-
-    steps.forEach( step => {
-        const deps = step.dependsOn ?? [];
-        deps.forEach( depId => {
-            if ( !stepMap.has( depId ) ) {
-                return;
-            }
-
-            indegree.set( step.id, ( indegree.get( step.id ) ?? 0 ) + 1 );
-            dependents.get( depId )?.push( step.id );
-        } );
-    } );
-
-    // start with all steps that have no incoming edges
-    const queue: WorkflowStep[] = [];
-    steps.forEach( step => {
-        if ( ( indegree.get( step.id ) ?? 0 ) === 0 ) {
-            queue.push( step );
-        }
-    } );
-
-    // repeatedly peel off ready steps
-    const sorted: WorkflowStep[] = [];
-
-    while ( queue.length > 0 ) {
-        const step = queue.shift();
-
-        if ( !step ) {
-            continue;
-        }
-
-        sorted.push( step );
-
-        const outgoing = dependents.get( step.id ) ?? [];
-        outgoing.forEach( nextId => {
-            const nextIndegree = ( indegree.get( nextId ) ?? 0 ) - 1;
-            indegree.set( nextId, nextIndegree );
-
-            if ( nextIndegree === 0 ) {
-                const nextStep = stepMap.get( nextId );
-
-                if ( nextStep ) {
-                    queue.push( nextStep );
-                }
-            }
-        } );
-    }
-
-    return sorted;
-};
 
 /**
  * @notice Create a workflow run record in the database.
@@ -404,8 +316,9 @@ const updateStepRun = async (
 
 /**
  * @notice Build runtime tool wrappers for a single step.
- * Tool failures do NOT throw - they return error information that the LLM can process.
- * This allows the step to continue and potentially produce useful output despite tool failures.
+ * Tool failures do NOT throw - they return error information that the LLM can
+ * process. This allows the step to continue and potentially produce useful
+ * output despite tool failures.
  * @param stepTools - tool refs from the step
  * @param toolLookup - cached tool lookup
  * @param toolLogs - array to append tool execution logs into
@@ -460,7 +373,7 @@ const buildRuntimeTools = (
                     logEntry.errorDetails = errorValue.error;
                     logEntry.completedAt = new Date().toISOString();
 
-                    // Return error info instead of throwing - let the LLM handle it
+                    // Return error info instead of throwing
                     return {
                         error: true
                         , message: errorValue.message ?? 'Tool execution failed.'
@@ -505,8 +418,9 @@ const summarizeToolExecution = ( toolLogs: WorkflowToolLogEntry[] ): ToolExecuti
 };
 
 /**
- * Minimum output length to consider a step as having produced meaningful output.
- * Short outputs like "Error" or empty strings indicate the step failed to provide data.
+ * Minimum output length to consider a step as having produced meaningful output
+ * Short outputs like "Error" or empty strings indicate the step failed to
+ * provide data.
  */
 const MIN_MEANINGFUL_OUTPUT_LENGTH = 20;
 
@@ -527,8 +441,9 @@ interface StepSuccessEvaluation {
 }
 
 /**
- * @notice Evaluate whether a step produced sufficient output for downstream steps.
- * A step fails if it cannot provide meaningful data to the next step, not just because tools failed.
+ * @notice Evaluate whether a step produced sufficient output for downstream
+ * steps. A step fails if it cannot provide meaningful data to the next step,
+ * not just because tools failed.
  * @param output - the step's output text
  * @param toolSummary - summary of tool execution results
  * @param hasDownstreamSteps - whether this step has dependent steps
@@ -574,12 +489,17 @@ const evaluateStepSuccess = (
         }
     }
 
-    // If tools were used and ALL failed, but output is still meaningful, that's OK
-    // The LLM might have reasoned about the failures and provided useful analysis
+    /*
+     * If tools were used and ALL failed, but output is still meaningful, that's
+     * OK. The LLM might have reasoned about the failures and provided useful
+     * analysis
+     */
     if ( toolSummary.total > 0 && toolSummary.failed === toolSummary.total ) {
-        // All tools failed - check if output is still useful
-        // If the output is just reporting the failures, that's not useful
-        const mentionsToolFailure = /tool.*fail|failed to (call|execute|run)/i.test( trimmedOutput );
+        /*
+         * All tools failed - check if output is still useful
+         * If the output is just reporting the failures, that's not useful
+         */
+        const mentionsToolFailure = ( /tool.*fail|failed to (call|execute|run)/i ).test( trimmedOutput );
 
         if ( mentionsToolFailure && trimmedOutput.length < 200 ) {
             return {
@@ -618,6 +538,7 @@ export const runWorkflow = async (
     }
 ): Promise<Either<ResourceError, WorkflowRunResult>> => {
 
+    //  get the workflow by id
     const workflowResult = await getWorkflowById( params.workflowId );
 
     if ( workflowResult.isError() ) {
@@ -632,6 +553,11 @@ export const runWorkflow = async (
     }
 
     const dag = latestVersion.dag as WorkflowDAG;
+
+    /*
+     * validate the workflow
+     * check for empty DAGs, duplicate IDs, missing dependencies, and cycles
+     */
     const validationResult = validateWorkflowDag( { dag } );
 
     if ( validationResult.isError() ) {
@@ -641,7 +567,7 @@ export const runWorkflow = async (
     // set up tool lookup (may remain empty when no tools are needed)
     let toolLookup = new Map<string, MCPTool>();
 
-    // create workflow run
+    // create workflow run record
     const workflowRunResult = await createWorkflowRun( {
         workflowVersionId: latestVersion.id
         , chatId: params.chatId
@@ -668,7 +594,7 @@ export const runWorkflow = async (
     const outputs: Record<string, string> = {};
 
     // topologically order steps so dependencies run first
-    const orderedSteps = topologicalSortSteps( dag.steps ?? [] );
+    const orderedSteps = sortWorkflowDagSteps( dag.steps ?? [] );
 
     // if any step references tools, ensure we have tool definitions loaded
     const requiredToolRefs = orderedSteps.flatMap( step => step.tools ?? [] );
@@ -761,7 +687,10 @@ export const runWorkflow = async (
             // Get text output, or fallback to tool results if text is empty
             let output = result.text.trim();
 
-            // If no text output but tools were called, extract output from successful tool results
+            /*
+             * If no text output but tools were called, extract output from
+             * successful tool results
+             */
             if ( !output && toolExecutionLogs.length > 0 ) {
                 const successfulToolOutputs = toolExecutionLogs
                     .filter( log => log.status === 'PASSED' && log.output )
@@ -811,7 +740,10 @@ export const runWorkflow = async (
             );
             const evaluation = evaluateStepSuccess( output, toolSummary, hasDownstreamSteps );
 
-            // Build comprehensive step logs including tool execution and summary
+            /*
+             * Build comprehensive step logs including tool execution and
+             * summary
+             */
             const stepLogs = {
                 toolExecutions: toolExecutionLogs.length > 0 ? toolExecutionLogs : null
                 , toolSummary: toolExecutionLogs.length > 0 ? toolSummary : null
@@ -835,9 +767,7 @@ export const runWorkflow = async (
                     , completedAt
                 } );
 
-                throw new ResourceError( {
-                    message: `Step "${ step.name ?? step.id }" failed: ${ evaluation.reason }`
-                } );
+                throw new ResourceError( { message: `Step "${ step.name ?? step.id }" failed: ${ evaluation.reason }` } );
             }
 
             const updateStepRunResult = await updateStepRun( {

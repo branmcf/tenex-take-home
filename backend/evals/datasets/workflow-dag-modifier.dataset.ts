@@ -75,10 +75,7 @@ export const workflowDagModifierDataset: WorkflowDagModifierDatasetCase[] = [
                     }
                 }
             ]
-            , availableTools: [
-                { id: 'tool_a', name: 'Tool A', version: '1.0.0' }
-                , { id: 'tool_b', name: 'Tool B', version: '1.0.0' }
-            ]
+            , availableTools: [ { id: 'tool_a', name: 'Tool A', version: '1.0.0' }, { id: 'tool_b', name: 'Tool B', version: '1.0.0' } ]
             , generatedId: 'ignored'
         }
         , expected: {

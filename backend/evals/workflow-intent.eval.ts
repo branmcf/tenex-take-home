@@ -2,7 +2,7 @@
 import ls from './evals.ls';
 import { logAndAssertExactMatch } from './evals.helper';
 import { generateText } from 'ai';
-import { generateWorkflowIntent } from '../lib/llm/llmWithTools';
+import { generateWorkflowIntent } from '../lib/llm/llm.workflowIntents';
 import { workflowIntentDataset } from './datasets/workflow-intent.dataset';
 
 /* ----------------- Mocks ----------------------- */
@@ -13,9 +13,7 @@ jest.mock( 'ai', () => ( {
     , tool: jest.fn( () => ( {} ) )
 } ) );
 
-jest.mock( '../lib/llm/providers', () => ( {
-    getModelProvider: jest.fn( () => ( { name: 'mock-model' } ) )
-} ) );
+jest.mock( '../lib/llm/llm.providers', () => ( { getModelProvider: jest.fn( () => ( { name: 'mock-model' } ) ) } ) );
 
 /* ----------------- Tests ----------------------- */
 
@@ -30,9 +28,7 @@ ls.describe( 'Workflow intent parsing (generateWorkflowIntent)', () => {
             example.name
             , async () => {
 
-                generateText.mockResolvedValueOnce( {
-                    text: example.mocks?.llmText ?? ''
-                } );
+                generateText.mockResolvedValueOnce( { text: example.mocks?.llmText ?? '' } );
 
                 const result = await generateWorkflowIntent( {
                     userMessage: example.inputs.userMessage

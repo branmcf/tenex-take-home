@@ -9,12 +9,8 @@ import {
     , createUserModelPreference
     , updateUserModelPreferenceById
 } from './userModelPreferences.service';
-import {
-    UserModelPreferenceRecord
-} from './userModelPreferences.types';
-import {
-    UserModelPreferenceUpdateFailed
-} from './userModelPreferences.errors';
+import { UserModelPreferenceRecord } from './userModelPreferences.types';
+import { UserModelPreferenceUpdateFailed } from './userModelPreferences.errors';
 
 /**
  * create or update a user model preference

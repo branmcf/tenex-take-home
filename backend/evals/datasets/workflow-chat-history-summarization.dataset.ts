@@ -25,9 +25,7 @@ export const workflowChatHistorySummarizationDataset: WorkflowChatHistorySummari
             , recentMessageContent: 'Add a final section with next steps.'
             , excludedMessageContent: 'Yes, include a short executive summary at the top.'
         }
-        , mocks: {
-            summaryText: 'Summary text only.'
-        }
+        , mocks: { summaryText: 'Summary text only.' }
         , expected: {
             success: true
             , summaryCalled: 1
@@ -54,9 +52,7 @@ export const workflowChatHistorySummarizationDataset: WorkflowChatHistorySummari
             , recentMessageContent: 'Yes, weekly is perfect.'
             , excludedMessageContent: 'Use the support inbox.'
         }
-        , mocks: {
-            summaryText: 'Summary text only.'
-        }
+        , mocks: { summaryText: 'Summary text only.' }
         , expected: {
             success: true
             , summaryCalled: 0

@@ -11,8 +11,12 @@ import {
     , getToolByExternalId
     , getTools
     , updateToolById
-    , ToolRecord
 } from './tools.service';
+import {
+    ToolRecord
+    , ToolResponse
+    , GetToolByIdResponse
+} from './tools.types';
 
 const buildSchemaHash = ( schema: Record<string, unknown> | null | undefined ) => {
     if ( !schema ) {
@@ -156,3 +160,41 @@ export const getCachedTools = async (
     return getTools();
 
 };
+
+/**
+ * Map a tool record to API response format
+ *
+ * @param tool - tool record from database or MCP
+ * @returns formatted tool response
+ */
+export const mapToolResponse = ( tool: {
+    id: string;
+    name: string;
+    description?: string | null;
+    source: 'mcp' | 'local';
+    version?: string | null;
+} ): ToolResponse => ( {
+    id: tool.id
+    , name: tool.name
+    , description: tool.description ?? null
+    , version: tool.version ?? null
+    , source: tool.source === 'mcp' ? 'mcp' : 'local'
+} );
+
+/**
+ * Map a tool record to API response format with schema
+ *
+ * @param tool - tool record from database or MCP
+ * @returns formatted tool response with schema
+ */
+export const mapToolWithSchemaResponse = ( tool: {
+    id: string;
+    name: string;
+    description?: string | null;
+    schema?: Record<string, unknown> | null;
+    source: 'mcp' | 'local';
+    version?: string | null;
+} ): GetToolByIdResponse['tool'] => ( {
+    ...mapToolResponse( tool )
+    , schema: tool.schema ?? null
+} );

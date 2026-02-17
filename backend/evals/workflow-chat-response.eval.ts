@@ -6,7 +6,7 @@ import {
     , generateWorkflowToolCalls
     , generateWorkflowStepToolUsage
 } from '../lib/llm';
-import { applyToolCallsToDag, validateWorkflowDag } from '../lib/workflowDags';
+import { applyToolCallsToDag, validateWorkflowDag } from '../utils/workflowDags';
 import { getWorkflowById, getLatestWorkflowVersion } from '../app/workflows/workflows.service';
 import { getWorkflowChatMessages } from '../app/workflowChatMessages/workflowChatMessages.service';
 import { getCachedTools } from '../app/tools/tools.helper';
@@ -24,7 +24,7 @@ jest.mock( '../lib/llm', () => ( {
     , generateLLMText: jest.fn()
 } ) );
 
-jest.mock( '../lib/workflowDags', () => ( {
+jest.mock( '../utils/workflowDags', () => ( {
     applyToolCallsToDag: jest.fn()
     , validateWorkflowDag: jest.fn()
 } ) );
@@ -34,17 +34,11 @@ jest.mock( '../app/workflows/workflows.service', () => ( {
     , getLatestWorkflowVersion: jest.fn()
 } ) );
 
-jest.mock( '../app/workflowChatMessages/workflowChatMessages.service', () => ( {
-    getWorkflowChatMessages: jest.fn()
-} ) );
+jest.mock( '../app/workflowChatMessages/workflowChatMessages.service', () => ( { getWorkflowChatMessages: jest.fn() } ) );
 
-jest.mock( '../app/tools/tools.helper', () => ( {
-    getCachedTools: jest.fn()
-} ) );
+jest.mock( '../app/tools/tools.helper', () => ( { getCachedTools: jest.fn() } ) );
 
-jest.mock( '../lib/workflowProposals', () => ( {
-    storeWorkflowProposal: jest.fn()
-} ) );
+jest.mock( '../lib/workflowProposals', () => ( { storeWorkflowProposal: jest.fn() } ) );
 
 /* ----------------- Tests ----------------------- */
 

@@ -56,11 +56,8 @@ export async function deleteChat(chatId: string): Promise<boolean> {
 }
 
 // Message API types
-export interface Source {
-    url: string;
-    title: string;
-    description?: string;
-}
+import type { Source } from "@/types";
+export type { Source };
 
 export interface MessageResponse {
     id: string;

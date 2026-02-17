@@ -10,9 +10,7 @@ import {
     UserModelPreferenceFetchFailed
     , UserModelPreferenceUpdateFailed
 } from './userModelPreferences.errors';
-import {
-    UserModelPreferenceRecord
-} from './userModelPreferences.types';
+import { UserModelPreferenceRecord } from './userModelPreferences.types';
 
 interface UserModelPreferenceQueryResult {
     allUserModelPreferences?: {

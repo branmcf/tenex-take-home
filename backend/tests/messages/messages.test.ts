@@ -14,17 +14,19 @@ jest.mock( '../../lib/llm', () => ( {
     , generateLLMText: jest.fn().mockResolvedValue( { content: '', sources: [] } )
 } ) );
 
-// Mock messages helper module - must return Promises since code calls .catch() on results
+/*
+ * Mock messages helper module - must return Promises since code calls .catch()
+ * on results
+ */
 jest.mock( '../../app/messages/messages.helper', () => ( {
     generateLLMResponse: jest.fn().mockResolvedValue( { content: '', sources: [] } )
     , generateAndUpdateChatTitle: jest.fn().mockResolvedValue( undefined )
     , generateFallbackChatTitle: jest.fn().mockResolvedValue( undefined )
+    , processChatHistory: jest.fn().mockImplementation( async ( { messages } ) => messages )
 } ) );
 
 // Mock workflow runner module
-jest.mock( '../../lib/workflowRunner', () => ( {
-    runWorkflow: jest.fn().mockResolvedValue( { isError: () => false, value: { content: '', workflowRunId: '' } } )
-} ) );
+jest.mock( '../../lib/workflowRunner', () => ( { runWorkflow: jest.fn().mockResolvedValue( { isError: () => false, value: { content: '', workflowRunId: '' } } ) } ) );
 
 import supertest from 'supertest';
 import { testApp } from '../tests.server';
@@ -43,13 +45,8 @@ import {
     , WorkflowRunInProgress
 } from '../../app/messages/messages.errors';
 
-// set up server for testing
-const server = testApp.listen();
-const request = supertest( server );
-
-afterAll( async () => {
-    server.close();
-} );
+// set up server for testing - supertest handles server lifecycle internally
+const request = supertest( testApp );
 
 /**
  * Helper to create a valid session mock
@@ -183,31 +180,20 @@ describe( 'POST /api/chats/:chatId/messages', () => {
                 // create mocks
                 mockValidSession( sessionUserId );
 
-                // mock getChatOwnership - chat not found (allows POST to create new chat)
-                postGraphileRequest.mockResponseOnce( {
-                    chatById: null
-                } );
+                /*
+                 * mock getChatOwnership - chat not found (allows POST to create
+                 * new chat)
+                 */
+                postGraphileRequest.mockResponseOnce( { chatById: null } );
 
                 // mock getChatById in controller - chat not found
-                postGraphileRequest.mockResponseOnce( {
-                    chatById: null
-                } );
+                postGraphileRequest.mockResponseOnce( { chatById: null } );
 
                 // mock createChat
-                postGraphileRequest.mockResponseOnce( {
-                    createChat: {
-                        chat: {
-                            id: chatId
-                        }
-                    }
-                } );
+                postGraphileRequest.mockResponseOnce( { createChat: { chat: { id: chatId } } } );
 
                 // mock getRunningWorkflowRunByChatId - no running workflow
-                postGraphileRequest.mockResponseOnce( {
-                    allWorkflowRuns: {
-                        nodes: []
-                    }
-                } );
+                postGraphileRequest.mockResponseOnce( { allWorkflowRuns: { nodes: [] } } );
 
                 // mock createMessage for user message
                 postGraphileRequest.mockResponseOnce( {
@@ -215,6 +201,24 @@ describe( 'POST /api/chats/:chatId/messages', () => {
                         message: {
                             id: userMessageId
                             , createdAt: '2024-01-01T00:00:00Z'
+                        }
+                    }
+                } );
+
+                // mock getMessagesByChatId for conversation history
+                postGraphileRequest.mockResponseOnce( {
+                    chatById: {
+                        id: chatId
+                        , messagesByChatId: {
+                            nodes: [
+                                {
+                                    id: userMessageId
+                                    , role: 'USER'
+                                    , content: 'Hello'
+                                    , createdAt: '2024-01-01T00:00:00Z'
+                                    , messageSourcesByMessageId: { nodes: [] }
+                                }
+                            ]
                         }
                     }
                 } );
@@ -314,11 +318,7 @@ describe( 'POST /api/chats/:chatId/messages', () => {
                 } );
 
                 // mock getRunningWorkflowRunByChatId - no running workflow
-                postGraphileRequest.mockResponseOnce( {
-                    allWorkflowRuns: {
-                        nodes: []
-                    }
-                } );
+                postGraphileRequest.mockResponseOnce( { allWorkflowRuns: { nodes: [] } } );
 
                 // mock createMessage for user message
                 postGraphileRequest.mockResponseOnce( {
@@ -326,6 +326,24 @@ describe( 'POST /api/chats/:chatId/messages', () => {
                         message: {
                             id: userMessageId
                             , createdAt: '2024-01-01T00:00:00Z'
+                        }
+                    }
+                } );
+
+                // mock getMessagesByChatId for conversation history
+                postGraphileRequest.mockResponseOnce( {
+                    chatById: {
+                        id: chatId
+                        , messagesByChatId: {
+                            nodes: [
+                                {
+                                    id: userMessageId
+                                    , role: 'USER'
+                                    , content: 'Can you help me?'
+                                    , createdAt: '2024-01-01T00:00:00Z'
+                                    , messageSourcesByMessageId: { nodes: [] }
+                                }
+                            ]
                         }
                     }
                 } );
@@ -355,13 +373,7 @@ describe( 'POST /api/chats/:chatId/messages', () => {
                 } );
 
                 // mock createMessageSource
-                postGraphileRequest.mockResponseOnce( {
-                    createMessageSource: {
-                        messageSource: {
-                            id: uuidv4()
-                        }
-                    }
-                } );
+                postGraphileRequest.mockResponseOnce( { createMessageSource: { messageSource: { id: uuidv4() } } } );
 
                 // send request
                 const result = await request
@@ -438,13 +450,9 @@ describe( 'POST /api/chats/:chatId/messages', () => {
                 } );
 
                 // mock getRunningWorkflowRunByChatId - workflow is running
-                postGraphileRequest.mockResponseOnce( {
-                    allWorkflowRuns: {
-                        nodes: [
-                            { id: runningWorkflowRunId }
-                        ]
-                    }
-                } );
+                postGraphileRequest.mockResponseOnce(
+                    { allWorkflowRuns: { nodes: [ { id: runningWorkflowRunId } ] } }
+                );
 
                 // send request
                 const result = await request
@@ -488,20 +496,17 @@ describe( 'POST /api/chats/:chatId/messages', () => {
                 // create mocks
                 mockValidSession( sessionUserId );
 
-                // mock getChatOwnership - chat not found (allows POST to create new chat)
-                postGraphileRequest.mockResponseOnce( {
-                    chatById: null
-                } );
+                /*
+                 * mock getChatOwnership - chat not found (allows POST to create
+                 * new chat)
+                 */
+                postGraphileRequest.mockResponseOnce( { chatById: null } );
 
                 // mock getChatById - chat not found
-                postGraphileRequest.mockResponseOnce( {
-                    chatById: null
-                } );
+                postGraphileRequest.mockResponseOnce( { chatById: null } );
 
                 // mock createChat - failure
-                postGraphileRequest.mockResponseOnce( {
-                    createChat: null
-                } );
+                postGraphileRequest.mockResponseOnce( { createChat: null } );
 
                 // send request
                 const result = await request
@@ -561,16 +566,10 @@ describe( 'POST /api/chats/:chatId/messages', () => {
                 } );
 
                 // mock getRunningWorkflowRunByChatId - no running workflow
-                postGraphileRequest.mockResponseOnce( {
-                    allWorkflowRuns: {
-                        nodes: []
-                    }
-                } );
+                postGraphileRequest.mockResponseOnce( { allWorkflowRuns: { nodes: [] } } );
 
                 // mock createMessage - failure
-                postGraphileRequest.mockResponseOnce( {
-                    createMessage: null
-                } );
+                postGraphileRequest.mockResponseOnce( { createMessage: null } );
 
                 // send request
                 const result = await request
@@ -689,9 +688,7 @@ describe( 'GET /api/chats/:chatId/messages', () => {
                 mockValidSession( sessionUserId );
 
                 // mock chat ownership check - chat not found
-                postGraphileRequest.mockResponseOnce( {
-                    chatById: null
-                } );
+                postGraphileRequest.mockResponseOnce( { chatById: null } );
 
                 // send request
                 const result = await request
@@ -747,9 +744,7 @@ describe( 'GET /api/chats/:chatId/messages', () => {
                                     , role: 'USER'
                                     , content: 'Hello'
                                     , createdAt: '2024-01-01T00:00:00Z'
-                                    , messageSourcesByMessageId: {
-                                        nodes: []
-                                    }
+                                    , messageSourcesByMessageId: { nodes: [] }
                                 }
                             ]
                         }
@@ -880,9 +875,7 @@ describe( 'GET /api/chats/:chatId/messages', () => {
                 postGraphileRequest.mockResponseOnce( {
                     chatById: {
                         id: chatId
-                        , messagesByChatId: {
-                            nodes: []
-                        }
+                        , messagesByChatId: { nodes: [] }
                     }
                 } );
 
@@ -912,7 +905,7 @@ describe( 'GET /api/chats/:chatId/messages', () => {
 describe( 'messages error classes', () => {
 
     it(
-        'ChatNotFound has correct properties'
+        'chatNotFound has correct properties'
         , () => {
 
             // create error instance
@@ -927,7 +920,7 @@ describe( 'messages error classes', () => {
     );
 
     it(
-        'MessagesNotFound has correct properties'
+        'messagesNotFound has correct properties'
         , () => {
 
             // create error instance
@@ -942,7 +935,7 @@ describe( 'messages error classes', () => {
     );
 
     it(
-        'CreateMessageFailed has correct properties'
+        'createMessageFailed has correct properties'
         , () => {
 
             // create error instance
@@ -957,7 +950,7 @@ describe( 'messages error classes', () => {
     );
 
     it(
-        'CreateChatFailed has correct properties'
+        'createChatFailed has correct properties'
         , () => {
 
             // create error instance
@@ -972,7 +965,7 @@ describe( 'messages error classes', () => {
     );
 
     it(
-        'ChatAccessForbidden has correct properties'
+        'chatAccessForbidden has correct properties'
         , () => {
 
             // create error instance
@@ -987,7 +980,7 @@ describe( 'messages error classes', () => {
     );
 
     it(
-        'WorkflowRunInProgress has correct properties'
+        'workflowRunInProgress has correct properties'
         , () => {
 
             // create error instance

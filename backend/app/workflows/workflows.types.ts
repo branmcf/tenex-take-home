@@ -1,6 +1,28 @@
 import { Request } from 'express';
 
 /**
+ * Interface for the DAG structure stored in workflow versions.
+ * This represents the raw JSON shape from the database.
+ */
+export interface StoredWorkflowDAG {
+    steps?: Array<{
+        id: string;
+        name: string;
+        instruction: string;
+        tools?: string[];
+        dependsOn?: string[];
+    }>;
+}
+
+/**
+ * Result type for workflow metadata generation
+ */
+export interface WorkflowMetadataResult {
+    name: string;
+    description: string;
+}
+
+/**
  * request type for getting user's workflows
  */
 export interface GetUserWorkflowsRequest extends Request {

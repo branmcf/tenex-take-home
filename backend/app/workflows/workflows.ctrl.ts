@@ -19,22 +19,12 @@ import {
     , UpdateWorkflowResponse
     , DeleteWorkflowRequest
     , DeleteWorkflowResponse
+    , StoredWorkflowDAG
 } from './workflows.types';
 import {
     sortWorkflowDagSteps
     , WorkflowStep as DagWorkflowStep
-} from '../../lib/workflowDags';
-
-// interface for the DAG structure stored in workflow versions
-interface WorkflowDAG {
-    steps?: Array<{
-        id: string;
-        name: string;
-        instruction: string;
-        tools?: string[];
-        dependsOn?: string[];
-    }>;
-}
+} from '../../utils/workflowDags';
 
 /**
  * @title Get User Workflows Handler
@@ -121,7 +111,7 @@ export const getWorkflowByIdHandler = async (
     // get the latest version with DAG
     const latestVersion = workflowData.workflowVersionsByWorkflowId?.nodes?.[ 0 ];
     const version = latestVersion?.versionNumber ?? null;
-    const dag = latestVersion?.dag as WorkflowDAG | null;
+    const dag = latestVersion?.dag as StoredWorkflowDAG | null;
 
     // order the DAG steps before mapping to response format
     const orderedSteps = Array.isArray( dag?.steps )

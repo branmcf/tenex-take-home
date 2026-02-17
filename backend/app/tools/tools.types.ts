@@ -1,5 +1,23 @@
 import { Request } from 'express';
 
+/**
+ * Internal tool record type used for database and service layer
+ */
+export interface ToolRecord {
+    id: string;
+    name: string;
+    description?: string | null;
+    schema?: Record<string, unknown> | null;
+    source: 'mcp' | 'local';
+    externalId?: string | null;
+    version?: string | null;
+    schemaHash?: string | null;
+    lastSyncedAt?: string | null;
+}
+
+/**
+ * API response tool type
+ */
 export interface ToolResponse {
     id: string;
     name: string;

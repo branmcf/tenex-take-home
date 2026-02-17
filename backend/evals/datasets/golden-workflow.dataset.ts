@@ -1,4 +1,5 @@
 /* ----------------- Imports --------------------- */
+/* eslint-disable @typescript-eslint/naming-convention */
 import { GoldenWorkflowDatasetCase } from './datasets.types';
 
 export const goldenWorkflowDataset: GoldenWorkflowDatasetCase[] = [
@@ -85,9 +86,7 @@ export const goldenWorkflowDataset: GoldenWorkflowDatasetCase[] = [
         , expected: {
             expectedIntent: 'answer_only'
             , expectsClarification: false
-            , expectedUsageByStepId: {
-                step_1: false
-            }
+            , expectedUsageByStepId: { step_1: false }
         }
     }
     , {
@@ -122,9 +121,7 @@ export const goldenWorkflowDataset: GoldenWorkflowDatasetCase[] = [
         , expected: {
             expectedIntent: 'ask_clarifying'
             , expectsClarification: true
-            , expectedUsageByStepId: {
-                step_1: false
-            }
+            , expectedUsageByStepId: { step_1: false }
         }
     }
     , {

@@ -2,7 +2,8 @@ import Joi from 'joi';
 
 export const GET_TOOLS = Joi.object( {
     query: Joi.object( {
-        refresh: Joi.string().trim().optional()
+        refresh: Joi.string().trim()
+            .optional()
     } )
         .optional()
 } );

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import type { Model } from "@/components/chat/types";
+import type { Model } from "@/types";
 import { getModels } from "@/lib/api";
 
 interface UseModelsReturn {
