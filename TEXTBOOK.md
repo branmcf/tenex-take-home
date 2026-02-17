@@ -1,4 +1,12 @@
-# PRESENTATION.md
+# Hardwire Textbook
+
+<p align="center"> 
+    <img 
+        src="https://github.com/user-attachments/assets/f3256fc2-6f55-4972-a074-a6029b8036bd" 
+        alt="Hardwire" 
+        height="70%"
+        width="100%">
+</p>
 
 **HardWire: A Comprehensive Codebase Textbook**
 
