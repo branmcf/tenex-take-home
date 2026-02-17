@@ -1,7 +1,7 @@
-import { Express } from 'express';
+import type { Express, Request } from 'express';
 import { Log } from '../utils';
 
-const buildMcpMeta = ( req: any ) => {
+const buildMcpMeta = ( req: Request ) => {
     const method = req?.body?.method;
     const params = req?.body?.params ?? {};
 

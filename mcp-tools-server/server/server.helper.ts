@@ -10,6 +10,7 @@ export const serverErrorHandler = (
     err: ResourceError
     , _req: Request
     , res: Response<ResourceError>
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     , _next: NextFunction
 ): Response<ResourceError> => {
     const internalError = new ServerInternalError();
