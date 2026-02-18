@@ -6,7 +6,7 @@ import {
 } from '../../types';
 import { ResourceError } from '../../errors';
 import { getModelProvider } from './llm.providers';
-import { generateSources } from './llm.rag';
+import { generateSources, needsWebSearch } from './llm.rag';
 import type {
     LLMGenerateParams
     , LLMGenerateResult
@@ -121,8 +121,8 @@ export const generateLLMText = async (
         let searchPerformed = false;
         let sources: Awaited<ReturnType<typeof generateSources>> = [];
 
-        if ( useRAG ) {
-            // classify if search is needed based on query and conversation
+        if ( useRAG && needsWebSearch( params.prompt ) ) {
+            // heuristic passed, now confirm with LLM classifier
             const classification = await classifySearchNeed( {
                 modelId: params.modelId
                 , userMessage: params.prompt
@@ -212,8 +212,8 @@ export const streamLLMText = async ( params: LLMStreamParams ): Promise<LLMStrea
     let searchPerformed = false;
     let sources: Awaited<ReturnType<typeof generateSources>> = [];
 
-    if ( useRAG ) {
-        // classify if search is needed based on query and conversation
+    if ( useRAG && needsWebSearch( params.prompt ) ) {
+        // heuristic passed, now confirm with LLM classifier
         const classification = await classifySearchNeed( {
             modelId: params.modelId
             , userMessage: params.prompt

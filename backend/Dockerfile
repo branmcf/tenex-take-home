@@ -9,6 +9,7 @@ COPY package-lock.json ./
 RUN npm ci --include=dev
 
 COPY tsconfig.json ./
+COPY tsconfig.build.json ./
 
 # This repo doesn't use a `src/` directory; TypeScript lives in these folders.
 COPY index.ts ./index.ts

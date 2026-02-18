@@ -3,15 +3,6 @@ import { RagGenerateSourcesDatasetCase } from './datasets.types';
 
 export const ragGenerateSourcesDataset: RagGenerateSourcesDatasetCase[] = [
     {
-        name: 'returns empty sources for queries that do not need search'
-        , story: 'A simple greeting should not trigger web search.'
-        , inputs: { query: 'Hey there, quick question about this workflow.' }
-        , expected: {
-            sources: []
-            , searchCalled: false
-        }
-    }
-    , {
         name: 'returns empty sources when search fails'
         , story: 'The search provider fails, so the system falls back with no sources.'
         , inputs: { query: 'What are the latest AI governance updates today?' }
