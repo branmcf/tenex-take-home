@@ -66,42 +66,25 @@ src="https://github.com/user-attachments/assets/7a6ad561-bbc7-49c5-b38f-ea8e586d
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              Client                                         │
-│  ┌───────────────────────────────────────────────────────────────────────┐  │
-│  │  Next.js 15 + React 19 + Tailwind                                     │  │
-│  │  - Chat interface with workflow execution visualization               │  │
-│  │  - SSE streaming for real-time step progress                          │  │
-│  │  - Swiss-Modernist design (no rounded corners, no shadows)            │  │
-│  └───────────────────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                     │
-                          HTTP/REST + SSE
-                                     │
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              Backend API (:3026)                            │
-│  ┌───────────────────────────────────────────────────────────────────────┐  │
-│  │  Express + TypeScript + PostGraphile                                  │  │
-│  │  - Session auth via Better Auth (email + Google OAuth)                │  │
-│  │  - Workflow DAG compilation, validation, execution                    │  │
-│  │  - Multi-provider LLM integration (OpenAI, Anthropic, Google)         │  │
-│  │  - Real-time workflow streaming via SSE                               │  │
-│  └───────────────────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────────────┘
-          │                    │                         │
-          │                    │                         │
-    ┌─────▼─────┐    ┌────────▼────────┐    ┌──────────▼──────────┐
-    │PostgreSQL │    │ MCP Tools Server│    │  LLM Providers      │
-    │  (:5433)  │    │    (:4010)      │    │  - OpenAI           │
-    │           │    │                 │    │  - Anthropic        │
-    │ 21+ tables│    │ Tool registry   │    │  - Google           │
-    │ 23 migrat.│    │ web_search      │    └─────────────────────┘
-    └───────────┘    │ read_url        │
-                     │ http_request    │
-                     │ summarize       │
-                     │ extract_json    │
-                     └─────────────────┘
+```mermaid
+flowchart TB
+    subgraph Client["Client"]
+        FE["Next.js 15 + React 19 + Tailwind<br/>- Chat UI with workflow visualization<br/>- SSE stream consumers for workflow progress<br/>- Swiss-Modernist design (no rounded corners, no shadows)"]
+    end
+
+    subgraph Backend["Backend API (:3026)"]
+        API["Express + TypeScript (+ PostGraphile in dev)<br/>- Better Auth session routes (/api/auth)<br/>- Workflow DAG validation, ordering, and execution<br/>- Multi-provider LLM integration (OpenAI, Anthropic, Google)<br/>- Real-time workflow streaming via SSE"]
+    end
+
+    FE -->|"HTTP/REST + SSE"| API
+
+    DB["PostgreSQL (docker mapped :5433)<br/>- 23 migration files"]
+    MCP["MCP Tools Server (:4010)<br/>- web_search<br/>- read_url<br/>- http_request<br/>- summarize<br/>- extract_json"]
+    LLM["LLM Providers<br/>- OpenAI<br/>- Anthropic<br/>- Google"]
+
+    API --> DB
+    API --> MCP
+    API --> LLM
 ```
 
 ---

@@ -83,11 +83,6 @@ export const needsWebSearch = ( query: string ): boolean => {
  */
 export const generateSources = async ( query: string ): Promise<LLMSource[]> => {
 
-    // check if this query needs a web search
-    if ( !needsWebSearch( query ) ) {
-        return [];
-    }
-
     // search the web using Exa
     const searchResult = await searchWeb( {
         query
