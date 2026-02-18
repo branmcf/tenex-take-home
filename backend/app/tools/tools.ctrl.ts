@@ -7,39 +7,14 @@ import {
     , SearchToolsResponse
     , GetToolByIdRequest
     , GetToolByIdResponse
-    , ToolResponse
 } from './tools.types';
 import {
     getCachedTools
     , searchToolsInMcp
+    , mapToolResponse
+    , mapToolWithSchemaResponse
 } from './tools.helper';
 import { getToolById } from './tools.service';
-
-const mapToolResponse = ( tool: {
-    id: string;
-    name: string;
-    description?: string | null;
-    source: 'mcp' | 'local';
-    version?: string | null;
-} ): ToolResponse => ( {
-    id: tool.id
-    , name: tool.name
-    , description: tool.description ?? null
-    , version: tool.version ?? null
-    , source: tool.source === 'mcp' ? 'mcp' : 'local'
-} );
-
-const mapToolWithSchemaResponse = ( tool: {
-    id: string;
-    name: string;
-    description?: string | null;
-    schema?: Record<string, unknown> | null;
-    source: 'mcp' | 'local';
-    version?: string | null;
-} ): GetToolByIdResponse['tool'] => ( {
-    ...mapToolResponse( tool )
-    , schema: tool.schema ?? null
-} );
 
 /**
  * @title Get Tools Handler

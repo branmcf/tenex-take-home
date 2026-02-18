@@ -2,8 +2,7 @@
 
 import { postGraphileRequest } from '../../lib/postGraphile/__mocks__/postGraphile.request';
 import {
-    auth
-    , mockSessionOnce
+    mockSessionOnce
     , mockNoSessionOnce
 } from '../../lib/betterAuth/__mocks__/auth';
 
@@ -20,13 +19,8 @@ import {
     , WorkflowRunStreamFailed
 } from '../../app/workflowRuns/workflowRuns.errors';
 
-// set up server for testing
-const server = testApp.listen();
-const request = supertest( server );
-
-afterAll( async () => {
-    server.close();
-} );
+// set up server for testing - supertest handles server lifecycle internally
+const request = supertest( testApp );
 
 /**
  * GET /api/chats/:chatId/workflow-runs
@@ -143,10 +137,13 @@ describe( 'GET /api/chats/:chatId/workflow-runs', () => {
 
     } );
 
-    // NOTE: Invalid UUID validation tests for chatId are not included because
-    // the chatOwnershipValidator middleware runs before requestValidator
-    // in this route configuration. Invalid UUIDs result in ownership check failures
-    // rather than request validation errors.
+    /*
+     * NOTE: Invalid UUID validation tests for chatId are not included because
+     * the chatOwnershipValidator middleware runs before requestValidator
+     * in this route configuration. Invalid UUIDs result in ownership check
+     * failures
+     * rather than request validation errors.
+     */
 
     describe( 'the request to endpoint is valid', () => {
 
@@ -303,10 +300,11 @@ describe( 'GET /api/chats/:chatId/workflow-runs', () => {
                     }
                 } );
 
-                // mock getWorkflowRunsByChatId - chat not found returns empty array
-                postGraphileRequest.mockResponseOnce( {
-                    chatById: null
-                } );
+                /*
+                 * mock getWorkflowRunsByChatId - chat not found returns empty
+                 * array
+                 */
+                postGraphileRequest.mockResponseOnce( { chatById: null } );
 
                 // send request
                 const result = await request
@@ -389,9 +387,7 @@ describe( 'GET /api/chats/:chatId/workflow-runs', () => {
                                     , completedAt: null
                                     , triggerMessageId
                                     , workflowVersionByWorkflowVersionId: null
-                                    , stepRunsByWorkflowRunId: {
-                                        nodes: []
-                                    }
+                                    , stepRunsByWorkflowRunId: { nodes: [] }
                                 }
                                 , null
                             ]
@@ -412,7 +408,10 @@ describe( 'GET /api/chats/:chatId/workflow-runs', () => {
                 // check spy results
                 expect( spyResult.isSuccess() ).toBe( true );
 
-                // check result - should only have 1 workflow run (nulls filtered)
+                /*
+                 * check result - should only have 1 workflow run (nulls
+                 * filtered)
+                 */
                 expect( result.body.workflowRuns ).toHaveLength( 1 );
 
                 // check status code
@@ -549,7 +548,7 @@ describe( 'GET /api/chats/:chatId/workflow-runs/:workflowRunId/stream', () => {
 describe( 'workflowRuns error classes', () => {
 
     it(
-        'WorkflowRunNotFound has correct properties'
+        'workflowRunNotFound has correct properties'
         , () => {
 
             // create error instance
@@ -564,7 +563,7 @@ describe( 'workflowRuns error classes', () => {
     );
 
     it(
-        'WorkflowRunAccessForbidden has correct properties'
+        'workflowRunAccessForbidden has correct properties'
         , () => {
 
             // create error instance
@@ -579,7 +578,7 @@ describe( 'workflowRuns error classes', () => {
     );
 
     it(
-        'WorkflowRunStreamFailed has correct properties'
+        'workflowRunStreamFailed has correct properties'
         , () => {
 
             // create error instance

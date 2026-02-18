@@ -3,14 +3,10 @@
 import * as React from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { toast } from "sonner";
-import type {
-  Message,
-  Model,
-  Workflow,
-  WorkflowRunState,
-  WorkflowRunStep,
-  WorkflowRunStatus,
-} from "@/components/chat/types";
+import type { Message } from "@/types/chat";
+import type { Model } from "@/types/model";
+import type { Workflow } from "@/types/workflow";
+import type { WorkflowRunState, WorkflowRunStep, WorkflowRunStatus } from "@/types/workflowRun";
 import {
   createMessage,
   getMessages,

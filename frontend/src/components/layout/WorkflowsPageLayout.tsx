@@ -12,8 +12,7 @@ import { Plus } from "@phosphor-icons/react";
 import { ChatProvider, WorkflowProvider, useWorkflowContext, ModalProvider, useModal } from "@/contexts";
 import { ModalContainer } from "@/components/layout/ModalContainer";
 import { useModels, useWorkflows, useAuth } from "@/hooks";
-import type { WorkflowDetail } from "@/components/workflows/types";
-import type { Workflow } from "@/lib/api";
+import type { WorkflowDetail, Workflow } from "@/types";
 
 function WorkflowsContent() {
   const { contentRef } = useModal();

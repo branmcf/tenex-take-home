@@ -110,4 +110,5 @@ jest.doMock( '../llm', () => ( {
 } ) );
 
 export const generateLLMText = generateLLMTextMock;
+
 export const streamLLMText = streamLLMTextMock;

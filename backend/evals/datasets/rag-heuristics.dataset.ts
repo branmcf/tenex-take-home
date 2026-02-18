@@ -9,9 +9,7 @@ export const ragHeuristicsDataset: RagHeuristicsDatasetCase[] = [
             query: 'Hi there!'
             , reason: 'casual greeting'
         }
-        , expected: {
-            needsWebSearch: false
-        }
+        , expected: { needsWebSearch: false }
     }
     , {
         name: 'gratitude'
@@ -20,9 +18,7 @@ export const ragHeuristicsDataset: RagHeuristicsDatasetCase[] = [
             query: 'Thanks for your help earlier.'
             , reason: 'gratitude'
         }
-        , expected: {
-            needsWebSearch: false
-        }
+        , expected: { needsWebSearch: false }
     }
     , {
         name: 'simple bot question'
@@ -31,9 +27,7 @@ export const ragHeuristicsDataset: RagHeuristicsDatasetCase[] = [
             query: 'What is your name?'
             , reason: 'simple bot question'
         }
-        , expected: {
-            needsWebSearch: false
-        }
+        , expected: { needsWebSearch: false }
     }
     , {
         name: 'how-to question'
@@ -42,9 +36,7 @@ export const ragHeuristicsDataset: RagHeuristicsDatasetCase[] = [
             query: 'How do I deploy this app on AWS with best practices?'
             , reason: 'how-to question'
         }
-        , expected: {
-            needsWebSearch: true
-        }
+        , expected: { needsWebSearch: true }
     }
     , {
         name: 'comparison request'
@@ -53,9 +45,7 @@ export const ragHeuristicsDataset: RagHeuristicsDatasetCase[] = [
             query: 'Compare GPT-4o vs Claude 3.5 Sonnet.'
             , reason: 'comparison'
         }
-        , expected: {
-            needsWebSearch: true
-        }
+        , expected: { needsWebSearch: true }
     }
     , {
         name: 'current events keyword'
@@ -64,9 +54,7 @@ export const ragHeuristicsDataset: RagHeuristicsDatasetCase[] = [
             query: 'Latest US CPI numbers for this month.'
             , reason: 'current events keyword'
         }
-        , expected: {
-            needsWebSearch: true
-        }
+        , expected: { needsWebSearch: true }
     }
     , {
         name: 'recommendations keyword'
@@ -75,9 +63,7 @@ export const ragHeuristicsDataset: RagHeuristicsDatasetCase[] = [
             query: 'Best tools for workflow automation in 2026.'
             , reason: 'recommendations keyword'
         }
-        , expected: {
-            needsWebSearch: true
-        }
+        , expected: { needsWebSearch: true }
     }
     , {
         name: 'creative request defaults to search'
@@ -86,8 +72,6 @@ export const ragHeuristicsDataset: RagHeuristicsDatasetCase[] = [
             query: 'Write a short poem about rain on steel and neon.'
             , reason: 'longer request defaults to search'
         }
-        , expected: {
-            needsWebSearch: true
-        }
+        , expected: { needsWebSearch: true }
     }
 ];

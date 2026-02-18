@@ -2,7 +2,7 @@
 import ls from './evals.ls';
 import { logAndAssertExactMatch } from './evals.helper';
 import { generateText } from 'ai';
-import { generateWorkflowStepPlan } from '../lib/llm/llmWithTools';
+import { generateWorkflowStepPlan } from '../lib/llm/llm.workflowIntents';
 import { workflowStepPlanDataset } from './datasets/workflow-step-plan.dataset';
 
 /* ----------------- Mocks ----------------------- */
@@ -13,9 +13,7 @@ jest.mock( 'ai', () => ( {
     , tool: jest.fn( () => ( {} ) )
 } ) );
 
-jest.mock( '../lib/llm/providers', () => ( {
-    getModelProvider: jest.fn( () => ( { name: 'mock-model' } ) )
-} ) );
+jest.mock( '../lib/llm/llm.providers', () => ( { getModelProvider: jest.fn( () => ( { name: 'mock-model' } ) ) } ) );
 
 /* ----------------- Tests ----------------------- */
 
@@ -30,9 +28,7 @@ ls.describe( 'Workflow step plan parsing (generateWorkflowStepPlan)', () => {
             example.name
             , async () => {
 
-                generateText.mockResolvedValueOnce( {
-                    text: example.mocks?.llmText ?? ''
-                } );
+                generateText.mockResolvedValueOnce( { text: example.mocks?.llmText ?? '' } );
 
                 const result = await generateWorkflowStepPlan( {
                     userMessage: example.inputs.userMessage

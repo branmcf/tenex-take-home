@@ -5,45 +5,25 @@ import {
     , success
 } from '../../types';
 import { ResourceError } from '../../errors';
-import { getModelProvider } from './providers';
-import { workflowTools } from './workflowTools';
+import { getModelProvider } from './llm.providers';
+import { workflowTools } from './llm.workflowToolDefs';
 import {
     buildWorkflowIntentPrompt
     , buildWorkflowToolCallPrompt
     , buildWorkflowToolUsagePrompt
     , buildWorkflowStepPlanPrompt
-} from './workflowSystemPrompt';
-import type { WorkflowToolRef, LLMToolCall, WorkflowDAG } from '../workflowDags';
-
-interface WorkflowIntentResult {
-    intent: 'modify_workflow' | 'ask_clarifying' | 'answer_only';
-    assistantMessage: string;
-    clarificationQuestion: string | null;
-}
-
-interface WorkflowToolUsageDecision {
-    stepId: string;
-    useTools: boolean;
-    tools: Array<{ id: string; version: string }>;
-}
-
-interface WorkflowStepPlan {
-    name: string;
-    instruction: string;
-}
-
-class LLMWorkflowToolsRequestFailed extends ResourceError {
-    public constructor () {
-        const clientMessage = `Failed to get response from LLM.`;
-        const code = 'LLM_WORKFLOW_TOOLS_REQUEST_FAILED';
-        const statusCode = 500;
-        super( {
-            clientMessage
-            , statusCode
-            , code
-        } );
-    }
-}
+} from './llm.prompts';
+import type {
+    WorkflowToolRef
+    , LLMToolCall
+    , WorkflowDAG
+} from '../../utils/workflowDags';
+import type {
+    WorkflowIntentResult
+    , WorkflowToolUsageDecision
+    , WorkflowStepPlan
+} from './llm.types';
+import { LLMWorkflowToolsRequestFailed } from './llm.errors';
 
 const parseIntentJson = ( raw: string ): WorkflowIntentResult | null => {
     const stripCodeFence = ( value: string ) => {
@@ -70,14 +50,14 @@ const parseIntentJson = ( raw: string ): WorkflowIntentResult | null => {
         );
         const closedMatch = source.match( closedRegex );
 
-        if ( closedMatch && closedMatch[ 1 ] !== undefined ) {
+        if ( closedMatch?.[ 1 ] !== undefined ) {
             return closedMatch[ 1 ];
         }
 
         const openRegex = new RegExp( `"${ fieldName }"\\s*:\\s*"([\\s\\S]*)$`, 'm' );
         const openMatch = source.match( openRegex );
 
-        if ( openMatch && openMatch[ 1 ] !== undefined ) {
+        if ( openMatch?.[ 1 ] !== undefined ) {
             return openMatch[ 1 ];
         }
 
@@ -102,6 +82,7 @@ const parseIntentJson = ( raw: string ): WorkflowIntentResult | null => {
     if ( start >= 0 && end > start ) {
         try {
             const json = JSON.parse( cleaned.slice( start, end + 1 ) );
+
             if ( !json.intent ) {
                 return null;
             }
@@ -117,6 +98,7 @@ const parseIntentJson = ( raw: string ): WorkflowIntentResult | null => {
     }
 
     const intent = extractIntent( cleaned );
+
     if ( !intent ) {
         return null;
     }
@@ -156,6 +138,7 @@ const parseToolUsageJson = ( raw: string ): { steps: WorkflowToolUsageDecision[]
     if ( start >= 0 && end > start ) {
         try {
             const json = JSON.parse( cleaned.slice( start, end + 1 ) );
+
             if ( !Array.isArray( json.steps ) ) {
                 return null;
             }
@@ -202,6 +185,7 @@ const parseStepPlanJson = ( raw: string ): { steps: WorkflowStepPlan[] } | null 
     if ( start >= 0 && end > start ) {
         try {
             const json = JSON.parse( cleaned.slice( start, end + 1 ) );
+
             if ( !Array.isArray( json.steps ) ) {
                 return null;
             }
@@ -265,6 +249,7 @@ export const generateWorkflowIntent = async (
             , prompt
             , maxOutputTokens: 500
             , temperature: 0.2
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             , experimental_telemetry: {
                 isEnabled: true
                 , functionId: 'generateWorkflowIntent'
@@ -339,6 +324,7 @@ export const generateWorkflowToolCalls = async (
             , temperature: 0.3
             , tools: workflowTools
             , toolChoice: 'auto'
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             , experimental_telemetry: {
                 isEnabled: true
                 , functionId: 'generateWorkflowToolCalls'
@@ -397,6 +383,7 @@ export const generateWorkflowStepToolUsage = async (
             , prompt
             , maxOutputTokens: 800
             , temperature: 0.2
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             , experimental_telemetry: {
                 isEnabled: true
                 , functionId: 'generateWorkflowStepToolUsage'
@@ -453,6 +440,7 @@ export const generateWorkflowStepPlan = async (
             , prompt
             , maxOutputTokens: 900
             , temperature: 0.3
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             , experimental_telemetry: {
                 isEnabled: true
                 , functionId: 'generateWorkflowStepPlan'

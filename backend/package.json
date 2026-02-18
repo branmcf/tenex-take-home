@@ -10,14 +10,15 @@
         "test:unit": "jest --config jest/unitTests.config.json",
         "test:evals": "jest --config jest/evals.config.json",
         "test:evals-live": "RUN_LIVE_EVALS=true jest --config jest/evals.config.json",
+        "lint": "eslint . --max-warnings=0 --ignore-pattern dist",
         "dev": "tsx watch --env-file=.env index.ts",
-        "build": "rm -rf dist/ ; tsc && cp -R public dist/public",
+        "build": "rm -rf dist/ ; tsc --project tsconfig.build.json && cp -R public dist/public",
         "start": "tsx dist/index.js",
         "gc-compile": "graphql-codegen --config codegen.ts",
         "gc-watch": "graphql-codegen --config codegen.ts -w",
-        "migrate:create": "node-pg-migrate create --template-file-name ./scripts/migration-template.ts --tsconfig ./tsconfig.json",
-        "migrate:up": "node-pg-migrate up --tsconfig ./tsconfig.json",
-        "migrate:down": "node-pg-migrate down --tsconfig ./tsconfig.json"
+        "migrate:create": "node-pg-migrate create --template-file-name ./scripts/migration-template.ts --tsconfig ./tsconfig.build.json",
+        "migrate:up": "node-pg-migrate up --tsconfig ./tsconfig.build.json",
+        "migrate:down": "node-pg-migrate down --tsconfig ./tsconfig.build.json"
     },
     "repository": {
         "type": "git",

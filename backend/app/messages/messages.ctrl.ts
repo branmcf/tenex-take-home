@@ -14,50 +14,22 @@ import {
     , GetMessagesByChatIdResponse
     , MessageResponse
 } from './messages.types';
-import { generateLLMResponse, generateAndUpdateChatTitle, generateFallbackChatTitle, processChatHistory } from './messages.helper';
+import {
+    generateLLMResponse
+    , generateAndUpdateChatTitle
+    , generateFallbackChatTitle
+    , fetchAndProcessChatHistory
+    , mapMessageRole
+} from './messages.helper';
 import { runWorkflow } from '../../lib/workflowRunner';
-import { streamLLMText, ChatHistoryMessage } from '../../lib/llm';
-import { ChatAccessForbidden, WorkflowRunInProgress } from './messages.errors';
+import { streamLLMText } from '../../lib/llm';
+import {
+    ChatAccessForbidden
+    , WorkflowRunInProgress
+    , WorkflowExecutionFailed
+    , WorkflowRunTimeout
+} from './messages.errors';
 import { getRunningWorkflowRunByChatId } from '../workflowRuns/workflowRuns.service';
-
-/**
- * Fetch and format chat history for LLM context
- *
- * @param chatId - the chat to fetch history for
- * @param modelId - the model to use for summarization if needed
- * @returns processed chat history
- */
-const fetchAndProcessChatHistory = async (
-    chatId: string
-    , modelId: string
-): Promise<ChatHistoryMessage[]> => {
-
-    const messagesResult = await getMessagesByChatId( chatId );
-
-    if ( messagesResult.isError() ) {
-        // no history available, that's fine
-        return [];
-    }
-
-    const nodes = messagesResult.value?.messagesByChatId?.nodes ?? [];
-
-    // convert to ChatHistoryMessage format
-    const roleMap: Record<string, 'user' | 'assistant' | 'system'> = {
-        'USER': 'user'
-        , 'ASSISTANT': 'assistant'
-        , 'SYSTEM': 'system'
-    };
-
-    const messages: ChatHistoryMessage[] = nodes
-        .filter( ( msg ): msg is NonNullable<typeof msg> => msg !== null )
-        .map( msg => ( {
-            role: roleMap[ msg.role ] || 'assistant'
-            , content: msg.content
-        } ) );
-
-    // process history (summarize if too long)
-    return processChatHistory( { messages, modelId } );
-};
 
 /**
  * @title Create Message Handler
@@ -74,7 +46,9 @@ export const createMessageHandler = async (
     const { chatId } = req.params;
 
     // get the message content, modelId, and userId from the body
-    const { content, modelId, userId, workflowId } = req.body;
+    const {
+        content, modelId, userId, workflowId
+    } = req.body;
 
     // check if chat exists
     const getChatByIdResult = await getChatById( chatId );
@@ -153,7 +127,10 @@ export const createMessageHandler = async (
     // store the user message data
     const userMessageData = createUserMessageResult.value;
 
-    // if a workflow is selected, start it asynchronously and return workflow run id
+    /*
+     * if a workflow is selected, start it asynchronously
+     * and return the workflow run id
+     */
     if ( workflowId ) {
 
         // create a promise to resolve when the workflow run is created
@@ -189,7 +166,10 @@ export const createMessageHandler = async (
             .then( async result => {
                 if ( result.isError() ) {
 
-                    // reject the run id promise if the workflow failed before creating a run
+                    /*
+                     * reject the run id promise if the workflow failed
+                     * before creating a run
+                     */
                     if ( !runIdResolved ) {
                         rejectRunId( result.value );
                     }
@@ -256,12 +236,12 @@ export const createMessageHandler = async (
                 // eslint-disable-next-line no-console
                 console.error( 'Workflow execution failed:', err );
 
-                // reject the run id promise if the workflow failed before creating a run
+                /*
+                 * reject the run id promise if the workflow failed
+                 * before creating a run
+                 */
                 if ( !runIdResolved ) {
-                    rejectRunId( new ResourceError( {
-                        message: 'Workflow execution failed.'
-                        , clientMessage: 'Workflow execution failed.'
-                    } ) );
+                    rejectRunId( new WorkflowExecutionFailed() );
                 }
             } );
 
@@ -273,10 +253,7 @@ export const createMessageHandler = async (
         try {
             const timeoutPromise = new Promise<string>( ( _, reject ) => {
                 timeoutId = setTimeout( () => {
-                    reject( new ResourceError( {
-                        message: 'Timed out waiting for workflow run.'
-                        , clientMessage: 'Timed out waiting for workflow run.'
-                    } ) );
+                    reject( new WorkflowRunTimeout() );
                 }, 5000 );
             } );
 
@@ -286,8 +263,10 @@ export const createMessageHandler = async (
                 clearTimeout( timeoutId );
             }
         } catch ( err ) {
-            // ensure timeout is cleared
-            // (timeoutId may not be set if promise resolved immediately)
+            /*
+             * ensure timeout is cleared
+             * (timeoutId may not be set if promise resolved immediately)
+             */
             if ( timeoutId ) {
                 clearTimeout( timeoutId );
             }
@@ -338,7 +317,7 @@ export const createMessageHandler = async (
             , createdAt: userMessageData.createdAt
         };
 
-        // return response with workflow run id (assistant message will arrive later)
+        // return response with workflow run id (message arrives later)
         return res.status( 201 ).json( {
             userMessage
             , assistantMessage: null
@@ -357,10 +336,13 @@ export const createMessageHandler = async (
         , conversationHistory
     } );
 
-    if ( generateLLMResponseResult && generateLLMResponseResult.isError() ) {
+    // check for errors in LLM response
+    if ( generateLLMResponseResult.isError() ) {
 
-        // if this is a new chat, store a system message and generate fallback title
-        // so the user can see what happened and retry
+        /*
+         * if this is a new chat, store a system message and generate
+         * fallback title so the user can see what happened and retry
+         */
         if ( isNewChat ) {
 
             // create system error message
@@ -387,8 +369,10 @@ export const createMessageHandler = async (
                 , createdAt: userMessageData.createdAt
             };
 
-            // return partial success with user message (no assistant message)
-            // frontend will fetch messages and see the system error
+            /*
+             * return partial success with user message (no assistant message)
+             * frontend will fetch messages and see the system error
+             */
             return res.status( 201 ).json( {
                 userMessage
                 , assistantMessage: null
@@ -406,11 +390,11 @@ export const createMessageHandler = async (
             .json( generateLLMResponseResult.value );
     }
 
-    // store the LLM response data
-    const llmResponseData = generateLLMResponseResult ? generateLLMResponseResult.value : null;
+    // store the LLM response data (type narrowed to success after check)
+    const llmResponseData = generateLLMResponseResult.value;
 
     // create the assistant message
-    const assistantContent = llmResponseData?.content ?? '';
+    const assistantContent = llmResponseData.content;
 
     const createAssistantMessageResult = await createMessage( {
         chatId
@@ -432,25 +416,22 @@ export const createMessageHandler = async (
     const assistantMessageData = createAssistantMessageResult.value;
 
     // create message sources for the assistant message
-    if ( llmResponseData ) {
-        const sourcePromises = llmResponseData.sources.map( ( source, index ) =>
-            createMessageSource( {
-                messageId: assistantMessageData.id
-                , url: source.url
-                , title: source.title
-                , description: source.description
-                , position: index
-            } )
-        );
+    const sourcePromises = llmResponseData.sources.map( ( source, index ) =>
+        createMessageSource( {
+            messageId: assistantMessageData.id
+            , url: source.url
+            , title: source.title
+            , description: source.description
+            , position: index
+        } ) );
 
-        const sourceResults = await Promise.all( sourcePromises );
+    const sourceResults = await Promise.all( sourcePromises );
 
-        for ( const sourceResult of sourceResults ) {
-            if ( sourceResult.isError() ) {
-                return res
-                    .status( sourceResult.value.statusCode )
-                    .json( sourceResult.value );
-            }
+    for ( const sourceResult of sourceResults ) {
+        if ( sourceResult.isError() ) {
+            return res
+                .status( sourceResult.value.statusCode )
+                .json( sourceResult.value );
         }
     }
 
@@ -482,7 +463,7 @@ export const createMessageHandler = async (
         , role: 'assistant'
         , content: assistantContent
         , createdAt: assistantMessageData.createdAt
-        , sources: llmResponseData ? llmResponseData.sources : undefined
+        , sources: llmResponseData.sources
     };
 
     // return success
@@ -541,12 +522,7 @@ export const getMessagesByChatIdHandler = async (
                 } ) );
 
             // map MessageRole enum to response role type
-            const roleMap: Record<string, 'user' | 'assistant' | 'system'> = {
-                'USER': 'user'
-                , 'ASSISTANT': 'assistant'
-                , 'SYSTEM': 'system'
-            };
-            const role = roleMap[ message.role ] || 'assistant';
+            const role = mapMessageRole( message.role );
 
             // return the message in response format
             return {
@@ -565,7 +541,8 @@ export const getMessagesByChatIdHandler = async (
 
 /**
  * @title Create Message with Streaming Handler
- * @notice Creates a new user message and streams the assistant response in real-time.
+ * @notice Creates a new user message and streams
+ * the assistant response in real-time.
  * @param req Express request
  * @param res Express response
  */
@@ -649,7 +626,7 @@ export const createMessageStreamHandler = async (
         let fullResponse = '';
 
         // send user message first
-        res.write( `data: ${JSON.stringify( {
+        res.write( `data: ${ JSON.stringify( {
             type: 'user_message'
             , message: {
                 id: userMessageData.id
@@ -657,15 +634,15 @@ export const createMessageStreamHandler = async (
                 , content
                 , createdAt: userMessageData.createdAt
             }
-        } )}\n\n` );
+        } ) }\n\n` );
 
         // stream tokens to client
         for await ( const chunk of textStream ) {
             fullResponse += chunk;
-            res.write( `data: ${JSON.stringify( {
+            res.write( `data: ${ JSON.stringify( {
                 type: 'token'
                 , token: chunk
-            } )}\n\n` );
+            } ) }\n\n` );
         }
 
         // create the assistant message with the full response
@@ -680,10 +657,10 @@ export const createMessageStreamHandler = async (
         if ( createAssistantMessageResult.isError() ) {
 
             // send error event
-            res.write( `data: ${JSON.stringify( {
+            res.write( `data: ${ JSON.stringify( {
                 type: 'error'
                 , error: createAssistantMessageResult.value
-            } )}\n\n` );
+            } ) }\n\n` );
             res.end();
             return res;
         }
@@ -699,8 +676,7 @@ export const createMessageStreamHandler = async (
                 , title: source.title
                 , description: source.description
                 , position: index
-            } )
-        );
+            } ) );
 
         // wait for all sources to be created
         await Promise.all( sourcePromises );
@@ -720,7 +696,7 @@ export const createMessageStreamHandler = async (
         }
 
         // send completion event with assistant message and sources
-        res.write( `data: ${JSON.stringify( {
+        res.write( `data: ${ JSON.stringify( {
             type: 'complete'
             , message: {
                 id: assistantMessageData.id
@@ -730,15 +706,19 @@ export const createMessageStreamHandler = async (
                 , sources
             }
             , chatId
-        } )}\n\n` );
+        } ) }\n\n` );
 
         // end the response
         res.end();
         return res;
 
-    } catch ( err ) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch ( _err ) {
 
-        // if this is a new chat, store a system message and generate fallback title
+        /*
+         * if this is a new chat, store a system message
+         * and generate fallback title
+         */
         if ( isNewChatForStreaming ) {
 
             // create system error message
@@ -759,14 +739,14 @@ export const createMessageStreamHandler = async (
         }
 
         // send error event with more context
-        res.write( `data: ${JSON.stringify( {
+        res.write( `data: ${ JSON.stringify( {
             type: 'error'
             , error: {
                 message: 'Streaming failed'
                 , code: 'STREAMING_ERROR'
             }
             , chatId
-        } )}\n\n` );
+        } ) }\n\n` );
         res.end();
         return res;
 

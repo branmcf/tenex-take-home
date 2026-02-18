@@ -10,9 +10,7 @@ export const llmErrorHandlingDataset: LlmErrorHandlingDatasetCase[] = [
             , prompt: 'Summarize the meeting notes into three bullets.'
             , useRAG: false
         }
-        , mocks: {
-            errorMessage: 'boom'
-        }
+        , mocks: { errorMessage: 'boom' }
         , expected: {
             isError: true
             , code: 'LLM_REQUEST_FAILED'

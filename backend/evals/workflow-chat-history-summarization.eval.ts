@@ -23,17 +23,11 @@ jest.mock( '../app/workflows/workflows.service', () => ( {
     , getLatestWorkflowVersion: jest.fn()
 } ) );
 
-jest.mock( '../app/workflowChatMessages/workflowChatMessages.service', () => ( {
-    getWorkflowChatMessages: jest.fn()
-} ) );
+jest.mock( '../app/workflowChatMessages/workflowChatMessages.service', () => ( { getWorkflowChatMessages: jest.fn() } ) );
 
-jest.mock( '../app/tools/tools.helper', () => ( {
-    getCachedTools: jest.fn()
-} ) );
+jest.mock( '../app/tools/tools.helper', () => ( { getCachedTools: jest.fn() } ) );
 
-jest.mock( '../lib/workflowProposals', () => ( {
-    storeWorkflowProposal: jest.fn()
-} ) );
+jest.mock( '../lib/workflowProposals', () => ( { storeWorkflowProposal: jest.fn() } ) );
 
 /* ----------------- Tests ----------------------- */
 
@@ -70,9 +64,7 @@ ls.describe( 'Workflow chat history summarization', () => {
                 getWorkflowChatMessages.mockResolvedValueOnce( success( historyMessages ) );
 
                 if ( example.expected.summaryCalled > 0 ) {
-                    generateLLMText.mockResolvedValueOnce( success( {
-                        content: example.mocks?.summaryText ?? ''
-                    } ) );
+                    generateLLMText.mockResolvedValueOnce( success( { content: example.mocks?.summaryText ?? '' } ) );
                 }
 
                 let capturedContext: string | null = null;

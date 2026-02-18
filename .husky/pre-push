@@ -4,7 +4,7 @@ echo "Running pre-push checks..."
 
 # Lint frontend
 echo "Linting frontend..."
-cd frontend && npm run lint
+( cd frontend && npm run lint )
 FRONTEND_EXIT=$?
 
 if [ $FRONTEND_EXIT -ne 0 ]; then
@@ -12,14 +12,24 @@ if [ $FRONTEND_EXIT -ne 0 ]; then
   exit 1
 fi
 
-# Lint/build backend (TypeScript compile check)
-echo "Checking backend..."
-cd ../backend && npm run build
+# Lint backend
+echo "Linting backend..."
+( cd backend && npm run lint )
 BACKEND_EXIT=$?
 
 if [ $BACKEND_EXIT -ne 0 ]; then
-  echo "Backend build failed. Push aborted."
+  echo "Backend lint failed. Push aborted."
   exit 1
 fi
 
-echo "All checks passed!"
+# Lint MCP tools server
+echo "Linting MCP tools server..."
+( cd mcp-tools-server && npm run lint )
+MCP_EXIT=$?
+
+if [ $MCP_EXIT -ne 0 ]; then
+  echo "MCP tools lint failed. Push aborted."
+  exit 1
+fi
+
+echo "All lint checks passed!"

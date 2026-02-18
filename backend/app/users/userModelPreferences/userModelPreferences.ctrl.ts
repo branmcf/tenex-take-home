@@ -1,11 +1,7 @@
 import { Response } from 'express';
 import { ResourceError } from '../../../errors';
-import {
-    getUserModelPreferenceByUserId
-} from './userModelPreferences.service';
-import {
-    upsertUserModelPreference
-} from './userModelPreferences.helper';
+import { getUserModelPreferenceByUserId } from './userModelPreferences.service';
+import { upsertUserModelPreference } from './userModelPreferences.helper';
 import {
     GetUserModelPreferenceRequest
     , GetUserModelPreferenceResponse

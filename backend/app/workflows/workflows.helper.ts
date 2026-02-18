@@ -5,17 +5,13 @@ import {
 } from '../../types';
 import { ResourceError } from '../../errors';
 import { generateLLMText } from '../../lib/llm';
-import { WorkflowDAG } from '../../lib/workflowDags';
+import { WorkflowDAG } from '../../utils/workflowDags';
 import {
     getWorkflowMetadata
     , updateWorkflowMetadata
 } from './workflows.service';
 import { buildWorkflowMetadataPrompt } from '../../utils/constants';
-
-interface WorkflowMetadataResult {
-    name: string;
-    description: string;
-}
+import { WorkflowMetadataResult } from './workflows.types';
 
 
 const parseMetadataJson = ( raw: string ): WorkflowMetadataResult | null => {
@@ -28,9 +24,11 @@ const parseMetadataJson = ( raw: string ): WorkflowMetadataResult | null => {
 
     try {
         const json = JSON.parse( raw.slice( start, end + 1 ) );
+
         if ( !json.name || !json.description ) {
             return null;
         }
+
         return {
             name: json.name
             , description: json.description

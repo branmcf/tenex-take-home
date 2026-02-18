@@ -173,9 +173,7 @@ const runMcpToolMock = jest.fn<
     , Parameters<typeof trueRunMcpTool>
 >( trueRunMcpTool ) as RunMcpToolMock;
 
-const defaultRunToolResponse: MCPRunToolResponse = {
-    output: { result: 'Mock tool output' }
-};
+const defaultRunToolResponse: MCPRunToolResponse = { output: { result: 'Mock tool output' } };
 
 runMcpToolMock.mockResponseOnce = ( result = defaultRunToolResponse ) =>
     runMcpToolMock.mockImplementationOnce(
@@ -209,8 +207,11 @@ jest.doMock( '../mcpToolsServer.request', () => ( {
 } ) );
 
 export const listMcpTools = listMcpToolsMock;
+
 export const searchMcpTools = searchMcpToolsMock;
+
 export const getMcpTool = getMcpToolMock;
+
 export const runMcpTool = runMcpToolMock;
 
 /**

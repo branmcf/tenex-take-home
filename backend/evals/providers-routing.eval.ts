@@ -4,21 +4,15 @@ import { logAndAssertExactMatch } from './evals.helper';
 import { openai } from '@ai-sdk/openai';
 import { anthropic } from '@ai-sdk/anthropic';
 import { google } from '@ai-sdk/google';
-import { getModelProvider } from '../lib/llm/providers';
+import { getModelProvider } from '../lib/llm/llm.providers';
 import { providersRoutingDataset } from './datasets/providers-routing.dataset';
 
 /* ----------------- Mocks ----------------------- */
-jest.mock( '@ai-sdk/openai', () => ( {
-    openai: jest.fn( modelId => ( { provider: 'openai', modelId } ) )
-} ) );
+jest.mock( '@ai-sdk/openai', () => ( { openai: jest.fn( modelId => ( { provider: 'openai', modelId } ) ) } ) );
 
-jest.mock( '@ai-sdk/anthropic', () => ( {
-    anthropic: jest.fn( modelId => ( { provider: 'anthropic', modelId } ) )
-} ) );
+jest.mock( '@ai-sdk/anthropic', () => ( { anthropic: jest.fn( modelId => ( { provider: 'anthropic', modelId } ) ) } ) );
 
-jest.mock( '@ai-sdk/google', () => ( {
-    google: jest.fn( modelId => ( { provider: 'google', modelId } ) )
-} ) );
+jest.mock( '@ai-sdk/google', () => ( { google: jest.fn( modelId => ( { provider: 'google', modelId } ) ) } ) );
 
 /* ----------------- Tests ----------------------- */
 

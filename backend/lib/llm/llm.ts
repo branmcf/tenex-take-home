@@ -5,37 +5,23 @@ import {
     , success
 } from '../../types';
 import { ResourceError } from '../../errors';
-import { getModelProvider } from './providers';
-import { generateSources } from './rag';
+import { getModelProvider } from './llm.providers';
+import { generateSources } from './llm.rag';
 import type {
     LLMGenerateParams
     , LLMGenerateResult
     , LLMStreamParams
+    , LLMStreamResult
     , ChatHistoryMessage
     , SearchClassificationResult
 } from './llm.types';
+import { LLMRequestFailed } from './llm.errors';
 import {
     buildSearchClassificationPrompt
     , buildChatSystemPrompt
     , formatSourcesForRAGPrompt
     , formatConversationHistoryForPrompt
 } from '../../utils/constants';
-
-/**
- * custom error for LLM request failures
- */
-class LLMRequestFailed extends ResourceError {
-    public constructor () {
-        const clientMessage = `Failed to get response from LLM.`;
-        const code = 'LLM_REQUEST_FAILED';
-        const statusCode = 500;
-        super( {
-            clientMessage
-            , statusCode
-            , code
-        } );
-    }
-}
 
 /**
  * Format conversation history for context
@@ -77,12 +63,11 @@ const classifySearchNeed = async (
             , prompt
             , maxOutputTokens: 100
             , temperature: 0.1
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             , experimental_telemetry: {
                 isEnabled: true
                 , functionId: 'classifySearchNeed'
-                , metadata: {
-                    modelId: params.modelId
-                }
+                , metadata: { modelId: params.modelId }
             }
         } );
 
@@ -165,8 +150,9 @@ export const generateLLMText = async (
         const result = await generateText( {
             model
             , prompt: fullPrompt
-            , maxOutputTokens: params.maxTokens ?? 2000
+            , maxOutputTokens: params.maxTokens ?? 10000
             , temperature: params.temperature ?? 0.7
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             , experimental_telemetry: {
                 isEnabled: true
                 , functionId: 'generateLLMText'
@@ -211,7 +197,7 @@ export const generateLLMText = async (
  * @param params - streaming parameters
  * @returns text stream, sources, and whether search was performed
  */
-export const streamLLMText = async ( params: LLMStreamParams ) => {
+export const streamLLMText = async ( params: LLMStreamParams ): Promise<LLMStreamResult> => {
 
     // get the model provider
     const model = getModelProvider( params.modelId );
@@ -255,8 +241,9 @@ export const streamLLMText = async ( params: LLMStreamParams ) => {
     const result = streamText( {
         model
         , prompt: fullPrompt
-        , maxOutputTokens: params.maxTokens ?? 2000
+        , maxOutputTokens: params.maxTokens ?? 10000
         , temperature: params.temperature ?? 0.7
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         , experimental_telemetry: {
             isEnabled: true
             , functionId: 'streamLLMText'

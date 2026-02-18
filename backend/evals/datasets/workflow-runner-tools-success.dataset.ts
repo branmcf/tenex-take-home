@@ -26,9 +26,7 @@ export const workflowRunnerToolsSuccessDataset: WorkflowRunnerToolsSuccessDatase
                                         , name: 'Lookup'
                                         , instruction: 'Use the tool.'
                                         , dependsOn: []
-                                        , tools: [
-                                            { id: 'tool_1', name: 'Example Tool', version: '1.0.0' }
-                                        ]
+                                        , tools: [ { id: 'tool_1', name: 'Example Tool', version: '1.0.0' } ]
                                     }
                                 ]
                             }
@@ -44,9 +42,7 @@ export const workflowRunnerToolsSuccessDataset: WorkflowRunnerToolsSuccessDatase
                     , description: 'Example tool'
                     , schema: {
                         type: 'object'
-                        , properties: {
-                            query: { type: 'string' }
-                        }
+                        , properties: { query: { type: 'string' } }
                         , required: [ 'query' ]
                     }
                     , version: '1.0.0'

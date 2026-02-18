@@ -1,5 +1,5 @@
 import type { LanguageModel } from 'ai';
-import { getModelProvider as trueGetModelProvider } from '../providers';
+import { getModelProvider as trueGetModelProvider } from '../llm.providers';
 
 /**
  * getModelProvider mock
@@ -37,8 +37,6 @@ getModelProviderMock.mockProvider = ( provider = createMockLanguageModel() ) =>
         () => provider
     );
 
-jest.doMock( '../providers', () => ( {
-    getModelProvider: getModelProviderMock
-} ) );
+jest.doMock( '../llm.providers', () => ( { getModelProvider: getModelProviderMock } ) );
 
 export const getModelProvider = getModelProviderMock;

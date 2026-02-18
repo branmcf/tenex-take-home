@@ -19,6 +19,8 @@ import {
     , DeleteWorkflowProposalByIdMutationVariables
     , GetWorkflowProposalByIdQuery
     , GetWorkflowProposalByIdQueryVariables
+    , UpdateWorkflowProposalStatusMutation
+    , UpdateWorkflowProposalStatusMutationVariables
 } from './workflowProposals.service.generatedTypes';
 import {
     CreateWorkflowProposalParams
@@ -84,15 +86,15 @@ export const createWorkflowProposal = async (
     // execute the mutation
     const result = await postGraphileRequest<CreateWorkflowProposalMutation, CreateWorkflowProposalMutationVariables>( {
         mutation: CREATE_WORKFLOW_PROPOSAL
-            , variables: {
-                workflowId: params.workflowId
-                , baseVersionId: params.baseVersionId ?? null
-                , userMessage: params.userMessage
-                , modelId: params.modelId ?? null
-                , toolCalls: params.toolCalls
-                , proposedDag: params.proposedDag
-                , expiresAt: params.expiresAt
-            }
+        , variables: {
+            workflowId: params.workflowId
+            , baseVersionId: params.baseVersionId ?? null
+            , userMessage: params.userMessage
+            , modelId: params.modelId ?? null
+            , toolCalls: params.toolCalls
+            , proposedDag: params.proposedDag
+            , expiresAt: params.expiresAt
+        }
     } );
 
     // check for error
@@ -256,7 +258,10 @@ export const updateWorkflowProposalStatus = async (
         }
     `;
 
-    const result = await postGraphileRequest<any, { proposalId: string; status: string; resolvedAt?: string | null }>( {
+    const result = await postGraphileRequest<
+        UpdateWorkflowProposalStatusMutation
+        , UpdateWorkflowProposalStatusMutationVariables
+    >( {
         mutation: UPDATE_WORKFLOW_PROPOSAL_STATUS
         , variables: {
             proposalId

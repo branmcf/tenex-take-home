@@ -1,3 +1,4 @@
+/* eslint-disable no-inline-comments */
 import { searchWeb } from '../exa';
 import type { LLMSource } from './llm.types';
 
@@ -14,6 +15,7 @@ export const needsWebSearch = ( query: string ): boolean => {
 
     // if query is too short (< 3 words), likely doesn't need search
     const wordCount = normalizedQuery.split( /\s+/ ).length;
+
     if ( wordCount < 3 ) {
         return false;
     }
@@ -90,7 +92,7 @@ export const generateSources = async ( query: string ): Promise<LLMSource[]> => 
     const searchResult = await searchWeb( {
         query
         , numResults: 3
-        , textMaxCharacters: 2000  // increased to get more content per source
+        , textMaxCharacters: 2000
     } );
 
     // if search failed, return empty sources

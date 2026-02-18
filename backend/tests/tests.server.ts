@@ -20,10 +20,7 @@ export const createTestApp = (): express.Express => {
 
     // CORS
     testApp.use( cors( {
-        origin: [
-            'http://localhost:3000'
-            , 'http://localhost:3026'
-        ]
+        origin: [ 'http://localhost:3000', 'http://localhost:3026' ]
         , credentials: true
     } ) );
 

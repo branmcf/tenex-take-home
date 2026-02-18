@@ -2,8 +2,7 @@
 
 import { postGraphileRequest } from '../../lib/postGraphile/__mocks__/postGraphile.request';
 import {
-    auth
-    , mockSessionOnce
+    mockSessionOnce
     , mockNoSessionOnce
 } from '../../lib/betterAuth/__mocks__/auth';
 
@@ -22,13 +21,8 @@ import {
     , DeleteWorkflowFailed
 } from '../../app/workflows/workflows.errors';
 
-// set up server for testing
-const server = testApp.listen();
-const request = supertest( server );
-
-afterAll( async () => {
-    server.close();
-} );
+// set up server for testing - supertest handles server lifecycle internally
+const request = supertest( testApp );
 
 /**
  * GET /api/workflows/:workflowId
@@ -111,7 +105,10 @@ describe( 'GET /api/workflows/:workflowId', () => {
                     }
                 } );
 
-                // mock workflow ownership query (for workflowOwnershipValidator)
+                /*
+                 * mock workflow ownership query (for
+                 * workflowOwnershipValidator)
+                 */
                 postGraphileRequest.mockResponseOnce( {
                     workflowById: {
                         id: workflowId
@@ -357,9 +354,7 @@ describe( 'GET /api/workflows/:workflowId', () => {
                         , createdAt: '2024-01-01T00:00:00Z'
                         , updatedAt: '2024-01-01T00:00:00Z'
                         , deletedAt: null
-                        , workflowVersionsByWorkflowId: {
-                            nodes: []
-                        }
+                        , workflowVersionsByWorkflowId: { nodes: [] }
                     }
                 } );
 
@@ -425,9 +420,7 @@ describe( 'GET /api/workflows/:workflowId', () => {
                 } );
 
                 // mock ownership check - workflow not found
-                postGraphileRequest.mockResponseOnce( {
-                    workflowById: null
-                } );
+                postGraphileRequest.mockResponseOnce( { workflowById: null } );
 
                 // send request
                 const result = await request
@@ -542,9 +535,7 @@ describe( 'POST /api/workflows', () => {
                 // send request
                 const result = await request
                     .post( '/api/workflows' )
-                    .send( {
-                        userId: sessionUserId
-                    } );
+                    .send( { userId: sessionUserId } );
 
                 // get spy results - NONE
 
@@ -597,9 +588,7 @@ describe( 'POST /api/workflows', () => {
                 // send request
                 const result = await request
                     .post( '/api/workflows' )
-                    .send( {
-                        name: 'Test Workflow'
-                    } );
+                    .send( { name: 'Test Workflow' } );
 
                 // get spy results - NONE
 
@@ -741,9 +730,7 @@ describe( 'POST /api/workflows', () => {
                 } );
 
                 // mock createWorkflow failure
-                postGraphileRequest.mockResponseOnce( {
-                    createWorkflow: null
-                } );
+                postGraphileRequest.mockResponseOnce( { createWorkflow: null } );
 
                 // send request
                 const result = await request
@@ -804,9 +791,7 @@ describe( 'PATCH /api/workflows/:workflowId', () => {
                 // send request
                 const result = await request
                     .patch( `/api/workflows/${ workflowId }` )
-                    .send( {
-                        name: 'Updated Workflow'
-                    } );
+                    .send( { name: 'Updated Workflow' } );
 
                 // get spy results - NONE
 
@@ -944,9 +929,7 @@ describe( 'PATCH /api/workflows/:workflowId', () => {
                 // send request
                 const result = await request
                     .patch( `/api/workflows/${ workflowId }` )
-                    .send( {
-                        name: 'Updated Workflow'
-                    } );
+                    .send( { name: 'Updated Workflow' } );
 
                 // get spy results
                 const spyResult = await updateWorkflowSpy.mock.results[ 0 ].value;
@@ -1074,9 +1057,7 @@ describe( 'DELETE /api/workflows/:workflowId', () => {
                         , createdAt: '2024-01-01T00:00:00Z'
                         , updatedAt: '2024-01-01T00:00:00Z'
                         , deletedAt: null
-                        , workflowVersionsByWorkflowId: {
-                            nodes: []
-                        }
+                        , workflowVersionsByWorkflowId: { nodes: [] }
                     }
                 } );
 
@@ -1191,7 +1172,7 @@ describe( 'DELETE /api/workflows/:workflowId', () => {
 describe( 'workflows error classes', () => {
 
     it(
-        'WorkflowsNotFound has correct properties'
+        'workflowsNotFound has correct properties'
         , () => {
 
             // create error instance
@@ -1206,7 +1187,7 @@ describe( 'workflows error classes', () => {
     );
 
     it(
-        'WorkflowNotFound has correct properties'
+        'workflowNotFound has correct properties'
         , () => {
 
             // create error instance
@@ -1221,7 +1202,7 @@ describe( 'workflows error classes', () => {
     );
 
     it(
-        'CreateWorkflowFailed has correct properties'
+        'createWorkflowFailed has correct properties'
         , () => {
 
             // create error instance
@@ -1236,7 +1217,7 @@ describe( 'workflows error classes', () => {
     );
 
     it(
-        'UpdateWorkflowFailed has correct properties'
+        'updateWorkflowFailed has correct properties'
         , () => {
 
             // create error instance
@@ -1251,7 +1232,7 @@ describe( 'workflows error classes', () => {
     );
 
     it(
-        'DeleteWorkflowFailed has correct properties'
+        'deleteWorkflowFailed has correct properties'
         , () => {
 
             // create error instance

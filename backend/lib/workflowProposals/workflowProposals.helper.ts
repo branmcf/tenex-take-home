@@ -15,9 +15,7 @@ import {
     , getWorkflowProposalsByWorkflowId
     , updateWorkflowProposalStatus
 } from './workflowProposals.service';
-import {
-    WorkflowProposalExpired
-} from './workflowProposals.errors';
+import { WorkflowProposalExpired } from './workflowProposals.errors';
 
 const isExpired = ( expiresAt: string ) => {
     const now = Date.now();

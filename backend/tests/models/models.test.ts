@@ -19,13 +19,8 @@ import {
     , GetModelsFailed
 } from '../../app/models/models.errors';
 
-// set up server for testing
-const server = testApp.listen();
-const request = supertest( server );
-
-afterAll( async () => {
-    server.close();
-} );
+// set up server for testing - supertest handles server lifecycle internally
+const request = supertest( testApp );
 
 /**
  * GET /api/models
@@ -302,11 +297,7 @@ describe( 'GET /api/models', () => {
                     }
                 } );
 
-                postGraphileRequest.mockResponseOnce( {
-                    allModels: {
-                        nodes: []
-                    }
-                } );
+                postGraphileRequest.mockResponseOnce( { allModels: { nodes: [] } } );
 
                 // send request
                 const result = await request
@@ -363,9 +354,7 @@ describe( 'GET /api/models', () => {
                     }
                 } );
 
-                postGraphileRequest.mockResponseOnce( {
-                    allModels: null
-                } );
+                postGraphileRequest.mockResponseOnce( { allModels: null } );
 
                 // send request
                 const result = await request
@@ -487,11 +476,7 @@ describe( 'GET /api/models', () => {
                     }
                 } );
 
-                postGraphileRequest.mockResponseOnce( {
-                    allModels: {
-                        nodes: null
-                    }
-                } );
+                postGraphileRequest.mockResponseOnce( { allModels: { nodes: null } } );
 
                 // send request
                 const result = await request
@@ -528,7 +513,7 @@ describe( 'GET /api/models', () => {
 describe( 'models error classes', () => {
 
     it(
-        'ModelsNotFound has correct properties'
+        'modelsNotFound has correct properties'
         , () => {
 
             // create error instance
@@ -543,7 +528,7 @@ describe( 'models error classes', () => {
     );
 
     it(
-        'GetModelsFailed has correct properties'
+        'getModelsFailed has correct properties'
         , () => {
 
             // create error instance

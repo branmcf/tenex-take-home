@@ -1,7 +1,7 @@
 import {
     generateSources as trueGenerateSources
     , needsWebSearch as trueNeedsWebSearch
-} from '../rag';
+} from '../llm.rag';
 import type { LLMSource } from '../llm.types';
 
 /**
@@ -56,10 +56,11 @@ needsWebSearchMock.mockResult = ( result = false ) =>
         () => result
     );
 
-jest.doMock( '../rag', () => ( {
+jest.doMock( '../llm.rag', () => ( {
     generateSources: generateSourcesMock
     , needsWebSearch: needsWebSearchMock
 } ) );
 
 export const generateSources = generateSourcesMock;
+
 export const needsWebSearch = needsWebSearchMock;

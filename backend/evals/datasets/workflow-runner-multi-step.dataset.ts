@@ -41,7 +41,7 @@ export const workflowRunnerMultiStepDataset: WorkflowRunnerMultiStepDatasetCase[
                     ]
                 }
             }
-            , llmTexts: [ 'Output from step 1', 'Final output' ]
+            , llmTexts: [ 'Output from step 1 with enough detail for downstream use.', 'Final output' ]
         }
         , expected: {
             success: true

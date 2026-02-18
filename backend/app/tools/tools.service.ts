@@ -10,6 +10,7 @@ import {
     ToolsFetchFailed
     , ToolNotFound
 } from './tools.errors';
+import { ToolRecord } from './tools.types';
 import {
     CreateToolMutation
     , CreateToolMutationVariables
@@ -22,18 +23,6 @@ import {
     , UpdateToolByIdMutation
     , UpdateToolByIdMutationVariables
 } from './tools.service.generatedTypes';
-
-export interface ToolRecord {
-    id: string;
-    name: string;
-    description?: string | null;
-    schema?: Record<string, unknown> | null;
-    source: 'mcp' | 'local';
-    externalId?: string | null;
-    version?: string | null;
-    schemaHash?: string | null;
-    lastSyncedAt?: string | null;
-}
 
 const normalizeToolRecord = ( tool: {
     id: string;
@@ -80,9 +69,7 @@ export const getTools = async (): Promise<Either<ResourceError, ToolRecord[]>> =
         }
     `;
 
-    const result = await postGraphileRequest<GetToolsQuery, GetToolsQueryVariables>( {
-        query: GET_TOOLS
-    } );
+    const result = await postGraphileRequest<GetToolsQuery, GetToolsQueryVariables>( { query: GET_TOOLS } );
 
     if ( result.isError() ) {
         return error( result.value );

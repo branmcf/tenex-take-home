@@ -10,7 +10,7 @@ export interface TraceContext {
 /**
  * update the active Langfuse trace with user/session context
  */
-export const setTraceContext = ( context: TraceContext ) => {
+export const setTraceContext = ( context: TraceContext ): void => {
     updateActiveTrace( {
         userId: context.userId
         , sessionId: context.sessionId ?? context.chatId

@@ -3,7 +3,11 @@ import {
     , Request
     , Response
 } from 'express';
-import { RateLimiterConfig, RateLimiterRequest } from './rateLimiter.types';
+import {
+    RateLimiterConfig
+    , RateLimiterRequest
+    , RateLimiterMiddleware
+} from './rateLimiter.types';
 import { RateLimitExceededError } from './rateLimiter.errors';
 import { checkRateLimit } from './rateLimiter.store';
 import { Log } from '../../utils';
@@ -116,7 +120,9 @@ export const rateLimiter = ( config: RateLimiterConfig ) => {
  * @param config - Rate limiter configuration (keyGenerator will be overridden)
  * @returns Express middleware function
  */
-export const userRateLimiter = ( config: Omit<RateLimiterConfig, 'keyGenerator'> ) => {
+export const userRateLimiter = (
+    config: Omit<RateLimiterConfig, 'keyGenerator'>
+): RateLimiterMiddleware => {
     return rateLimiter( {
         ...config
         , keyGenerator: ( req ) => {
@@ -141,7 +147,9 @@ export const userRateLimiter = ( config: Omit<RateLimiterConfig, 'keyGenerator'>
  * @param config - Rate limiter configuration (keyGenerator will be overridden)
  * @returns Express middleware function
  */
-export const endpointRateLimiter = ( config: Omit<RateLimiterConfig, 'keyGenerator'> ) => {
+export const endpointRateLimiter = (
+    config: Omit<RateLimiterConfig, 'keyGenerator'>
+): RateLimiterMiddleware => {
     return rateLimiter( {
         ...config
         , keyGenerator: ( req ) => {

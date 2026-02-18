@@ -2,13 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { getChats, deleteChat as apiDeleteChat } from "@/lib/api";
+import type { SearchResultItemData } from "@/types";
 
-export interface SearchResultItemData {
-    id: string;
-    title: string | null;
-    snippet?: string;
-    updatedAt: Date;
-}
+export type { SearchResultItemData };
 
 interface UseChatsParams {
     userId: string;

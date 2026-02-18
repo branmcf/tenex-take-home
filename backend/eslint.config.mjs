@@ -231,7 +231,7 @@ export default [
             , parserOptions: {
                 sourceType: 'module'
                 , tsconfigRootDir: import.meta.dirname
-                , project: [ './tsconfig.json' ]
+                , project: [ './tsconfig.eslint.json' ]
             }
         }
         , rules: {

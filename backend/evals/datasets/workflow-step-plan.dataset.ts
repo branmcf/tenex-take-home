@@ -11,9 +11,7 @@ export const workflowStepPlanDataset: WorkflowStepPlanDatasetCase[] = [
             , workflowName: 'Summary Flow'
             , workflowDescription: null
         }
-        , mocks: {
-            llmText: '{"steps":[{"name":"Summarize","instruction":"Summarize the report."}]}'
-        }
+        , mocks: { llmText: '{"steps":[{"name":"Summarize","instruction":"Summarize the report."}]}' }
         , expected: {
             isSuccess: true
             , isError: false
@@ -30,9 +28,7 @@ export const workflowStepPlanDataset: WorkflowStepPlanDatasetCase[] = [
             , workflowName: 'Invoice Flow'
             , workflowDescription: null
         }
-        , mocks: {
-            llmText: 'missing json'
-        }
+        , mocks: { llmText: 'missing json' }
         , expected: {
             isSuccess: false
             , isError: true

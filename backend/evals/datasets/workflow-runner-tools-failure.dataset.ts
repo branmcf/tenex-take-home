@@ -3,8 +3,8 @@ import { WorkflowRunnerToolsFailureDatasetCase } from './datasets.types';
 
 export const workflowRunnerToolsFailureDataset: WorkflowRunnerToolsFailureDatasetCase[] = [
     {
-        name: 'returns error when MCP tool execution fails'
-        , story: 'A tool call fails, so the workflow should surface an error.'
+        name: 'allows workflow to continue when MCP tool execution fails'
+        , story: 'A tool call fails, but the workflow can still complete if output is usable.'
         , inputs: {
             workflowId: 'workflow-1'
             , chatId: 'chat-1'
@@ -26,9 +26,7 @@ export const workflowRunnerToolsFailureDataset: WorkflowRunnerToolsFailureDatase
                                         , name: 'Lookup'
                                         , instruction: 'Use the tool.'
                                         , dependsOn: []
-                                        , tools: [
-                                            { id: 'tool_1', name: 'Example Tool', version: '1.0.0' }
-                                        ]
+                                        , tools: [ { id: 'tool_1', name: 'Example Tool', version: '1.0.0' } ]
                                     }
                                 ]
                             }
@@ -44,9 +42,7 @@ export const workflowRunnerToolsFailureDataset: WorkflowRunnerToolsFailureDatase
                     , description: 'Example tool'
                     , schema: {
                         type: 'object'
-                        , properties: {
-                            query: { type: 'string' }
-                        }
+                        , properties: { query: { type: 'string' } }
                         , required: [ 'query' ]
                     }
                     , version: '1.0.0'
@@ -59,8 +55,8 @@ export const workflowRunnerToolsFailureDataset: WorkflowRunnerToolsFailureDatase
             }
         }
         , expected: {
-            isError: true
-            , message: 'Workflow execution failed.'
+            isError: false
+            , message: ''
             , toolCalled: true
         }
     }

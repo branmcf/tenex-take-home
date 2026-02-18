@@ -9,9 +9,7 @@ export const workflowProposalApplyDataset: WorkflowProposalApplyDatasetCase[] = 
             workflowId: 'workflow-1'
             , proposalId: 'proposal-1'
         }
-        , mocks: {
-            proposalResult: { type: 'expired' }
-        }
+        , mocks: { proposalResult: { type: 'expired' } }
         , expected: {
             statusCode: 410
             , errorCode: 'WORKFLOW_PROPOSAL_EXPIRED'

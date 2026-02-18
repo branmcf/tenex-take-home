@@ -15,9 +15,7 @@ jest.mock( 'ai', () => ( {
     , tool: jest.fn( () => ( {} ) )
 } ) );
 
-jest.mock( '../lib/exa', () => ( {
-    searchWeb: jest.fn()
-} ) );
+jest.mock( '../lib/exa', () => ( { searchWeb: jest.fn() } ) );
 
 /* ----------------- Tests ----------------------- */
 
@@ -36,6 +34,16 @@ ls.describe( 'RAG augmentation (generateLLMText)', () => {
                     searchWeb.mockResolvedValueOnce( success( example.mocks.sources ) );
                 }
 
+                if ( example.inputs.useRAG ) {
+                    generateText.mockResolvedValueOnce( {
+                        text: JSON.stringify( {
+                            needsSearch: true
+                            , reason: 'mock'
+                        } )
+                        , usage: { inputTokens: 0, outputTokens: 0 }
+                    } );
+                }
+
                 generateText.mockResolvedValueOnce( example.mocks?.llmResponse ?? {
                     text: ''
                     , usage: { inputTokens: 0, outputTokens: 0 }
@@ -47,14 +55,15 @@ ls.describe( 'RAG augmentation (generateLLMText)', () => {
                     , useRAG: example.inputs.useRAG
                 } );
 
-                const callArgs = generateText.mock.calls[ 0 ][ 0 ];
+                const promptCallIndex = example.inputs.useRAG ? 1 : 0;
+                const callArgs = generateText.mock.calls[ promptCallIndex ][ 0 ];
                 const sources = result.isSuccess() ? result.value.sources : [];
 
                 const outputs = {
                     success: result.isSuccess()
                     , sourcesCount: sources.length
                     , firstSourceUrl: sources[ 0 ]?.url ?? null
-                    , promptIncludesWebSearchResults: callArgs.prompt.includes( 'Web Search Results:' )
+                    , promptIncludesWebSearchResults: callArgs.prompt.includes( '## Web Search Results' )
                     , promptIncludesExampleA: callArgs.prompt.includes( 'Example A' )
                     , promptIncludesUrl: callArgs.prompt.includes( 'URL: https://example.com/a' )
                     , promptIncludesSummary: callArgs.prompt.includes( 'Summary A' )

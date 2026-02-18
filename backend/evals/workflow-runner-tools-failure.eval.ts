@@ -18,25 +18,15 @@ jest.mock( 'ai', () => ( {
     , jsonSchema: jest.fn( schema => schema )
 } ) );
 
-jest.mock( '../lib/llm/providers', () => ( {
-    getModelProvider: jest.fn( () => ( { name: 'mock-model' } ) )
-} ) );
+jest.mock( '../lib/llm/llm.providers', () => ( { getModelProvider: jest.fn( () => ( { name: 'mock-model' } ) ) } ) );
 
-jest.mock( '../app/workflows/workflows.service', () => ( {
-    getWorkflowById: jest.fn()
-} ) );
+jest.mock( '../app/workflows/workflows.service', () => ( { getWorkflowById: jest.fn() } ) );
 
-jest.mock( '../lib/postGraphile', () => ( {
-    postGraphileRequest: jest.fn()
-} ) );
+jest.mock( '../lib/postGraphile', () => ( { postGraphileRequest: jest.fn() } ) );
 
-jest.mock( '../app/tools/tools.helper', () => ( {
-    getCachedTools: jest.fn()
-} ) );
+jest.mock( '../app/tools/tools.helper', () => ( { getCachedTools: jest.fn() } ) );
 
-jest.mock( '../lib/mcpToolsServer', () => ( {
-    runMcpTool: jest.fn()
-} ) );
+jest.mock( '../lib/mcpToolsServer', () => ( { runMcpTool: jest.fn() } ) );
 
 /* ----------------- Tests ----------------------- */
 
@@ -62,9 +52,7 @@ ls.describe( 'Workflow runner tool execution (failure)', () => {
                 } ) ) );
 
                 postGraphileRequest
-                    .mockResolvedValueOnce( success( {
-                        createWorkflowRun: { workflowRun: { id: 'run-1' } }
-                    } ) )
+                    .mockResolvedValueOnce( success( { createWorkflowRun: { workflowRun: { id: 'run-1' } } } ) )
                     .mockResolvedValue( success( {} ) );
 
                 generateText.mockImplementation( async params => {
@@ -83,7 +71,7 @@ ls.describe( 'Workflow runner tool execution (failure)', () => {
 
                 const outputs = {
                     isError: result.isError()
-                    , message: result.value.message
+                    , message: result.isError() ? result.value.message : ''
                     , toolCalled: runMcpTool.mock.calls.length > 0
                 };
 

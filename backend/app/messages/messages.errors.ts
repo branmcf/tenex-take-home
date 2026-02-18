@@ -103,3 +103,42 @@ export class WorkflowRunInProgress extends ResourceError {
         } );
     }
 }
+
+export class WorkflowExecutionFailed extends ResourceError {
+    public constructor () {
+        const clientMessage = 'Workflow execution failed.';
+        const code = 'WORKFLOW_EXECUTION_FAILED';
+        const statusCode = 500;
+        super( {
+            clientMessage
+            , statusCode
+            , code
+        } );
+    }
+}
+
+export class WorkflowRunTimeout extends ResourceError {
+    public constructor () {
+        const clientMessage = 'Timed out waiting for workflow run.';
+        const code = 'WORKFLOW_RUN_TIMEOUT';
+        const statusCode = 504;
+        super( {
+            clientMessage
+            , statusCode
+            , code
+        } );
+    }
+}
+
+export class StreamingFailed extends ResourceError {
+    public constructor () {
+        const clientMessage = 'Streaming failed.';
+        const code = 'STREAMING_FAILED';
+        const statusCode = 500;
+        super( {
+            clientMessage
+            , statusCode
+            , code
+        } );
+    }
+}

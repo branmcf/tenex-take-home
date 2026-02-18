@@ -1,5 +1,5 @@
 // must be first import — initializes OpenTelemetry for Langfuse tracing
-import { spanProcessor } from './lib/langfuse/instrumentation';
+import { spanProcessor } from './lib/langfuse/langfuse.instrumentation';
 
 import { app } from './server';
 import { Log } from './utils';

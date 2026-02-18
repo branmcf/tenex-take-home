@@ -4,7 +4,7 @@ import { logAndAssertExactMatch, assertExactMatch } from './evals.helper';
 import { workflowIntentDataset } from './datasets/workflow-intent.dataset';
 import { workflowToolUsageDataset } from './datasets/workflow-tool-usage.dataset';
 import { goldenWorkflowDataset } from './datasets/golden-workflow.dataset';
-import { generateWorkflowIntent, generateWorkflowStepToolUsage } from '../lib/llm/llmWithTools';
+import { generateWorkflowIntent, generateWorkflowStepToolUsage } from '../lib/llm/llm.workflowIntents';
 
 const shouldRunLive = process.env.RUN_LIVE_EVALS === 'true';
 const modelId = process.env.LIVE_EVAL_MODEL_ID ?? 'gpt-4o';

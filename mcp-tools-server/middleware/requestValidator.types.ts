@@ -6,7 +6,7 @@ export interface RequestContent {
     body?: unknown;
 }
 
-/* eslint-disable no-unused-vars */
+ 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 type OmitNonRequestSchema<S extends string>
     = S extends `${ infer _ }_${ infer __ }` ? S : never;

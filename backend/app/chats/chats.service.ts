@@ -18,7 +18,6 @@ import {
     UserChatsNotFound
     , GetUserChatsFailed
     , ChatNotFound
-    , DeleteChatFailed
 } from './chats.errors';
 
 /**

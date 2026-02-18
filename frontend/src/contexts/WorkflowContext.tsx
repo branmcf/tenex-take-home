@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import type { WorkflowDetail } from "@/components/workflows/types";
+import type { WorkflowDetail } from "@/types/workflow";
 import {
   createWorkflow as createWorkflowApi,
   updateWorkflow as updateWorkflowApi,

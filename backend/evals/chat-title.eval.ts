@@ -31,9 +31,7 @@ ls.describe( 'Chat title generation', () => {
                 updateChatTitle.mockResolvedValueOnce( success( undefined ) );
 
                 if ( example.mocks?.action === 'llm' ) {
-                    generateLLMText.mockResolvedValueOnce( success( {
-                        content: example.mocks.llmContent ?? ''
-                    } ) );
+                    generateLLMText.mockResolvedValueOnce( success( { content: example.mocks.llmContent ?? '' } ) );
 
                     const result = await generateAndUpdateChatTitle( {
                         chatId: example.inputs.chatId

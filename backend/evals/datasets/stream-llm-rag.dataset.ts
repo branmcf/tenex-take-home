@@ -37,9 +37,7 @@ export const streamLlmRagDataset: StreamLlmRagDatasetCase[] = [
             , prompt: 'Hello, just checking in.'
             , useRAG: false
         }
-        , mocks: {
-            streamTextResult: { textStream: 'mock-stream' }
-        }
+        , mocks: { streamTextResult: { textStream: 'mock-stream' } }
         , expected: {
             sourcesCount: 0
             , promptIncludesWebSearchResults: false

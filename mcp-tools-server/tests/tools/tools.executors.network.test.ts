@@ -133,6 +133,18 @@ describe( 'executeWebSearch', () => {
         );
 
         it(
+            'throws error when fetch fails'
+            , async () => {
+
+                mockFetchError( new Error( 'Network error' ) );
+
+                await expect( executeWebSearch( { query: 'test' } ) )
+                    .rejects.toThrow( MCPToolExecutionFailed );
+
+            }
+        );
+
+        it(
             'throws error when query is empty'
             , async () => {
 

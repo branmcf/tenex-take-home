@@ -218,8 +218,8 @@ export const executeWebSearch = async ( input: { query: string; limit?: number }
 
     const results: Array<{ title: string; url: string; snippet: string }> = [];
 
-    const linkRegex = /<a[^>]+class=\"result__a\"[^>]+href=\"([^\"]+)\"[^>]*>(.*?)<\/a>/gi;
-    const snippetRegex = /<a[^>]+class=\"result__snippet\"[^>]*>(.*?)<\/a>/gi;
+    const linkRegex = /<a[^>]+class="result__a"[^>]+href="([^"]+)"[^>]*>(.*?)<\/a>/gi;
+    const snippetRegex = /<a[^>]+class="result__snippet"[^>]*>(.*?)<\/a>/gi;
 
     const snippets: string[] = [];
     let snippetMatch;

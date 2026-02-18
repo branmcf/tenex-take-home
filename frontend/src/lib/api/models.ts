@@ -1,5 +1,5 @@
 import { apiClient } from "../api-client";
-import type { Model } from "@/components/chat/types";
+import type { Model } from "@/types";
 
 /**
  * Response type for GET /api/models

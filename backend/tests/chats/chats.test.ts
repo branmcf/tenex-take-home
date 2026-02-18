@@ -24,13 +24,8 @@ import {
     , DeleteChatFailed
 } from '../../app/chats/chats.errors';
 
-// set up server for testing
-const server = testApp.listen();
-const request = supertest( server );
-
-afterAll( async () => {
-    server.close();
-} );
+// set up server for testing - supertest handles server lifecycle internally
+const request = supertest( testApp );
 
 /**
  * GET /api/users/:userId/chats

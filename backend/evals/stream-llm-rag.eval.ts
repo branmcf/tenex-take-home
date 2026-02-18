@@ -1,20 +1,16 @@
 /* ----------------- Imports --------------------- */
 import ls from './evals.ls';
 import { logAndAssertExactMatch } from './evals.helper';
-import { streamText } from 'ai';
+import { generateText, streamText } from 'ai';
 import { searchWeb } from '../lib/exa';
 import { streamLLMText } from '../lib/llm/llm';
 import { success } from '../types';
 import { streamLlmRagDataset } from './datasets/stream-llm-rag.dataset';
 
 /* ----------------- Mocks ----------------------- */
-jest.mock( 'ai', () => ( {
-    streamText: jest.fn()
-} ) );
+jest.mock( 'ai', () => ( { streamText: jest.fn(), generateText: jest.fn() } ) );
 
-jest.mock( '../lib/exa', () => ( {
-    searchWeb: jest.fn()
-} ) );
+jest.mock( '../lib/exa', () => ( { searchWeb: jest.fn() } ) );
 
 /* ----------------- Tests ----------------------- */
 
@@ -33,6 +29,16 @@ ls.describe( 'LLM streaming with RAG', () => {
                     searchWeb.mockResolvedValueOnce( success( example.mocks.sources ) );
                 }
 
+                if ( example.inputs.useRAG ) {
+                    generateText.mockResolvedValueOnce( {
+                        text: JSON.stringify( {
+                            needsSearch: true
+                            , reason: 'mock'
+                        } )
+                        , usage: { inputTokens: 0, outputTokens: 0 }
+                    } );
+                }
+
                 streamText.mockReturnValueOnce( example.mocks?.streamTextResult ?? { textStream: 'mock-stream' } );
 
                 const result = await streamLLMText( {
@@ -45,7 +51,7 @@ ls.describe( 'LLM streaming with RAG', () => {
 
                 const outputs = {
                     sourcesCount: result.sources.length
-                    , promptIncludesWebSearchResults: callArgs.prompt.includes( 'Web Search Results:' )
+                    , promptIncludesWebSearchResults: callArgs.prompt.includes( '## Web Search Results' )
                     , promptIncludesExample: callArgs.prompt.includes( 'Example' )
                     , promptIncludesUrl: callArgs.prompt.includes( 'URL: https://example.com' )
                     , promptIncludesSummary: callArgs.prompt.includes( 'Example summary' )

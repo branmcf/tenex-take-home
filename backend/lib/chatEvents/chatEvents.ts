@@ -23,6 +23,7 @@ class ChatEventEmitter extends EventEmitter {
     onTitleUpdated( chatId: string, callback: ( data: { chatId: string; title: string } ) => void ): () => void {
         const eventName = `title:${ chatId }`;
         this.on( eventName, callback );
+
         return () => {
             this.off( eventName, callback );
         };

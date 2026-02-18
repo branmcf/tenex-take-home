@@ -1,7 +1,7 @@
 /* ----------------- Imports --------------------- */
 import ls from './evals.ls';
 import { logAndAssertExactMatch } from './evals.helper';
-import { sortWorkflowDagSteps } from '../lib/workflowDags/dagSorter';
+import { sortWorkflowDagSteps } from '../utils/workflowDags';
 import { workflowDagSorterDataset } from './datasets/workflow-dag-sorter.dataset';
 
 /* ----------------- Tests ----------------------- */
@@ -15,9 +15,7 @@ ls.describe( 'Workflow DAG sorter', () => {
 
                 const sorted = sortWorkflowDagSteps( example.inputs.steps );
 
-                const outputs = {
-                    sortedIds: sorted.map( step => step.id )
-                };
+                const outputs = { sortedIds: sorted.map( step => step.id ) };
 
                 await logAndAssertExactMatch( ls, outputs, example.expected );
 

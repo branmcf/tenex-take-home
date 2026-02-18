@@ -2,8 +2,6 @@ import express, { Express } from 'express';
 import supertest from 'supertest';
 import {
     rateLimiter
-    , userRateLimiter
-    , endpointRateLimiter
     , RateLimitExceededError
     , RATE_LIMIT_PRESETS
 } from '../../middleware/rateLimiter';
@@ -258,7 +256,7 @@ describe( 'rateLimiter', () => {
 /**
  * RateLimitExceededError
  */
-describe( 'RateLimitExceededError', () => {
+describe( 'rateLimitExceededError', () => {
 
     it(
         'has correct properties'
@@ -291,7 +289,7 @@ describe( 'RateLimitExceededError', () => {
 /**
  * RATE_LIMIT_PRESETS
  */
-describe( 'RATE_LIMIT_PRESETS', () => {
+describe( 'rATE_LIMIT_PRESETS', () => {
 
     it(
         'has standard preset'

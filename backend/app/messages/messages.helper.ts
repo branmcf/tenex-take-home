@@ -4,21 +4,77 @@ import {
     , success
 } from '../../types';
 import { ResourceError } from '../../errors';
-import { generateLLMText , ChatHistoryMessage } from '../../lib/llm';
+import { generateLLMText, ChatHistoryMessage } from '../../lib/llm';
 import { LLMRequestFailed } from './messages.errors';
 import { SourceResponse } from './messages.types';
-import { updateChatTitle } from './messages.service';
+import { updateChatTitle, getMessagesByChatId } from './messages.service';
 import {
     buildChatTitlePrompt
     , buildChatHistorySummaryPrompt
     , formatConversationHistoryForPrompt
+    , HISTORY_SUMMARY_TRIGGER
+    , HISTORY_RECENT_MESSAGES
+    , HISTORY_SUMMARY_MAX_WORDS
 } from '../../utils/constants';
 import { chatEvents } from '../../lib/chatEvents';
 
-// history summarization thresholds (same as workflow chat)
-const HISTORY_SUMMARY_TRIGGER = 12;
-const HISTORY_RECENT_MESSAGES = 8;
-const HISTORY_SUMMARY_MAX_WORDS = 140;
+// role mapping from GraphQL MessageRole enum to response role type
+/* eslint-disable @typescript-eslint/naming-convention */
+const MESSAGE_ROLE_MAP: Record<string, 'user' | 'assistant' | 'system'> = {
+    USER: 'user'
+    , ASSISTANT: 'assistant'
+    , SYSTEM: 'system'
+};
+/* eslint-enable @typescript-eslint/naming-convention */
+
+/**
+ * map a GraphQL MessageRole enum value to the response role type
+ *
+ * @param role - the GraphQL MessageRole enum value
+ * @returns the mapped role type ('user' | 'assistant' | 'system')
+ */
+export const mapMessageRole = (
+    role: string
+): 'user' | 'assistant' | 'system' => {
+
+    // return mapped role or default to 'assistant'
+    return MESSAGE_ROLE_MAP[ role ] || 'assistant';
+};
+
+/**
+ * fetch and format chat history for LLM context
+ *
+ * @param chatId - the chat to fetch history for
+ * @param modelId - the model to use for summarization if needed
+ * @returns processed chat history
+ */
+export const fetchAndProcessChatHistory = async (
+    chatId: string
+    , modelId: string
+): Promise<ChatHistoryMessage[]> => {
+
+    // get messages from the database
+    const messagesResult = await getMessagesByChatId( chatId );
+
+    // if error, return empty history (no history available is fine)
+    if ( messagesResult.isError() ) {
+        return [];
+    }
+
+    // extract message nodes
+    const nodes = messagesResult.value?.messagesByChatId?.nodes ?? [];
+
+    // convert to ChatHistoryMessage format
+    const messages: ChatHistoryMessage[] = nodes
+        .filter( ( msg ): msg is NonNullable<typeof msg> => msg !== null )
+        .map( msg => ( {
+            role: mapMessageRole( msg.role )
+            , content: msg.content
+        } ) );
+
+    // process history (summarize if too long)
+    return processChatHistory( { messages, modelId } );
+};
 
 /**
  * Summarize older chat history for context
@@ -89,7 +145,8 @@ const buildConversationContext = (
 };
 
 /**
- * Process chat history: summarize older messages if needed, keep recent ones verbatim
+ * Process chat history: summarize older messages if needed,
+ * keep recent ones verbatim
  *
  * @param params - history processing parameters
  * @returns processed conversation history ready for LLM
@@ -128,10 +185,7 @@ export const processChatHistory = async (
 
     if ( context ) {
         // prepend summary as a system message, then include recent messages
-        return [
-            { role: 'system' as const, content: `[Conversation context]\n${ context }` }
-            , ...recentMessages
-        ];
+        return [ { role: 'system' as const, content: `[Conversation context]\n${ context }` }, ...recentMessages ];
     }
 
     return recentMessages;
@@ -256,9 +310,11 @@ export const generateFallbackChatTitle = async (
 
         // truncate at last space to avoid cutting words
         const lastSpace = title.lastIndexOf( ' ' );
+
         if ( lastSpace > 30 ) {
             title = title.substring( 0, lastSpace );
         }
+
         title = title + '...';
     }
 
