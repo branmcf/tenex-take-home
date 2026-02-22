@@ -67,24 +67,48 @@ src="https://github.com/user-attachments/assets/7a6ad561-bbc7-49c5-b38f-ea8e586d
 ## Architecture
 
 ```mermaid
-flowchart TB
+flowchart LR
+    classDef client fill:#e8f4ff,stroke:#1f6feb,color:#0b1f33,stroke-width:1px;
+    classDef backend fill:#eefbf1,stroke:#1a7f37,color:#0f2a17,stroke-width:1px;
+    classDef dep fill:#fff8e6,stroke:#9a6700,color:#3b2f00,stroke-width:1px;
+
     subgraph Client["Client"]
-        FE["Next.js 15 + React 19 + Tailwind<br/>- Chat UI with workflow visualization<br/>- SSE stream consumers for workflow progress<br/>- Swiss-Modernist design (no rounded corners, no shadows)"]
+        direction TB
+        FE["Next.js 15 + React 19 + Tailwind"]
+        FE_UI["Chat UI with workflow visualization"]
+        FE_SSE["Consumes SSE updates for workflow progress"]
+        FE_DS["Swiss-Modernist design system"]
+        FE --> FE_UI
+        FE --> FE_SSE
+        FE --> FE_DS
     end
 
     subgraph Backend["Backend API (:3026)"]
-        API["Express + TypeScript (+ PostGraphile in dev)<br/>- Better Auth session routes (/api/auth)<br/>- Workflow DAG validation, ordering, and execution<br/>- Multi-provider LLM integration (OpenAI, Anthropic, Google)<br/>- Real-time workflow streaming via SSE"]
+        direction TB
+        API["Express + TypeScript (+ PostGraphile in dev)"]
+        BE_AUTH["Better Auth session routes (/api/auth)"]
+        BE_DAG["Workflow DAG validation, ordering, and execution"]
+        BE_SSE["SSE streaming endpoints"]
+        BE_LLM["LLM orchestration (OpenAI, Anthropic, Google)"]
+        API --> BE_AUTH
+        API --> BE_DAG
+        API --> BE_SSE
+        API --> BE_LLM
     end
 
     FE -->|"HTTP/REST + SSE"| API
 
-    DB["PostgreSQL (docker mapped :5433)<br/>- 23 migration files"]
-    MCP["MCP Tools Server (:4010)<br/>- web_search<br/>- read_url<br/>- http_request<br/>- summarize<br/>- extract_json"]
-    LLM["LLM Providers<br/>- OpenAI<br/>- Anthropic<br/>- Google"]
+    DB["PostgreSQL<br/>(docker mapped :5433)<br/>23 migration files"]
+    MCP["MCP Tools Server (:4010)<br/>web_search | read_url | http_request | summarize | extract_json"]
+    LLM["LLM Providers<br/>OpenAI | Anthropic | Google"]
 
     API --> DB
     API --> MCP
     API --> LLM
+
+    class FE,FE_UI,FE_SSE,FE_DS client;
+    class API,BE_AUTH,BE_DAG,BE_SSE,BE_LLM backend;
+    class DB,MCP,LLM dep;
 ```
 
 ---
