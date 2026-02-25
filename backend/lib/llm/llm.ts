@@ -21,6 +21,7 @@ import {
     , buildChatSystemPrompt
     , formatSourcesForRAGPrompt
     , formatConversationHistoryForPrompt
+    , DEFAULT_MAX_OUTPUT_TOKENS
 } from '../../utils/constants';
 
 /**
@@ -150,7 +151,7 @@ export const generateLLMText = async (
         const result = await generateText( {
             model
             , prompt: fullPrompt
-            , maxOutputTokens: params.maxTokens ?? 10000
+            , maxOutputTokens: params.maxTokens ?? DEFAULT_MAX_OUTPUT_TOKENS
             , temperature: params.temperature ?? 0.7
             // eslint-disable-next-line @typescript-eslint/naming-convention
             , experimental_telemetry: {
@@ -241,7 +242,7 @@ export const streamLLMText = async ( params: LLMStreamParams ): Promise<LLMStrea
     const result = streamText( {
         model
         , prompt: fullPrompt
-        , maxOutputTokens: params.maxTokens ?? 10000
+        , maxOutputTokens: params.maxTokens ?? DEFAULT_MAX_OUTPUT_TOKENS
         , temperature: params.temperature ?? 0.7
         // eslint-disable-next-line @typescript-eslint/naming-convention
         , experimental_telemetry: {
