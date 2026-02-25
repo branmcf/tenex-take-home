@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { gql } from 'graphile-utils';
 import {
-    generateText, tool, jsonSchema
+    generateText, tool, jsonSchema, stepCountIs
 } from 'ai';
 import {
     Either
@@ -20,12 +20,17 @@ import {
     , WorkflowDAG
     , WorkflowToolRef
 } from '../../utils/workflowDags';
-import { buildWorkflowStepExecutionPrompt } from '../../utils/constants';
+import {
+    buildWorkflowStepExecutionPrompt
+    , MIN_MEANINGFUL_OUTPUT_LENGTH
+    , ERROR_OUTPUT_PATTERNS
+} from '../../utils/constants';
 import type {
     WorkflowRunResult
     , WorkflowRunCallbacks
     , WorkflowToolLogEntry
     , ToolExecutionSummary
+    , StepSuccessEvaluation
 } from './workflowRunner.types';
 
 /**
@@ -418,29 +423,6 @@ const summarizeToolExecution = ( toolLogs: WorkflowToolLogEntry[] ): ToolExecuti
 };
 
 /**
- * Minimum output length to consider a step as having produced meaningful output
- * Short outputs like "Error" or empty strings indicate the step failed to
- * provide data.
- */
-const MIN_MEANINGFUL_OUTPUT_LENGTH = 20;
-
-/**
- * Patterns that indicate the output is just an error message, not useful data.
- */
-const ERROR_OUTPUT_PATTERNS = [
-    /^(error|failed|unable to|cannot|could not|i('m| am) (sorry|unable))/i
-    , /^(unfortunately|i apologize)/i
-    , /tool (call|execution) failed/i
-    , /no (data|results|information|output) (available|found|returned)/i
-];
-
-interface StepSuccessEvaluation {
-    success: boolean;
-    reason: string;
-    toolSummary: ToolExecutionSummary;
-}
-
-/**
  * @notice Evaluate whether a step produced sufficient output for downstream
  * steps. A step fails if it cannot provide meaningful data to the next step,
  * not just because tools failed.
@@ -682,38 +664,49 @@ export const runWorkflow = async (
                 , temperature: 0.2
                 , tools: Object.keys( runtimeTools.tools ).length > 0 ? runtimeTools.tools : undefined
                 , toolChoice: Object.keys( runtimeTools.tools ).length > 0 ? 'auto' : undefined
+                , stopWhen: stepCountIs( 5 )
             } );
 
-            // Get text output, or fallback to tool results if text is empty
             let output = result.text.trim();
 
             /*
-             * If no text output but tools were called, extract output from
-             * successful tool results
+             * If the LLM exhausted all steps on tool calls without producing
+             * text, run a single follow-up call with no tools to force
+             * synthesis. This only triggers when output is empty and tools ran,
+             * successfully so steps that already produce text are unaffected.
              */
-            if ( !output && toolExecutionLogs.length > 0 ) {
-                const successfulToolOutputs = toolExecutionLogs
+            if ( !output && toolExecutionLogs.some( log => log.status === 'PASSED' && log.output ) ) {
+                const toolContext = toolExecutionLogs
                     .filter( log => log.status === 'PASSED' && log.output )
                     .map( log => {
                         const outputStr = typeof log.output === 'string'
                             ? log.output
                             : JSON.stringify( log.output, null, 2 );
                         return `[Tool: ${ log.toolName }]\n${ outputStr }`;
-                    } );
+                    } )
+                    .join( '\n\n' );
 
-                if ( successfulToolOutputs.length > 0 ) {
-                    output = successfulToolOutputs.join( '\n\n' );
-                }
+                const synthesisResult = await generateText( {
+                    model: getModelProvider( params.modelId )
+                    , prompt: `${ prompt }\n\nThe following tool results were obtained:\n\n${ toolContext }\n\nSynthesize these results into a coherent response.`
+                    , maxOutputTokens: 1200
+                    , temperature: 0.2
+                } );
+
+                output = synthesisResult.text.trim();
             }
 
             outputs[ step.id ] = output;
 
             const completedAt = new Date().toISOString();
 
-            // attach tool call ids to tool logs when available
-            const toolCalls = Array.isArray( result.toolCalls )
-                ? result.toolCalls
-                : [];
+            /*
+             * attach tool call ids to tool logs when available
+             * flatten across all steps so multi-step tool calls
+             * align with logs by index
+             */
+            const toolCalls = ( result.steps ?? [] ).flatMap( step =>
+                Array.isArray( step.toolCalls ) ? step.toolCalls : [] );
 
             toolCalls.forEach( ( toolCall, index ) => {
                 const logEntry = toolExecutionLogs[ index ];

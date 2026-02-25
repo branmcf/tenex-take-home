@@ -5,6 +5,7 @@ import {
     mockSessionOnce
     , mockNoSessionOnce
 } from '../../lib/betterAuth/__mocks__/auth';
+import '../../lib/workflowRunner/__mocks__/workflowRunner.service';
 
 /* ----------------- Mocks ----------------------- */
 
@@ -13,20 +14,6 @@ jest.mock( '../../lib/llm', () => ( {
     streamLLMText: jest.fn().mockResolvedValue( { textStream: [], sources: [] } )
     , generateLLMText: jest.fn().mockResolvedValue( { content: '', sources: [] } )
 } ) );
-
-/*
- * Mock messages helper module - must return Promises since code calls .catch()
- * on results
- */
-jest.mock( '../../app/messages/messages.helper', () => ( {
-    generateLLMResponse: jest.fn().mockResolvedValue( { content: '', sources: [] } )
-    , generateAndUpdateChatTitle: jest.fn().mockResolvedValue( undefined )
-    , generateFallbackChatTitle: jest.fn().mockResolvedValue( undefined )
-    , processChatHistory: jest.fn().mockImplementation( async ( { messages } ) => messages )
-} ) );
-
-// Mock workflow runner module
-jest.mock( '../../lib/workflowRunner', () => ( { runWorkflow: jest.fn().mockResolvedValue( { isError: () => false, value: { content: '', workflowRunId: '' } } ) } ) );
 
 import supertest from 'supertest';
 import { testApp } from '../tests.server';
@@ -205,28 +192,10 @@ describe( 'POST /api/chats/:chatId/messages', () => {
                     }
                 } );
 
-                // mock getMessagesByChatId for conversation history
-                postGraphileRequest.mockResponseOnce( {
-                    chatById: {
-                        id: chatId
-                        , messagesByChatId: {
-                            nodes: [
-                                {
-                                    id: userMessageId
-                                    , role: 'USER'
-                                    , content: 'Hello'
-                                    , createdAt: '2024-01-01T00:00:00Z'
-                                    , messageSourcesByMessageId: { nodes: [] }
-                                }
-                            ]
-                        }
-                    }
-                } );
-
-                // mock generateLLMResponse
-                ( MessagesHelper.generateLLMResponse as jest.Mock ).mockResolvedValueOnce(
+                // mock generateChatResponseWithHistory
+                jest.spyOn( MessagesHelper, 'generateChatResponseWithHistory' ).mockResolvedValueOnce(
                     success( {
-                        content: 'Hello! How can I help you?'
+                        assistantContent: 'Hello! How can I help you?'
                         , sources: []
                     } )
                 );
@@ -242,7 +211,9 @@ describe( 'POST /api/chats/:chatId/messages', () => {
                 } );
 
                 // mock generateAndUpdateChatTitle
-                ( MessagesHelper.generateAndUpdateChatTitle as jest.Mock ).mockResolvedValueOnce( undefined );
+                jest.spyOn( MessagesHelper, 'generateAndUpdateChatTitle' ).mockResolvedValueOnce(
+                    success( undefined )
+                );
 
                 // send request
                 const result = await request
@@ -330,28 +301,10 @@ describe( 'POST /api/chats/:chatId/messages', () => {
                     }
                 } );
 
-                // mock getMessagesByChatId for conversation history
-                postGraphileRequest.mockResponseOnce( {
-                    chatById: {
-                        id: chatId
-                        , messagesByChatId: {
-                            nodes: [
-                                {
-                                    id: userMessageId
-                                    , role: 'USER'
-                                    , content: 'Can you help me?'
-                                    , createdAt: '2024-01-01T00:00:00Z'
-                                    , messageSourcesByMessageId: { nodes: [] }
-                                }
-                            ]
-                        }
-                    }
-                } );
-
-                // mock generateLLMResponse
-                ( MessagesHelper.generateLLMResponse as jest.Mock ).mockResolvedValueOnce(
+                // mock generateChatResponseWithHistory
+                jest.spyOn( MessagesHelper, 'generateChatResponseWithHistory' ).mockResolvedValueOnce(
                     success( {
-                        content: 'I can help with that!'
+                        assistantContent: 'I can help with that!'
                         , sources: [
                             {
                                 url: 'https://example.com'

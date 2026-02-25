@@ -53,3 +53,25 @@ export interface GetMessagesByChatIdRequest extends Request {
 export interface GetMessagesByChatIdResponse {
     messages: MessageResponse[];
 }
+
+// result type for chat resolution helper
+export interface ResolveChatResult {
+    isNewChat: boolean;
+}
+
+// result type for starting a workflow asynchronously
+export interface WorkflowStartResult {
+    workflowRunId: string;
+}
+
+// result type for generating a chat response (regular flow)
+export interface ChatResponseResult {
+    assistantContent: string;
+    sources: SourceResponse[];
+}
+
+// data from a persisted user message
+export interface UserMessageData {
+    id: string;
+    createdAt: string;
+}

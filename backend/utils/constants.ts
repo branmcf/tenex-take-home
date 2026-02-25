@@ -642,3 +642,13 @@ export const CHAT_EVENTS_TIMEOUT_MS = 30000;
 export const WORKFLOW_RUN_POLL_INTERVAL_MS = 1000;
 
 export const WORKFLOW_RUN_TERMINAL_GRACE_MS = 15000;
+
+// step success evaluation constants
+export const MIN_MEANINGFUL_OUTPUT_LENGTH = 20;
+
+export const ERROR_OUTPUT_PATTERNS = [
+    /^(error|failed|unable to|cannot|could not|i('m| am) (sorry|unable))/i
+    , /^(unfortunately|i apologize)/i
+    , /tool (call|execution) failed/i
+    , /no (data|results|information|output) (available|found|returned)/i
+];
