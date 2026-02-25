@@ -20,12 +20,17 @@ import {
     , WorkflowDAG
     , WorkflowToolRef
 } from '../../utils/workflowDags';
-import { buildWorkflowStepExecutionPrompt } from '../../utils/constants';
+import {
+    buildWorkflowStepExecutionPrompt
+    , MIN_MEANINGFUL_OUTPUT_LENGTH
+    , ERROR_OUTPUT_PATTERNS
+} from '../../utils/constants';
 import type {
     WorkflowRunResult
     , WorkflowRunCallbacks
     , WorkflowToolLogEntry
     , ToolExecutionSummary
+    , StepSuccessEvaluation
 } from './workflowRunner.types';
 
 /**
@@ -416,29 +421,6 @@ const summarizeToolExecution = ( toolLogs: WorkflowToolLogEntry[] ): ToolExecuti
         , failedTools
     };
 };
-
-/**
- * Minimum output length to consider a step as having produced meaningful output
- * Short outputs like "Error" or empty strings indicate the step failed to
- * provide data.
- */
-const MIN_MEANINGFUL_OUTPUT_LENGTH = 20;
-
-/**
- * Patterns that indicate the output is just an error message, not useful data.
- */
-const ERROR_OUTPUT_PATTERNS = [
-    /^(error|failed|unable to|cannot|could not|i('m| am) (sorry|unable))/i
-    , /^(unfortunately|i apologize)/i
-    , /tool (call|execution) failed/i
-    , /no (data|results|information|output) (available|found|returned)/i
-];
-
-interface StepSuccessEvaluation {
-    success: boolean;
-    reason: string;
-    toolSummary: ToolExecutionSummary;
-}
 
 /**
  * @notice Evaluate whether a step produced sufficient output for downstream

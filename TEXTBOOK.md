@@ -55,7 +55,7 @@ HardWire is a **deterministic workflow chat platform**. Let us unpack every word
 
 **Chat platform**: At the surface level, HardWire looks like a chat application. A user types a message, and the system responds. There is a conversation history, a sidebar for navigation, and a streaming text response that appears token by token. If you have used ChatGPT, Claude, or any modern AI assistant, the interaction model will feel familiar.
 
-**Workflow**: Unlike a freeform chat where the AI simply generates a response to whatever you say, HardWire structures its work around *workflows*. A workflow is a predefined sequence of steps, each with its own instruction, that together accomplish a complex task. Think of it as a recipe: step 1 gathers ingredients, step 2 preheats the oven, step 3 mixes the batter, and so on. Each step may depend on previous steps, and each step can use specialized tools (like web search, code execution, or database queries).
+**Workflow**: Unlike a freeform chat where the AI simply generates a response to whatever you say, HardWire structures its work around *workflows*. A workflow is a predefined sequence of steps, each with its own instruction, that together accomplish a complex task. Think of it as a recipe: step 1 gathers ingredients, step 2 preheats the oven, step 3 mixes the batter, and so on. Each step may depend on previous steps, and each step can use specialized tools (like web search, reading URLs, or making HTTP requests).
 
 **Deterministic**: This is perhaps the most important word. Large Language Models (LLMs) are inherently probabilistic — ask the same question twice and you may get different answers. HardWire imposes *structure* on top of this probabilistic foundation. By defining a workflow as a Directed Acyclic Graph (DAG) of steps, the system ensures that the *order* of execution is deterministic even if the content generated at each step is not. The same workflow will always execute its steps in the same topologically valid order, making the system predictable, debuggable, and auditable.
 
@@ -72,9 +72,9 @@ Imagine a user named Alice who wants to research a topic and produce a summary r
 5. The backend authenticates Alice, validates her request, and creates a new chat session.
 6. If a workflow is selected, the backend loads the **latest workflow version** and its DAG (steps like "Search the web," "Synthesize findings," "Write introduction," "Write body," "Write conclusion"), then validates it.
 7. When a **workflow run** starts, the backend orders steps using the same **stable topological sort** (`sortWorkflowDagSteps`) used for workflow previews, so the execution order matches what the UI shows when multiple orders are valid.
-8. For each step, the backend sends a prompt to an **LLM** (Large Language Model), incorporating the step's instruction, any tool results, and the accumulated context from previous steps.
+8. For each step, the backend sends a prompt to an **LLM** (Large Language Model), incorporating the step's instruction, outputs from upstream (dependent) steps, and any tool results (if the step uses MCP tools like `web_search`).
 9. Some steps invoke **tools** — for example, the "Search the web" step calls the MCP `web_search` tool (currently backed by DuckDuckGo) through the MCP tools server.
-10. The LLM's response streams back to Alice's browser via **Server-Sent Events (SSE)**, so she sees text appearing in real time.
+10. The workflow's progress streams back to Alice's browser via **Server-Sent Events (SSE)**, so she sees step status updates (e.g., "step 1 running," "step 1 complete") in real time. Note: for workflow runs, the LLM output itself is not streamed token-by-token — each step completes fully before the next begins. Token-by-token streaming only occurs for regular (non-workflow) chat messages.
 11. The final result is a structured, multi-step report that Alice can review, edit, or re-run.
 
 This entire flow — from keystroke to final report — traverses every layer of the HardWire stack. By the end of this guide, you will understand each layer in detail.
@@ -92,14 +92,14 @@ When a user submits a message with a workflow selected, the backend follows this
    - **Validate** the DAG (cycles, missing deps, duplicate IDs, tool refs).
    - Create the `workflow_runs` DB record.
    - **Sort** steps with `sortWorkflowDagSteps` (stable topological order).
-   - Execute each step in order, streaming updates via SSE.
+   - Execute each step in order; the client receives step status updates via SSE (by polling the `/stream` endpoint).
 6. When the run completes, an assistant (or system) message is saved to the chat.
 
 This separation lets the API respond quickly while the workflow runs in the background.
 
 **Why create the workflow run record before sorting the DAG?**
 
-The backend creates the `workflow_runs` record early so it can return a `workflowRunId` immediately. The client needs that ID to subscribe to the SSE stream endpoint and to poll for run status. If the record were created later, the API would have to block until sorting (and potentially tool-loading) finishes, which would make the UI feel slow and could cause timeouts.
+The backend creates the `workflow_runs` record early so it can return a `workflowRunId` immediately. The client needs that ID to subscribe to the SSE stream endpoint (`/api/chats/:chatId/workflow-runs/:runId/stream`), which pushes status updates as the workflow progresses. If the record were created later, the API would have to block until sorting (and potentially tool-loading) finishes, which would make the UI feel slow and could cause timeouts.
 
 This early record is also the system’s anchor for observability. Once the run exists, every subsequent step run, log entry, and status update has a stable parent ID to attach to. That means the UI can show “run started” right away, and any errors that happen during sorting or early execution still have a run record to report against. Importantly, the DAG is **validated before** the run is created, so the system does not create runs for structurally invalid workflows. Sorting happens next and is deterministic, but it does not block the initial response or the creation of the run record.
 
@@ -725,116 +725,312 @@ Let us annotate each line:
 
 ## 3.3 The Collection Pattern
 
-HardWire organizes its backend code into **collections**, where each collection manages one type of resource (chats, messages, workflows, tools, etc.). Every collection follows the same three-layer pattern:
+HardWire organizes its backend code into **collections**, where each collection manages one type of resource (chats, messages, workflows, tools, etc.). Every collection follows a consistent directory structure with clearly separated concerns:
 
 ```
-Router → Controller → Service → PostGraphile → PostgreSQL
+/app/<collection>/
+├── index.ts                                # Public API exports
+├── <collection>.types.ts                   # Request/response/domain types
+├── <collection>.errors.ts                  # Custom ResourceError classes
+├── <collection>.validation.ts              # Joi schemas
+├── <collection>.ctrl.ts                    # Express handlers (orchestration)
+├── <collection>.router.ts                  # Express routes
+├── <collection>.helper.ts                  # Pure business logic
+├── <collection>.service.ts                 # Database operations only
+└── <collection>.service.generatedTypes.ts  # GraphQL types (auto-generated)
 ```
+
+The request flow follows a three-layer pattern where each layer has a single responsibility:
+
+```
+Router → Controller → Helper/Service
+                          ↓
+                     PostGraphile → PostgreSQL
+```
+
+- **Router**: HTTP routing and middleware chains
+- **Controller**: Business flow orchestration (the "what" and "when")
+- **Helper**: Reusable operations that combine service calls + transformations
+- **Service**: Pure database queries only
 
 ### 3.3.1 The Router Layer
 
-The router defines HTTP endpoints and connects them to controller functions. It also applies route-specific middleware (like request validation).
+The router defines HTTP endpoints and connects them to controller functions. It applies route-specific middleware (like request validation and ownership checks) and can mount nested routers for sub-resources.
 
 ```ts
-// Conceptual example: chats router
-import { Router } from 'express';
-import { sessionValidator } from '../middleware/sessionValidator';
-import { requestValidator } from '../middleware/requestValidator';
-import { chatsController } from './chats.controller';
+// backend/app/chats/chats.router.ts
+import express from 'express';
+import {
+    requestHandlerErrorWrapper
+    , requestValidator
+    , chatOwnershipValidator
+} from '../../middleware';
+import { deleteChatHandler, streamChatEventsHandler } from './chats.ctrl';
+import { messagesRouter } from '../messages';
+import { workflowRunsRouter } from '../workflowRuns';
 
-const router = Router();
+// create an express router
+export const chatsRouter = express.Router( { mergeParams: true } );
 
-router.use(sessionValidator);  // All chat routes require authentication
+// define the routes of the express router
+chatsRouter
+    .delete(
+        '/:chatId'
+        , requestValidator( 'DELETE_CHAT' )
+        , chatOwnershipValidator
+        , requestHandlerErrorWrapper( deleteChatHandler )
+    )
+    .get(
+        '/:chatId/events'
+        , chatOwnershipValidator
+        , requestHandlerErrorWrapper( streamChatEventsHandler )
+    );
 
-router.get('/',
-    requestValidator('listChats'),
-    chatsController.list
+// nested chat message routes - ownership validated for all nested routes
+chatsRouter.use(
+    '/:chatId/messages'
+    , chatOwnershipValidator
+    , messagesRouter
 );
 
-router.post('/',
-    requestValidator('createChat'),
-    chatsController.create
+// workflow runs - ownership validated for all nested routes
+chatsRouter.use(
+    '/:chatId/workflow-runs'
+    , chatOwnershipValidator
+    , workflowRunsRouter
 );
-
-router.get('/:id',
-    requestValidator('getChat'),
-    chatsController.getById
-);
-
-router.put('/:id',
-    requestValidator('updateChat'),
-    chatsController.update
-);
-
-router.delete('/:id',
-    requestValidator('deleteChat'),
-    chatsController.delete
-);
-
-export { router as chatsRouter };
 ```
+
+Notice the key patterns:
+- `express.Router( { mergeParams: true } )` allows nested routers to access parent route params (`:chatId`)
+- Middleware order matters: validation runs before ownership checks, ownership before handler
+- `requestHandlerErrorWrapper` catches unhandled async errors and passes them to Express error handlers
+- Nested routers (`messagesRouter`, `workflowRunsRouter`) are mounted under the parent path
 
 ### 3.3.2 The Controller Layer
 
-The controller extracts data from the request, calls the service, and formats the response. It is a thin **translation and orchestration** layer between HTTP and domain logic — it can sequence calls and shape responses, but core business rules should live in services.
+The controller contains the **business flow orchestration** — the actual logic to carry out the business objective. It extracts data from the request, decides what operations need to happen and in what order, calls helpers for reusable operations, calls services for direct database access, and formats the response.
 
 ```ts
-// Conceptual example: chats controller
-const create = async (req: Request, res: Response, next: NextFunction) => {
-    const userId = res.locals.session.userId;
-    const { name, workflowId } = req.body;
+// backend/app/chats/chats.ctrl.ts
+import { Response } from 'express';
+import { ResourceError } from '../../errors';
+import { getUserChats, deleteChat } from './chats.service';
+import {
+    GetUserChatsRequest
+    , GetUserChatsResponse
+    , ChatItem
+    , DeleteChatRequest
+    , DeleteChatResponse
+} from './chats.types';
 
-    const result = await chatsService.create({ userId, name, workflowId });
+/**
+ * @title Get User Chats Handler
+ * @notice Returns all chats for a user with optional pagination.
+ * @param req Express request
+ * @param res Express response
+ */
+export const getUserChatsHandler = async (
+    req: GetUserChatsRequest
+    , res: Response<ResourceError | GetUserChatsResponse>
+): Promise<Response<ResourceError | GetUserChatsResponse>> => {
 
-    if (result.isError()) {
-        return next(result.value);  // Pass ResourceError to error handler
+    // get the userId from the url params
+    const { userId } = req.params;
+
+    // get the pagination params from the query
+    const limit = req.query.limit ? parseInt( req.query.limit, 10 ) : undefined;
+    const offset = req.query.offset ? parseInt( req.query.offset, 10 ) : undefined;
+
+    // get the user chats from the database
+    const getUserChatsResult = await getUserChats( {
+        userId
+        , limit
+        , offset
+    } );
+
+    // check for errors
+    if ( getUserChatsResult.isError() ) {
+
+        // return the error
+        return res
+            .status( getUserChatsResult.value.statusCode )
+            .json( getUserChatsResult.value );
     }
 
-    res.status(201).json(result.value);
+    // get the chats nodes
+    const chatsNodes = getUserChatsResult.value?.chatsByUserId?.nodes ?? [];
+
+    // map the chats to response format, filtering out deleted chats
+    const chats: ChatItem[] = chatsNodes
+        .filter( ( chat ): chat is NonNullable<typeof chat> => chat !== null && !chat.deletedAt )
+        .map( chat => {
+
+            // get the first user message for snippet
+            const firstMessage = chat.messagesByChatId?.nodes?.[ 0 ];
+            const snippet = firstMessage?.content;
+
+            // return the chat in response format
+            return {
+                id: chat.id
+                , title: chat.title ?? null
+                , snippet
+                , updatedAt: chat.updatedAt
+            };
+        } );
+
+    // return success
+    return res.status( 200 ).json( { chats } );
+
 };
 ```
 
-Notice the pattern: the controller calls the service and checks whether the result is an error or a success. If it is an error, the controller passes the error to Express's error-handling middleware via `next(result.value)`. If it is a success, the controller sends the success value as JSON.
+Notice the pattern:
+- The controller extracts data from `req.params` and `req.query`
+- It calls service functions for database access (e.g., `getUserChats`)
+- It checks `isError()` and returns early with the appropriate HTTP status
+- On success, it transforms the data into the response format and returns JSON
+- The controller decides **what** happens and **when** — that's the business flow
 
 ### 3.3.3 The Service Layer
 
-The service contains the domain logic (business rules) and data access. It interacts with PostGraphile to read/write data, enforces rules like ownership checks or invariants, and returns `Either<ResourceError, T>`. In simple CRUD paths, the "business logic" may be mostly data access; in more complex flows, it includes validations and orchestration that should not live in controllers.
+The service is the **ONLY** place that directly touches the database. It interacts with PostGraphile to read/write data and returns `Either<ResourceError, T>`. Services are pure data access: execute a GraphQL query/mutation, check if it succeeded, and return either an error or the result.
 
 ```ts
-// Conceptual example: chats service
-const create = async (params: CreateChatParams): Promise<Either<ResourceError, Chat>> => {
-    // Business logic: validate that the workflow exists and belongs to the user
-    const workflowResult = await workflowsService.getById(params.workflowId);
-    if (workflowResult.isError()) {
-        return error(new NotFoundError({ message: 'Workflow not found' }));
+// backend/app/chats/chats.service.ts
+import { gql } from 'graphile-utils';
+import {
+    Either
+    , error
+    , success
+} from '../../types';
+import { ResourceError } from '../../errors';
+import { postGraphileRequest } from '../../lib/postGraphile';
+import {
+    GetUserChatsQuery
+    , GetUserChatsQueryVariables
+} from './chats.service.generatedTypes';
+import {
+    UserChatsNotFound
+    , GetUserChatsFailed
+} from './chats.errors';
+
+/**
+ * get all chats for a user from the database
+ *
+ * @param userId - the user id
+ * @param limit - maximum number of chats to return
+ * @param offset - number of chats to skip
+ * @returns Either<ResourceError, GetUserChatsQuery['userById']> - the user's chats
+ */
+export const getUserChats = async (
+    params: {
+        userId: GetUserChatsQueryVariables['userId'];
+        limit?: number;
+        offset?: number;
+    }
+): Promise<Either<ResourceError, GetUserChatsQuery['userById']>> => {
+
+    // create the graphql query
+    const GET_USER_CHATS = gql`
+        query getUserChats(
+            $userId: String!
+            $limit: Int
+            $offset: Int
+        ) {
+            userById(id: $userId) {
+                id
+                chatsByUserId(
+                    orderBy: UPDATED_AT_DESC
+                    first: $limit
+                    offset: $offset
+                ) {
+                    nodes {
+                        id
+                        title
+                        updatedAt
+                        deletedAt
+                        messagesByChatId(
+                            orderBy: CREATED_AT_ASC
+                            first: 1
+                            condition: { role: USER }
+                        ) {
+                            nodes {
+                                id
+                                content
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    `;
+
+    // execute the graphql query
+    const result = await postGraphileRequest<GetUserChatsQuery, GetUserChatsQueryVariables>(
+        {
+            query: GET_USER_CHATS
+            , variables: {
+                userId: params.userId
+                , limit: params.limit ?? null
+                , offset: params.offset ?? null
+            }
+        }
+    );
+
+    // check for error
+    if ( result.isError() ) {
+
+        // return the error
+        return error( result.value );
     }
 
-    // Persist via PostGraphile
-    const chat = await postGraphile.mutation.createChat({
-        userId: params.userId,
-        name: params.name,
-        workflowId: params.workflowId,
-    });
+    // check for user
+    if ( !result.value.userById ) {
 
-    return success(chat);
+        // return custom error
+        return error( new GetUserChatsFailed() );
+    }
+
+    // check for chats
+    if ( !result.value.userById.chatsByUserId?.nodes ) {
+
+        // return custom error
+        return error( new UserChatsNotFound() );
+    }
+
+    // return success
+    return success( result.value.userById );
+
 };
 ```
 
-> **Key Takeaway**: The three-layer pattern (Router → Controller → Service) enforces a clean separation. The router knows about HTTP. The controller translates between HTTP and business logic. The service knows about business rules and data access. No layer reaches into the responsibilities of another.
+Notice what a service function does — and does NOT do:
+- **Does**: Define a GraphQL query/mutation inside the function
+- **Does**: Call `postGraphileRequest` with typed generics
+- **Does**: Check for errors and missing data, returning appropriate `ResourceError`
+- **Does NOT**: Transform data for HTTP responses (that belongs in controllers)
+- **Does NOT**: Know about Express requests/responses
+
+> **Key Takeaway**: The three-layer pattern (Router → Controller → Helper/Service) enforces a clean separation. The router handles HTTP routing and middleware. The controller orchestrates the business flow — deciding what happens and when. Helpers provide reusable operations that may combine service calls with transformations. Services perform database queries only.
 
 ### 3.3.4 Why This Pattern?
 
 The benefits of this layered approach include:
 
-**Testability**: Services can be unit-tested without HTTP by calling service functions directly with mocked PostGraphile responses. Controllers can be tested by stubbing services and asserting HTTP status/body formatting. Routers can be tested with integration tests (e.g., Supertest) to verify middleware + routing together.
+**Testability**: Services can be unit-tested by mocking PostGraphile responses. Helpers can be tested by mocking the services they call. Controllers can be tested by stubbing services/helpers and asserting HTTP status/body formatting. Routers can be tested with integration tests (e.g., Supertest) to verify middleware + routing together.
 
-**Consistency**: Every resource follows the same pattern, so developers always know where to find code. Need the business logic for creating a chat? It is in `chats.service.ts`. Need the HTTP route definition? It is in `chats.router.ts`.
+**Consistency**: Every resource follows the same pattern, so developers always know where to find code. Need the business flow for creating a message? It is in `messages.ctrl.ts`. Need a reusable operation like processing chat history? It is in `messages.helper.ts`. Need the database query? It is in `messages.service.ts`.
 
-**Separation of concerns**: The service does not know about HTTP status codes. The router does not know about database queries. Each layer has a focused responsibility.
+**Separation of concerns**: Services only touch the database — they do not know about HTTP or business flow. Helpers encapsulate reusable operations — they can call services but do not handle HTTP. Controllers orchestrate the business flow — they decide what happens and when, and handle HTTP request/response. Routers wire routes to handlers and apply middleware.
 
 ## 3.4 The Either Monad: Error Handling Done Right
 
 This section is the most conceptually challenging in the chapter, and also the most important. The Either monad is the backbone of HardWire's error-handling strategy.
+
+The goal of this section is not just to explain what the code does, but to explain what the types mean and why this pattern is safer than exceptions.
+
+---
 
 ### 3.4.1 The Problem with Exceptions
 
@@ -865,16 +1061,42 @@ This approach has several problems:
 
 4. **Performance**: Throwing exceptions involves capturing a stack trace, which is expensive. In a hot path that frequently fails (like validation), this overhead adds up and can become a measurable cost under load.
 
+The core issue is this:
+
+> Exceptions hide failure from the type system.
+
+HardWire does not hide failure. It encodes failure directly in return types.
+
+---
+
 ### 3.4.2 What Is a Monad?
 
 A monad is a design pattern for wrapping values in a context and providing a standard way to compose operations on those wrapped values. That is abstract, so let us make it concrete.
 
 Think of a monad as a **container** with rules:
-1. You can **put a value** into the container (this is called `return` or `of` or, in HardWire, `success`/`error`)
+
+1. You can **put a value** into the container (this is called `return` or `of` or, in HardWire, `success` / `error`)
 2. You can **transform the value inside** without unwrapping it (this is called `map` or `flatMap`)
 3. The container **carries extra information** beyond just the value (for Either, it carries whether the operation succeeded or failed)
 
-The Either monad specifically represents a value that is one of two things: a success (with a value of type `A`) or an error (with a value of type `L`).
+The Either monad specifically represents a value that is one of two things:
+
+- A success (with a value of type `A`)
+- An error (with a value of type `L`)
+
+There is no third option.
+
+It is important to emphasize something subtle:
+
+`Either<L, A>` does **not** mean `L | A`.
+
+It means:
+
+> An object that is either an `Error<L, A>` or a `Success<L, A>`.
+
+The distinction matters. The value is wrapped in an object that encodes whether it is an error or success.
+
+---
 
 ### 3.4.3 HardWire's Either Implementation, Line by Line
 
@@ -885,8 +1107,27 @@ The Either monad specifically represents a value that is one of two things: a su
 // L is the type of the error value (Left, by convention).
 // A is the type of the success value (right, by convention — "right" as in "correct").
 export type Either<L, A> = Error<L, A> | Success<L, A>;
+```
 
-// The Error class wraps an error value.
+This line defines a union type.
+
+In plain English:
+
+```
+Either<L, A>
+=
+Error<L, A>
+OR
+Success<L, A>
+```
+
+It is simply a named union.
+
+---
+
+#### The Error class wraps an error value.
+
+```ts
 export class Error<L, A> {
     // The error value itself. "readonly" means it cannot be changed after construction.
     readonly value: L;
@@ -908,8 +1149,38 @@ export class Error<L, A> {
         return false;
     }
 }
+```
 
-// The Success class wraps a success value.
+The word **wraps** is intentional.
+
+Instead of returning a raw error value:
+
+```ts
+return someError;
+```
+
+we return:
+
+```ts
+return new Error(someError);
+```
+
+The error becomes the `value` property inside a wrapper object.
+
+This wrapper object allows TypeScript to distinguish the two possible shapes of `Either`.
+
+The generics `<L, A>` are type parameters:
+
+- `L` is the error type.
+- `A` is the success type.
+
+Even though `Error` only directly uses `L`, it still carries both `<L, A>` so that it remains structurally compatible with `Either<L, A>`.
+
+---
+
+#### The Success class wraps a success value.
+
+```ts
 export class Success<L, A> {
     // The success value itself.
     readonly value: A;
@@ -928,7 +1199,55 @@ export class Success<L, A> {
         return true;
     }
 }
+```
 
+Same idea, but for successful results.
+
+Again, the raw value is wrapped in an object.
+
+---
+
+#### Understanding `this is Error<L, A>`
+
+This syntax:
+
+```ts
+isError(): this is Error<L, A>
+```
+
+is called a **type predicate**.
+
+It does not change runtime behavior.
+
+It tells TypeScript:
+
+> If this method returns true, then inside that branch of code, treat the variable as `Error<L, A>`.
+
+Example:
+
+```ts
+const result: Either<L, A> = something();
+
+if (result.isError()) {
+    // In this branch:
+    // result is Error<L, A>
+    result.value; // type L
+} else {
+    // In this branch:
+    // result is Success<L, A>
+    result.value; // type A
+}
+```
+
+Without this predicate, `result.value` would be typed as `L | A`, which is unsafe.
+
+Type narrowing happens inside the `if` branch.
+
+---
+
+#### Factory functions
+
+```ts
 // Factory function: creates an Error-wrapped Either.
 // Usage: return error(new NotFoundError(...));
 export const error = <L, A>(l: L): Either<L, A> => new Error(l);
@@ -938,51 +1257,138 @@ export const error = <L, A>(l: L): Either<L, A> => new Error(l);
 export const success = <L, A>(a: A): Either<L, A> => new Success<L, A>(a);
 ```
 
+These are generic arrow functions.
+
+The `<L, A>` before `(l: L)` declares that the function itself is generic.
+
+In plain English:
+
+> `error` is a generic function that takes a value of type `L` and returns an `Either<L, A>`.
+
+You might wonder why `error` needs `<A>` even though it does not use it directly.
+
+The reason is that the return type must preserve both type parameters of `Either<L, A>`. If a function returns `Either<ResourceError, { success: boolean }>`, then calling `error(...)` inside that function must still produce `Either<ResourceError, { success: boolean }>` — even though it is currently returning an error.
+
+The generic parameters are inferred automatically from context in most cases.
+
+---
+
 **What this means in plain English:**
 
 - `Either<L, A>` is **one of two shapes**: an `Error<L, A>` or a `Success<L, A>`. There is no third option.
-- `Error` and `Success` are simple wrappers that both expose a `.value`, but the *type* of `.value` depends on which wrapper you have.
-- `isError()` and `isSuccess()` are **type guards**. Once you check `result.isError()`, TypeScript knows which wrapper you are holding and narrows the type accordingly.
-- The `error(...)` and `success(...)` functions are just convenience constructors so callers never instantiate the classes directly.
+- `Error` and `Success` are wrappers around values.
+- The wrapper encodes whether the value represents failure or success.
+- `isError()` and `isSuccess()` allow TypeScript to safely narrow the union type.
+- The `error(...)` and `success(...)` functions are convenience constructors.
+
+---
 
 ### 3.4.4 Using Either in Practice
 
 Here is how the Either pattern plays out in real code:
 
 ```ts
+// backend/app/chats/chats.service.ts
 // Service function that might fail
-async function getChatById(chatId: string): Promise<Either<ResourceError, Chat>> {
-    const chat = await db.findChat(chatId);
+export const deleteChat = async (
+    chatId: DeleteChatMutationVariables['chatId']
+): Promise<Either<ResourceError, { success: boolean }>> => {
 
-    if (!chat) {
-        // Return an error — do NOT throw
-        return error(new NotFoundError({
-            message: `Chat ${chatId} not found`,
-            clientMessage: 'Chat not found',
-            code: 'CHAT_NOT_FOUND',
-            statusCode: 404
-        }));
+    // create the graphql mutation
+    const DELETE_CHAT = gql`
+        mutation deleteChat($chatId: UUID!) {
+            updateChatById(input: {
+                id: $chatId
+                chatPatch: {
+                    deletedAt: "now()"
+                }
+            }) {
+                chat {
+                    id
+                    deletedAt
+                }
+            }
+        }
+    `;
+
+    // execute the graphql mutation
+    const result = await postGraphileRequest<DeleteChatMutation, DeleteChatMutationVariables>(
+        {
+            mutation: DELETE_CHAT
+            , variables: { chatId }
+        }
+    );
+
+    // check for error
+    if ( result.isError() ) {
+
+        // return the error — do NOT throw
+        return error( result.value );
     }
 
-    // Return a success
-    return success(chat);
-}
+    // check for chat
+    if ( !result.value.updateChatById?.chat ) {
 
+        // return custom error
+        return error( new ChatNotFound() );
+    }
+
+    // return success
+    return success( { success: true } );
+
+};
+```
+
+The return type clearly communicates:
+
+```
+Promise<Either<ResourceError, { success: boolean }>>
+```
+
+The caller knows, from the type signature alone, that this operation may fail.
+
+There is no hidden control flow.
+
+---
+
+```ts
+// backend/app/chats/chats.ctrl.ts
 // Controller that uses the service
-async function handleGetChat(req: Request, res: Response, next: NextFunction) {
-    const result = await getChatById(req.params.id);
+export const deleteChatHandler = async (
+    req: DeleteChatRequest
+    , res: Response<ResourceError | DeleteChatResponse>
+): Promise<Response<ResourceError | DeleteChatResponse>> => {
+
+    // get the chatId from the url params
+    const { chatId } = req.params;
+
+    // delete the chat from the database
+    const deleteChatResult = await deleteChat( chatId );
 
     // You MUST check — the type system enforces this.
-    // `result.value` could be a Chat or a ResourceError.
-    // You cannot access chat-specific properties without narrowing first.
-    if (result.isError()) {
-        return next(result.value); // result.value is ResourceError
+    // `deleteChatResult.value` could be { success: boolean } or a ResourceError.
+    // You cannot access success-specific properties without narrowing first.
+    if ( deleteChatResult.isError() ) {
+
+        // return the error
+        return res
+            .status( deleteChatResult.value.statusCode )
+            .json( deleteChatResult.value );
     }
 
-    // TypeScript now KNOWS result.value is a Chat
-    res.json(result.value);
-}
+    // TypeScript now KNOWS deleteChatResult.value is { success: boolean }
+    return res.status( 200 ).json( { success: true } );
+
+};
 ```
+
+The compiler enforces error handling.
+
+If you attempt to use the success value without first narrowing the type, TypeScript will refuse to compile.
+
+That is the safety guarantee.
+
+---
 
 ### 3.4.5 Comparison with Other Approaches
 
@@ -1036,28 +1442,45 @@ The dual-message pattern (`message` vs `clientMessage`) is a security feature. T
 Specific error types extend ResourceError:
 
 ```ts
-// Conceptual examples of the error hierarchy
-class NotFoundError extends ResourceError {
-    constructor(params) {
-        super({ ...params, statusCode: 404, code: 'NOT_FOUND' });
+// backend/app/chats/chats.errors.ts
+import { ResourceError } from '../../errors';
+
+export class ChatNotFound extends ResourceError {
+    public constructor () {
+        const clientMessage = `Chat not found.`;
+        const code = 'CHAT_NOT_FOUND';
+        const statusCode = 404;
+        super( {
+            clientMessage
+            , statusCode
+            , code
+        } );
     }
 }
 
-class ValidationError extends ResourceError {
-    constructor(params) {
-        super({ ...params, statusCode: 400, code: 'VALIDATION_FAILED' });
+export class GetUserChatsFailed extends ResourceError {
+    public constructor () {
+        const clientMessage = `Failed to retrieve user chats.`;
+        const code = 'GET_USER_CHATS_FAILED';
+        const statusCode = 500;
+        super( {
+            clientMessage
+            , statusCode
+            , code
+        } );
     }
 }
 
-class UnauthorizedError extends ResourceError {
-    constructor(params) {
-        super({ ...params, statusCode: 401, code: 'UNAUTHORIZED' });
-    }
-}
-
-class InternalError extends ResourceError {
-    constructor(params) {
-        super({ ...params, statusCode: 500, code: 'INTERNAL_ERROR' });
+export class DeleteChatFailed extends ResourceError {
+    public constructor () {
+        const clientMessage = `Failed to delete chat.`;
+        const code = 'DELETE_CHAT_FAILED';
+        const statusCode = 500;
+        super( {
+            clientMessage
+            , statusCode
+            , code
+        } );
     }
 }
 ```
@@ -1071,35 +1494,75 @@ class InternalError extends ResourceError {
 The request validator middleware takes a schema name, retrieves the corresponding Joi schema, and validates the request against it:
 
 ```ts
-// Conceptual implementation of request validator middleware
-const requestValidator = (schemaName: string) => {
-    return (req: Request, res: Response, next: NextFunction) => {
-        // 1. Look up the Joi schema by name
-        const schema = schemas[schemaName];
+// backend/middleware/requestValidator/requestValidator.ts
+import {
+    Request, Response, NextFunction
+} from 'express';
+import joi from 'joi';
+import { ResourceError } from '../../errors';
+import { RequestValidationError } from './requestValidator.errors';
+import {
+    buildErrorMessage
+    , buildRequestContent
+} from './requestValidator.helper';
+import { SchemaName } from './requestValidator.types';
+import { SCHEMAS } from './requestValidator.schemas';
 
-        // 2. Build the content to validate (from params, query, body)
-        const content = {
-            params: req.params,
-            query: req.query,
-            body: req.body,
-        };
 
-        // 3. Validate
-        const { error, value } = schema.validate(content, { abortEarly: false });
+export const requestValidator = ( schemaName: SchemaName ) => {
+    return async (
+        req: Request
+        , res: Response<RequestValidationError>
+        , next: NextFunction
+    ): Promise<Response<RequestValidationError> | void> => {
 
-        // 4. If validation fails, return a structured error
-        if (error) {
-            const validationError = new ValidationError({
-                message: error.details.map(d => d.message).join('; '),
-                clientMessage: 'Invalid request data',
-                code: 'VALIDATION_FAILED',
-                statusCode: 400,
-            });
-            return next(validationError);
+        // build the content object from request params, query, and body
+        const content = buildRequestContent( req );
+
+        // look up the Joi schema by name from the schemas registry
+        const schema = SCHEMAS[ schemaName ];
+
+        // check if schema exists
+        if ( !schema ) {
+
+            // return error if schema not found (developer mistake)
+            const requestValidationError = new RequestValidationError(
+                schemaName as string
+                , `Validation schema not found: ${ schemaName }.`
+            );
+            return res
+                .status( requestValidationError.statusCode )
+                .json( requestValidationError );
         }
 
-        // 5. If validation passes, continue to the next middleware
-        next();
+        try {
+
+            // validate the request content against the schema
+            // abortEarly: false collects ALL validation errors, not just the first
+            await schema.validateAsync( content, { abortEarly: false } );
+
+            // validation passed — continue to next middleware
+            return next();
+
+        } catch ( validationError ) {
+
+            // handle validation failure
+            let error = validationError as string | ResourceError;
+
+            // if it's a Joi validation error, format it into a readable message
+            if ( validationError instanceof joi.ValidationError ) {
+                error = buildErrorMessage( validationError );
+            }
+
+            // return structured validation error response
+            const requestValidationError = new RequestValidationError(
+                schemaName as string
+                , error
+            );
+            return res
+                .status( requestValidationError.statusCode )
+                .json( requestValidationError );
+        }
     };
 };
 ```
@@ -1107,14 +1570,42 @@ const requestValidator = (schemaName: string) => {
 A Joi schema might look like:
 
 ```ts
-const createChatSchema = Joi.object({
-    body: Joi.object({
-        name: Joi.string().min(1).max(255).required(),
-        workflowId: Joi.string().uuid().required(),
-    }),
-    params: Joi.object({}),
-    query: Joi.object({}),
-});
+// backend/app/chats/chats.validation.ts
+import Joi from 'joi';
+
+export const DELETE_CHAT = Joi.object( {
+    params: Joi.object( {
+        chatId: Joi.string()
+            .trim()
+            .uuid()
+            .required()
+    } )
+        .required()
+        .options( { presence: 'required' } )
+} );
+
+export const GET_USER_CHATS = Joi.object( {
+    params: Joi.object( {
+        userId: Joi.string()
+            .trim()
+            .min( 1 )
+            .required()
+    } )
+        .required()
+        .options( { presence: 'required' } )
+    , query: Joi.object( {
+        limit: Joi.number()
+            .integer()
+            .positive()
+            .max( 100 )
+            .optional()
+        , offset: Joi.number()
+            .integer()
+            .min( 0 )
+            .optional()
+    } )
+        .optional()
+} );
 ```
 
 This ensures that before the controller ever runs, the request body has been verified to contain a non-empty string `name` (max 255 characters) and a valid UUID `workflowId`. Any deviation results in a 400 error with a descriptive message.
@@ -1132,31 +1623,64 @@ Joi validation is the **boundary guard** between the untrusted outside world and
 The session validator ensures that every API request (except public endpoints like login/register) comes from an authenticated user:
 
 ```ts
-// Conceptual implementation of session validator
-const sessionValidator = async (req: Request, res: Response, next: NextFunction) => {
-    // 1. Convert Express headers to Web API Headers format
-    //    (BetterAuth expects Web API Headers, not Express headers)
-    const webHeaders = new Headers();
-    Object.entries(req.headers).forEach(([key, value]) => {
-        if (typeof value === 'string') webHeaders.set(key, value);
-    });
+// backend/middleware/sessionValidator/sessionValidator.ts
+import {
+    NextFunction
+    , Request
+    , Response
+} from 'express';
+import { auth } from '../../lib/betterAuth';
+import {
+    ResourceError
+    , UnauthorizedError
+} from '../../errors';
 
-    // 2. Call BetterAuth to validate the session
-    const session = await betterAuth.api.getSession({
-        headers: webHeaders,
-    });
+/**
+ * Express middleware to validate user sessions
+ *
+ * @description
+ * This middleware validates the session by:
+ * 1. Converting Express request headers to Web API Headers format
+ * 2. Calling BetterAuth API to get and validate the session
+ * 3. Checking if a valid user ID exists in the session
+ * 4. Adding the session to res.locals for downstream middleware/handlers
+ */
+export const sessionValidator = async (
+    req: Request
+    , res: Response<ResourceError>
+    , next: NextFunction
+): Promise<Response<ResourceError> | void> => {
 
-    // 3. If no valid session, reject the request
-    if (!session) {
-        return next(new UnauthorizedError({
-            message: 'No valid session',
-            clientMessage: 'Please log in',
-        }));
+    // Create a new Headers object for Web API compatibility
+    const headers = new Headers();
+
+    // Convert Express headers to Web API Headers format
+    Object.entries( req.headers ).forEach( ( [ key, value ] ) => {
+        if ( typeof value === 'string' ) {
+            // Handle single header values
+            headers.append( key, value );
+        } else if ( Array.isArray( value ) ) {
+            // Handle multiple header values
+            value.forEach( ( v ) => headers.append( key, v ) );
+        }
+    } );
+
+    // Get session from BetterAuth API
+    const session = await auth.api.getSession( { headers } );
+
+    // Check if session contains a valid user ID
+    if ( !session?.user?.id ) {
+        const unauthorizedError = new UnauthorizedError();
+        return res
+            .status( unauthorizedError.statusCode )
+            .json( unauthorizedError );
     }
 
-    // 4. If valid, attach the session to res.locals for use by controllers
+    // Add session to response locals for downstream use
     res.locals.session = session;
-    next();
+
+    // Continue to next middleware
+    return next();
 };
 ```
 
@@ -1244,7 +1768,7 @@ Graphs are everywhere in the real world:
 
 ```
     A → B
-    ↓     ↓
+    ↓   ↓
     C → D
 ```
 
@@ -1252,7 +1776,7 @@ Graphs are everywhere in the real world:
 
 ```
     A → B
-    ↑     ↓
+    ↑   ↓
     C ← D
 ```
 
@@ -1262,7 +1786,7 @@ In this graph, A → B → D → C → A is a cycle. You can follow the edges an
 
 ```
     A → B
-    ↓     ↓
+    ↓   ↓
     C → D
 ```
 
@@ -1368,20 +1892,11 @@ Edges: A→C, A→D, B→D, C→E, D→E
 ```
 
 ```
-    A → C → E
-    │       ↑
-    ↓       │
-    B → D ──┘
-```
-
-Wait, let me correct the diagram. B has no dependency on A in this example:
-
-```
-    A ──→ C ──→ E
-    │           ↑
-    └──→ D ──→─┘
-          ↑
-    B ────┘
+    A ─→ C ─→ E
+    │         ↑
+    └──→ D ───┘
+         ↑
+    B ───┘
 ```
 
 **Step 1: Calculate in-degrees**
@@ -1624,6 +2139,17 @@ function hasCycle(graph):
     return false
 ```
 
+**Algorithm characteristics:**
+
+This is a **recursive** solution — the `visit` function calls itself, using the call stack to implicitly track the current traversal path. You could convert it to an iterative solution using an explicit stack, but recursion makes the logic clearer.
+
+The algorithm uses **both pre-order and post-order** positions:
+
+- **Pre-order** (before recursing into children): We mark the node gray. This must happen *before* exploring descendants so we can detect back-edges.
+- **Post-order** (after all children return): We mark the node black. This happens only after the entire subtree has been verified cycle-free.
+
+The gray set represents "nodes on the current path from root to here" — essentially a snapshot of the call stack. When you return from a recursive call (post-order), you remove the node from the gray set because you're no longer "inside" that node's exploration.
+
 ### 4.4.2 The Actual Implementation
 
 ```ts
@@ -1715,11 +2241,32 @@ visit(A):
 
 ### 4.4.4 Why DFS and Not BFS for Cycle Detection?
 
-BFS (Breadth-First Search) can also detect cycles (via Kahn's algorithm — if not all nodes are visited, a cycle exists). However, DFS is more natural for cycle detection because:
+BFS (Breadth-First Search) can also detect cycles (via Kahn's algorithm — if not all nodes are visited, a cycle exists). However, DFS is more natural for cycle detection because of how it explores the graph.
 
-1. DFS directly finds back-edges (edges that point to a **gray** node in the current recursion stack), which is exactly what a cycle looks like
-2. DFS can identify *which* nodes are in the cycle (the gray set at the time of detection)
-3. DFS uses O(V) space on the call stack, while BFS uses O(V) space in the queue — similar, but DFS's recursive structure is easier to reason about for path-finding
+**DFS maintains "the current path" naturally.**
+
+When DFS explores A → B → C, the call stack looks like:
+
+```
+visit(A) is running
+  └─ visit(B) is running
+       └─ visit(C) is running
+```
+
+The gray set `{A, B, C}` represents exactly this: the nodes on the current path from the starting point to where we are now. If C has a dependency back to A, we immediately see that A is gray — meaning "I'm still on my way down from A, and now I'm trying to go back to A." That's a cycle.
+
+**BFS does not track "the current path."**
+
+BFS explores level-by-level using a queue. When processing node C, BFS has no direct knowledge of whether A is an ancestor of C or just another node at a different level. BFS can detect *that* a cycle exists (via Kahn's: if some nodes never reach in-degree 0, they're in a cycle), but it cannot easily tell you *which* edge caused the cycle or *which* nodes are involved.
+
+**Summary:**
+
+| Property | DFS | BFS (Kahn's) |
+|----------|-----|--------------|
+| Detects cycles exist | Yes | Yes |
+| Identifies the cycle path | Yes (gray set) | No |
+| Finds the specific back-edge | Yes | No |
+| Space complexity | O(V) call stack | O(V) queue |
 
 ## 4.5 DAG Validation: The Full Picture
 
@@ -1938,7 +2485,7 @@ graph LR
     D -->|"No"| G[Return Errors]
 ```
 
-**Phase 1 — Clone**: Create a deep copy of the current DAG. This ensures that if anything goes wrong during modification, the original DAG is untouched. This is the **immutability principle** discussed in Chapter 2.
+**Phase 1 — Clone**: Create a deep copy of the current DAG. This ensures that if anything goes wrong during modification, the original DAG is untouched. This is the **immutability principle** discussed in Chapter 2, Section 2.5 ("Immutable DAG Modification").
 
 ```ts
 // Deep clone to avoid mutating the original
@@ -1972,7 +2519,9 @@ Step "Analyze" depends on step "Research," but Research does not have a permanen
 
 ### 5.4.2 The Solution
 
-The DAG modifier maintains a **temp ID map** — a mapping from temporary IDs to permanent IDs:
+The DAG modifier maintains a **temp ID map** — a mapping from temporary IDs to permanent IDs.
+
+**Pseudocode (simplified):**
 
 ```pseudocode
 function applyToolCalls(dag, toolCalls):
@@ -1988,10 +2537,10 @@ function applyToolCalls(dag, toolCalls):
 
             // Resolve any temp IDs in the dependsOn list
             resolvedDependsOn = toolCall.args.dependsOn.map(id =>
-                tempIdMap[id] ?? id  // Use permanent ID if available, else keep as-is
+                tempIdMap[id] ?? id  // Use permanent ID if available
             )
 
-            // Add the step with its permanent ID and resolved dependencies
+            // Add the step with its permanent ID
             dag.steps.push({
                 id: permanentId,
                 name: toolCall.args.name,
@@ -2001,13 +2550,65 @@ function applyToolCalls(dag, toolCalls):
             })
 
         else if toolCall.name == 'update_step':
-            // Resolve the step ID (might be a temp ID)
             resolvedStepId = tempIdMap[toolCall.args.stepId] ?? toolCall.args.stepId
             // ... apply updates ...
 
-        // ... other tool call types ...
-
     return dag
+```
+
+**Actual implementation** (`backend/utils/workflowDags/workflowDags.modifier.ts`):
+
+```ts
+export const applyToolCallsToDag = (
+    params: {
+        dag: WorkflowDAG;
+        toolCalls: LLMToolCall[];
+        availableTools: WorkflowToolRef[];
+        idGenerator: () => string;
+    }
+): Either<WorkflowDagModificationFailed, WorkflowDAG> => {
+
+    // clone the dag to avoid mutating original
+    const updatedDag = cloneDag( params.dag );
+
+    // map temporary ids to real ids
+    const tempIdMap = new Map<string, string>();
+
+    for ( const toolCall of params.toolCalls ) {
+        if ( toolCall.name === 'add_step' ) {
+            const generatedId = params.idGenerator();
+
+            if ( toolCall.args.tempId ) {
+                tempIdMap.set( toolCall.args.tempId, generatedId );
+            }
+
+            let dependsOn = toolCall.args.dependsOn?.map(
+                id => tempIdMap.get( id ) ?? id
+            ) ?? [];
+
+            // ... position helpers (start/end/after) ...
+
+            updatedDag.steps.push( {
+                id: generatedId
+                , name: toolCall.args.name
+                , instruction: toolCall.args.instruction
+                , tools: resolveToolRefs( toolCall.args.tools, params.availableTools )
+                , dependsOn
+            } );
+        }
+
+        if ( toolCall.name === 'update_step' ) {
+            const resolvedStepId = tempIdMap.get( toolCall.args.stepId ) ?? toolCall.args.stepId;
+            const step = updatedDag.steps.find( s => s.id === resolvedStepId );
+            if ( !step ) return error( new WorkflowDagModificationFailed( `Step not found` ) );
+            // ... apply field updates ...
+        }
+
+        // ... delete_step handling ...
+    }
+
+    return success( updatedDag );
+};
 ```
 
 ### 5.4.3 Visual Example
@@ -2039,101 +2640,146 @@ After:
 
 ## 5.5 Rewire Strategies on Delete
 
-When a step is deleted, its dependents need to be "rewired" to maintain a valid DAG. HardWire supports two strategies.
+When a step is deleted, its dependents need to be "rewired" to maintain a valid DAG. HardWire supports two strategies — auto and manual rewiring.
 
 ### 5.5.1 Auto Rewire
 
 The deleted step's dependents inherit the deleted step's own dependencies. This is like removing a link from a chain and connecting the remaining pieces.
 
-**Before deleting step B (auto rewire):**
+**Simple example — deleting step B:**
 
-```
-    A → B → C → D
-```
+*Before:*
 
-B depends on A. C depends on B. When B is deleted with auto rewire, C inherits B's dependencies (A):
-
-**After:**
-
-```
-    A → C → D
+```mermaid
+graph LR
+    A --> B --> C --> D
 ```
 
-More complex example:
+*After:*
 
-```
-    A → B → D
-    C → B → E
-```
-
-B depends on A and C. D depends on B. E depends on B. When B is deleted with auto rewire, D and E both inherit B's dependencies (A and C):
-
-**After:**
-
-```
-    A → D      A → E
-    C → D      C → E
+```mermaid
+graph LR
+    A --> C --> D
 ```
 
-Or, drawn more compactly:
+B depends on A. C depends on B. D depends on C. When B is deleted with auto rewire, C inherits B's dependencies (A).
 
+**More complex example — deleting step B when it has multiple parents and children:**
+
+*Before:*
+
+```mermaid
+graph LR
+    A --> B
+    C --> B
+    B --> D
+    B --> E
 ```
-    A ──→ D
-    │     ↑
-    │     │
-    C ──→ D
-    │
-    └──→ E
-    A ──→ E
+
+*After:*
+
+```mermaid
+graph LR
+    A --> D
+    A --> E
+    C --> D
+    C --> E
 ```
+
+B depends on A and C. D depends on B. E depends on B. When B is deleted with auto rewire, D and E both inherit B's dependencies (A and C). Both D and E now depend on both A and C.
 
 ### 5.5.2 Manual Rewire
 
-The deleted step's dependents are rewired to a specific step chosen by the caller.
+The deleted step's dependents are rewired to a specific step chosen by the caller. This is useful when auto rewire would produce an undesirable topology.
 
-**Before deleting step B (manual rewire to step A):**
+**Example — deleting step B (Draft) with manual rewire to E (Research):**
 
+*Before:*
+
+```mermaid
+graph LR
+    A[A: Start] --> B[B: Draft]
+    A --> E[E: Research]
+    B --> C[C: Edit]
+    B --> D[D: Format]
 ```
-    A → B → C
-            ↓
-            D
+
+With auto rewire, deleting B would connect C and D back to A — skipping the research step entirely. But logically, the Edit and Format steps should use the Research output, not go back to Start.
+
+*After auto rewire (undesirable):*
+
+```mermaid
+graph LR
+    A[A: Start] --> C[C: Edit]
+    A --> D[D: Format]
+    A --> E[E: Research]
 ```
 
-C and D depend on B. When B is deleted with manual rewire to A, C and D now depend on A:
+*After manual rewire to E (desired):*
 
-**After:**
+```mermaid
+graph LR
+    A[A: Start] --> E[E: Research]
+    E --> C[C: Edit]
+    E --> D[D: Format]
+```
 
-```
-    A → C
-    A → D
-```
+Manual rewire lets the caller specify that C and D should depend on E (the research output) rather than inheriting B's original dependency on A.
 
 ### 5.5.3 Implementation in Code
 
-Rewiring is implemented in `applyToolCallsToDag` inside `backend/lib/workflowDags/dagModifier.ts`. There is **no automatic detection** of “undesirable topology” — that choice is made by the caller via the `rewireStrategy` and `rewireToStepId` fields in the `delete_step` tool call.
+Rewiring is implemented in `applyToolCallsToDag` inside `backend/utils/workflowDags/workflowDags.modifier.ts`. There is **no automatic detection** of “undesirable topology” — the **LLM decides** which strategy to use when it generates the `delete_step` tool call. The LLM uses its understanding of the workflow's semantic meaning (e.g., "Edit should follow Research, not Start") to choose `rewireStrategy: 'manual'` and specify `rewireToStepId`. The backend simply executes whatever the LLM requested.
 
 ```ts
-// backend/lib/workflowDags/dagModifier.ts
+// backend/utils/workflowDags/workflowDags.modifier.ts
 if ( toolCall.name === 'delete_step' ) {
-    const resolvedStepId = resolveStepId( toolCall.args.stepId, tempIdMap );
-    const deleteIndex = updatedDag.steps.findIndex( step => step.id === resolvedStepId );
-    if ( deleteIndex < 0 ) return error( new WorkflowDagModificationFailed( `Step not found: ${ resolvedStepId }.` ) );
 
+    // 1. Resolve the step ID (might be a temp ID from an earlier add_step in the same batch)
+    const resolvedStepId = resolveStepId( toolCall.args.stepId, tempIdMap );
+
+    // 2. Find the step's position in the steps array
+    //    (DAG is stored as { steps: WorkflowStep[] }, so we search by ID)
+    const deleteIndex = updatedDag.steps.findIndex( step => step.id === resolvedStepId );
+
+    // 3. If step doesn't exist, return an error (don't throw — Either monad pattern)
+    if ( deleteIndex < 0 ) {
+        return error( new WorkflowDagModificationFailed( `Step not found: ${ resolvedStepId }.` ) );
+    }
+
+    // 4. Capture the deleted step's dependencies BEFORE removing it
+    //    (needed for auto rewire — dependents will inherit these)
     const deletedStep = updatedDag.steps[ deleteIndex ];
     const deletedDependsOn = deletedStep.dependsOn ?? [];
+
+    // 5. Remove the step from the steps array
+    //    splice(index, 1) removes 1 element at that index, mutating in place
     updatedDag.steps.splice( deleteIndex, 1 );
 
+    // 6. Update dependencies in all remaining steps that depended on the deleted step
     for ( const step of updatedDag.steps ) {
         const dependsOn = step.dependsOn ?? [];
+
+        // 7. Check if this step depended on the deleted step
         if ( dependsOn.includes( resolvedStepId ) ) {
+
+            // 8. Remove the deleted step from this step's dependencies
             const remainingDependsOn = dependsOn.filter( dep => dep !== resolvedStepId );
+
+            // 9. MANUAL REWIRE: Add the caller-specified step as a new dependency
             if ( toolCall.args.rewireStrategy === 'manual' && toolCall.args.rewireToStepId ) {
                 remainingDependsOn.push( resolveStepId( toolCall.args.rewireToStepId, tempIdMap ) );
-            } else {
+            }
+            // 10. AUTO REWIRE (default): Inherit the deleted step's dependencies
+            else {
                 deletedDependsOn.forEach( dep => {
-                    if ( !remainingDependsOn.includes( dep ) ) remainingDependsOn.push( dep );
+                    // Avoid duplicates — only add if not already present
+                    if ( !remainingDependsOn.includes( dep ) ) {
+                        remainingDependsOn.push( dep );
+                    }
                 } );
             }
+
+            // 11. Update the step's dependencies with the rewired list
             step.dependsOn = remainingDependsOn;
         }
     }
@@ -2148,27 +2794,62 @@ Call chain for workflow edits: `backend/app/workflowChatMessages/workflowChatMes
 
 **Manual rewire** is needed for edge cases where auto rewire would create an undesirable topology. For example, suppose step **B** is a "Draft" step and step **E** is a "Research" branch. Steps **C** and **D** depend on B only because B produced the draft. If B is deleted, C and D should now depend on E (the research output), not on A. Auto rewire would incorrectly connect C and D to A, skipping research entirely.
 
+*Before deleting B:*
+
 ```mermaid
 graph TD
-    subgraph "Before Delete"
-        A1[A] --> B1["B (Draft)"]
-        B1 --> C1["C (Edit)"]
-        B1 --> D1["D (Format)"]
-        A1 --> E1["E (Research)"]
-    end
-
-    subgraph "After Auto Rewire (delete B)"
-        A2[A] --> C2["C (Edit)"]
-        A2 --> D2["D (Format)"]
-        A2 --> E2["E (Research)"]
-    end
-
-    subgraph "After Manual Rewire (delete B, rewire to E)"
-        A3[A] --> E3["E (Research)"]
-        E3 --> C3["C (Edit)"]
-        E3 --> D3["D (Format)"]
-    end
+    A[A] --> B["B (Draft)"]
+    B --> C["C (Edit)"]
+    B --> D["D (Format)"]
+    A --> E["E (Research)"]
 ```
+
+*After auto rewire (delete B) — undesirable:*
+
+```mermaid
+graph TD
+    A[A] --> C["C (Edit)"]
+    A --> D["D (Format)"]
+    A --> E["E (Research)"]
+```
+
+*After manual rewire (delete B, rewire to E) — desired:*
+
+```mermaid
+graph TD
+    A[A] --> E["E (Research)"]
+    E --> C["C (Edit)"]
+    E --> D["D (Format)"]
+```
+
+### 5.5.5 How Does the LLM Know Which Strategy to Use?
+
+The `delete_step` tool definition explicitly documents both the behavior and when to use each strategy:
+
+```ts
+// backend/lib/llm/llm.workflowToolDefs.ts
+delete_step: tool( {
+    description: 'Delete a workflow step from the DAG. rewireStrategy controls how '
+        + 'dependent steps are reconnected: "auto" (default) makes dependents inherit '
+        + 'the deleted step\'s dependencies — use this when the deleted step was just '
+        + 'a pass-through. "manual" rewires dependents to a specific step via '
+        + 'rewireToStepId — use this when auto would skip an important step (e.g., '
+        + 'deleting a Draft step should rewire Edit/Format to depend on Research, '
+        + 'not back to Start).'
+    , inputSchema: {
+        stepId: { type: 'string' },
+        rewireStrategy: { type: 'string', enum: [ 'auto', 'manual' ] },
+        rewireToStepId: { type: 'string' }
+    }
+} )
+```
+
+The description tells the LLM:
+1. **What** each strategy does (inherit dependencies vs. rewire to specific step)
+2. **When** to use each (pass-through deletion vs. avoiding skipped steps)
+3. **A concrete example** (Draft/Research/Edit scenario)
+
+This enables the LLM to make an informed decision based on the workflow's semantic structure.
 
 ## 5.6 Workflow Execution Engine
 
@@ -2176,87 +2857,196 @@ When a workflow run starts, HardWire loads the latest workflow version, validate
 
 ### 5.6.1 The Execution Loop
 
+**Pseudocode (simplified):**
+
 ```pseudocode
 function runWorkflow(chat, workflow, userMessage):
-    // Load and sort the DAG
     dag = workflow.dag
     sortedSteps = topologicalSort(dag.steps)
+    outputs = {}  // Maps stepId -> output text
 
-    // Accumulated context from all completed steps
-    context = [userMessage]
-
-    // Execute each step in topological order
     for each step in sortedSteps:
-        // Build the prompt for this step
-        prompt = buildPrompt(step.instruction, context, step.tools)
+        // Collect outputs from upstream dependencies
+        upstreamOutputs = step.dependsOn.map(depId => outputs[depId])
 
-        // Call the LLM
-        response = streamLLMResponse(prompt)
+        // Build prompt with upstream context
+        prompt = buildPrompt(step.instruction, upstreamOutputs, step.tools)
 
-        // If the step has tools, the LLM might emit tool calls
-        while response.hasToolCalls():
-            for each toolCall in response.toolCalls:
-                toolResult = executeTool(toolCall)
-                response = continueLLMWithToolResult(prompt, toolResult)
+        // Call LLM with tools
+        response = generateText(prompt, tools)
 
-        // Evaluate whether the step succeeded
-        stepResult = evaluateStepSuccess(step, response)
+        // Store output for downstream steps
+        outputs[step.id] = response.text
 
-        // Add the step's output to the accumulated context
-        context.append({
-            stepName: step.name,
-            output: response.text,
-            toolResults: response.toolResults,
-            success: stepResult.success,
-        })
+        // Evaluate success and save to database
+        evaluation = evaluateStepSuccess(response, toolResults)
+        saveStepRun(step, response, evaluation)
 
-        // Save the step result as a message in the chat
-        saveStepMessage(chat, step, response)
-
-    return context
+    return outputs
 ```
 
-Implementation reference: `runWorkflow` in `backend/lib/workflowRunner.ts` (see its usage in `backend/app/messages/messages.ctrl.ts` when a workflow is selected).
+**Actual implementation** (`backend/lib/workflowRunner/workflowRunner.service.ts`):
+
+The full `runWorkflow` function is ~300 lines. Below is the core execution loop (condensed):
+
+```ts
+// backend/lib/workflowRunner/workflowRunner.service.ts (execution loop excerpt)
+export const runWorkflow = async ( params: { ... } ): Promise<Either<ResourceError, WorkflowRunResult>> => {
+
+    // 1. Load and validate the workflow DAG
+    const workflow = await getWorkflowById( params.workflowId );
+    const dag = workflow.latestVersion.dag as WorkflowDAG;
+    const validationResult = validateWorkflowDag( { dag } );
+    if ( validationResult.isError() ) return error( validationResult.value );
+
+    // 2. Create workflow run record in database
+    const workflowRunId = await createWorkflowRun( { ... } );
+
+    // 3. Sort steps topologically so dependencies execute first
+    const orderedSteps = sortWorkflowDagSteps( dag.steps ?? [] );
+
+    // 4. Load tool definitions if any steps need tools
+    let toolLookup = new Map<string, MCPTool>();
+    if ( stepsNeedTools ) {
+        toolLookup = buildToolRecordLookup( await getCachedTools() );
+    }
+
+    // 5. Track outputs for passing to downstream steps
+    const outputs: Record<string, string> = {};
+
+    // 6. Execute each step in topological order
+    for ( const step of orderedSteps ) {
+        // 6a. Collect outputs from upstream dependencies as context
+        const upstreamOutputs = ( step.dependsOn ?? [] )
+            .map( depId => `Output from ${ depId }:\n${ outputs[ depId ] }` )
+            .filter( entry => entry.trim().length > 0 );
+
+        // 6b. Build runtime tool wrappers for this step
+        const toolLogs: WorkflowToolLogEntry[] = [];
+        const runtimeTools = buildRuntimeTools( step.tools ?? [], toolLookup, toolLogs );
+
+        // 6c. Build the prompt with upstream context and tool info
+        const prompt = buildWorkflowStepExecutionPrompt( {
+            userMessage: params.userMessage
+            , step
+            , upstreamOutputs
+            , toolNames: runtimeTools.toolNames
+        } );
+
+        // 6d. Call the LLM (Vercel AI SDK handles tool call loops internally)
+        const result = await generateText( {
+            model: getModelProvider( params.modelId )
+            , prompt
+            , tools: runtimeTools.tools
+            , toolChoice: 'auto'
+        } );
+
+        // 6e. Store output for downstream steps
+        outputs[ step.id ] = result.text.trim();
+
+        // 6f. Evaluate step success and save to database
+        const toolSummary = summarizeToolExecution( toolLogs );
+        const evaluation = evaluateStepSuccess( output, toolSummary, hasDownstreamSteps );
+        await updateStepRun( { stepId: step.id, status: evaluation.success ? 'PASSED' : 'FAILED', ... } );
+    }
+
+    return success( { workflowRunId, content: outputs[ lastStepId ] } );
+};
+```
+
+Key implementation details:
+- **Outputs map**: Each step's output is stored in `outputs[step.id]` so downstream steps can access it via `step.dependsOn`
+- **Tool loops**: The Vercel AI SDK's `generateText` handles tool call/response loops internally
+- **Fail-safe tools**: Tool failures return error objects rather than throwing, allowing the LLM to continue
+- **Step persistence**: Each step's status, output, and tool logs are saved to the database for debugging
 
 ### 5.6.2 Prompt Construction
 
 Each step's prompt is constructed from multiple sources:
 
-1. **System prompt**: General instructions for the LLM (role, constraints, formatting)
-2. **Step instruction**: The specific instruction for this step (from the WorkflowStep's `instruction` field)
-3. **Accumulated context**: The outputs from all previously completed steps
-4. **Tool definitions**: If the step has tools, their schemas are included so the LLM can emit tool calls
-5. **User's original message**: The message that initiated the workflow execution
+1. **User's original message**: The message that initiated the workflow execution
+2. **Upstream outputs**: The outputs from this step's **direct dependencies** (not all previous steps)
+3. **Tool names**: List of tools available for this step
+4. **Step instruction**: The specific instruction for this step
 
-The prompt is structured so the LLM understands its role within a larger workflow. It knows which step it is executing, what has been done before, and what tools are available.
+**Key insight**: A step only receives outputs from its `dependsOn` steps, not from all previously executed steps. This respects the DAG structure — if step C depends on A but not B, C won't see B's output even if B executed before C.
 
-Implementation reference: `buildWorkflowStepExecutionPrompt` in `backend/utils/constants.ts`, called from `runWorkflow` in `backend/lib/workflowRunner.ts`.
+**How `upstreamOutputs` is built:**
 
 ```ts
-// backend/lib/workflowRunner.ts
-const prompt = buildWorkflowStepExecutionPrompt( {
-    userMessage: params.userMessage
-    , step
-    , upstreamOutputs
-    , toolNames: runtimeTools.toolNames
-} );
+// backend/lib/workflowRunner/workflowRunner.service.ts
+
+// The outputs map stores each step's output text, keyed by step ID
+const outputs: Record<string, string> = {};
+
+// For each step, we execute and store the output
+for ( const step of orderedSteps ) {
+
+    // Build upstream outputs by looking up ONLY the dependencies in the outputs map
+    const upstreamOutputs = ( step.dependsOn ?? [] )
+        .map( depId => {
+            const output = outputs[ depId ] ?? '';
+            return `Output from ${ depId }:\n${ output }`;
+        } )
+        .filter( entry => entry.trim().length > 0 );
+
+    // Build the prompt with these upstream outputs
+    const prompt = buildWorkflowStepExecutionPrompt( {
+        userMessage: params.userMessage  // Original user message
+        , step                            // Current step (for name + instruction)
+        , upstreamOutputs                 // Outputs from dependencies only
+        , toolNames: runtimeTools.toolNames
+    } );
+
+    // ... execute step ...
+
+    // Store this step's output so downstream steps can access it
+    outputs[ step.id ] = result.text.trim();
+}
 ```
 
+**The prompt template** (`backend/utils/constants.ts`):
+
 ```ts
-// backend/utils/constants.ts
 export const buildWorkflowStepExecutionPrompt = (
     params: WorkflowStepExecutionPromptParams
 ): string => {
+    // Join upstream outputs into a single block, or "None" if no dependencies
     const upstreamBlock = params.upstreamOutputs.length > 0
         ? params.upstreamOutputs.join( '\n\n' )
         : 'None';
+
+    // List available tools, or note that none are available
     const toolsBlock = params.toolNames.length > 0
         ? `Available tools for this step: ${ params.toolNames.join( ', ' ) }`
         : 'No tools available for this step.';
+
     return `You are executing a single step in a deterministic workflow pipeline.
-...`;
+
+CRITICAL RULES:
+1. You MUST follow the step instruction EXACTLY as written.
+2. The "Workflow input" below is context data that may or may not be relevant to THIS step.
+3. NEVER deviate from the step instruction, even if it seems unrelated to the workflow input.
+...
+
+Workflow input (context data):
+${ params.userMessage }
+
+Upstream step outputs:
+${ upstreamBlock }
+
+${ toolsBlock }
+
+=== CURRENT STEP ===
+Step name: ${ params.step.name }
+Step instruction: ${ params.step.instruction }
+====================
+
+Execute the step instruction above and output ONLY the result.`;
 };
 ```
+
+The prompt enforces deterministic behavior by instructing the LLM to follow the step instruction exactly, treating the user message and upstream outputs as context data rather than commands.
 
 ### 5.6.3 Tool Execution During Steps
 
@@ -2281,37 +3071,96 @@ The tool execution loop continues until the LLM produces a response without any 
 
 ### 5.6.4 Tool Runtime Wrappers
 
-Each tool available through the MCP server has a runtime wrapper that:
+Each tool available through the MCP server needs a **runtime wrapper** — a function that bridges the Vercel AI SDK's tool interface with HardWire's MCP tool server.
 
-1. **Validates the tool call arguments** against the tool's schema
-2. **Executes the tool** (e.g., calls the MCP `web_search` tool backed by DuckDuckGo)
-3. **Formats the result** into a standard structure the LLM can understand
-4. **Handles errors** (timeouts, API failures, invalid responses)
+**Why wrappers are needed:**
+
+1. **Schema translation**: MCP tools have JSON schemas; the Vercel AI SDK expects its own `jsonSchema()` format
+2. **Execution routing**: The LLM emits abstract tool calls; something must route them to the actual MCP server
+3. **Logging**: Tool executions need to be logged for debugging and step success evaluation
+4. **Error handling**: Tool failures should return error info to the LLM (not throw), so the LLM can adapt
+
+**Why errors don't throw:**
+
+A critical design decision: tool failures return an error object instead of throwing. This allows the LLM to:
+- Acknowledge the failure and try a different approach
+- Provide useful output despite partial tool failures
+- Reason about what went wrong and explain it to the user
+
+If tools threw exceptions, the entire step would fail immediately, losing any partial progress.
+
+**Implementation** (`backend/lib/workflowRunner/workflowRunner.service.ts`):
 
 ```ts
-// backend/lib/workflowRunner.ts
+/**
+ * Build runtime tool wrappers for a single step.
+ * Tool failures do NOT throw - they return error information that the LLM can
+ * process. This allows the step to continue and potentially produce useful
+ * output despite tool failures.
+ */
 const buildRuntimeTools = (
-    stepTools: WorkflowToolRef[]
-    , toolLookup: Map<string, MCPTool>
-    , toolLogs: WorkflowToolLogEntry[]
+    stepTools: WorkflowToolRef[]       // Tools assigned to this step (from the DAG)
+    , toolLookup: Map<string, MCPTool> // Cached MCP tool definitions (id::version -> tool)
+    , toolLogs: WorkflowToolLogEntry[] // Array to append execution logs into (mutated)
 ) => {
+
+    // Output: tools object for Vercel AI SDK, plus list of tool names for prompt
     const tools: Record<string, ReturnType<typeof tool<any, any>>> = {};
     const toolNames: string[] = [];
 
+    // Iterate over each tool reference assigned to this step
     stepTools.forEach( toolRef => {
-        const toolRecord = toolLookup.get( buildToolKey( toolRef ) ) ?? toolLookup.get( `${ toolRef.id }::` );
+
+        // 1. Look up the full tool definition from the cache
+        //    Try exact match first (id::version), then fallback to id-only (id::)
+        const lookupKey = buildToolKey( toolRef );
+        const toolRecord = toolLookup.get( lookupKey ) ?? toolLookup.get( `${ toolRef.id }::` );
+
+        // 2. Skip if tool not found (will be caught later as missing tool error)
         if ( !toolRecord ) return;
 
-        tools[ toolRecord.name ] = tool( {
-            inputSchema: jsonSchema( toolRecord.schema as Record<string, unknown> )
+        // 3. Track tool name for prompt construction
+        const toolName = toolRecord.name;
+        toolNames.push( toolName );
+
+        // 4. Create the Vercel AI SDK tool wrapper
+        tools[ toolName ] = tool( {
+            description: toolRecord.description ?? toolName
+            , inputSchema: jsonSchema( toolRecord.schema as Record<string, unknown> )
             , outputSchema: jsonSchema( { type: 'object', additionalProperties: true } )
+
+            // 5. The execute function is called when the LLM emits a tool call
             , execute: async ( input: Record<string, unknown> ) => {
-                const runResult = await runMcpTool( { id: toolRecord.id, version: toolRecord.version, input } );
+                const startedAt = new Date().toISOString();
+
+                // 6. Create a log entry (initially RUNNING)
+                const logEntry: WorkflowToolLogEntry = {
+                    toolName, input, status: 'RUNNING', startedAt
+                };
+                toolLogs.push( logEntry );
+
+                // 7. Call the MCP server to actually execute the tool
+                const runResult = await runMcpTool( {
+                    id: toolRecord.id
+                    , version: toolRecord.version
+                    , input
+                } );
+
+                // 8. Handle failure: update log and RETURN error (don't throw!)
                 if ( runResult.isError() ) {
-                    toolLogs.push( { toolName: toolRecord.name, input, status: 'FAILED', startedAt: new Date().toISOString(), completedAt: new Date().toISOString() } );
-                    return { error: true, message: runResult.value.message ?? 'Tool execution failed.' };
+                    logEntry.status = 'FAILED';
+                    logEntry.error = runResult.value.message ?? 'Tool execution failed.';
+                    logEntry.completedAt = new Date().toISOString();
+
+                    // Return error info so the LLM can see what went wrong
+                    return { error: true, message: logEntry.error, toolName };
                 }
-                toolLogs.push( { toolName: toolRecord.name, input, status: 'PASSED', startedAt: new Date().toISOString(), completedAt: new Date().toISOString(), output: runResult.value.output } );
+
+                // 9. Handle success: update log and return the output
+                logEntry.status = 'PASSED';
+                logEntry.output = runResult.value.output;
+                logEntry.completedAt = new Date().toISOString();
+
                 return runResult.value.output;
             }
         } );
@@ -2321,78 +3170,274 @@ const buildRuntimeTools = (
 };
 ```
 
+**How it fits together:**
+
+```mermaid
+sequenceDiagram
+    participant LLM as LLM Provider
+    participant SDK as Vercel AI SDK
+    participant Wrapper as Tool Wrapper
+    participant MCP as MCP Server
+
+    LLM->>SDK: tool_call(web_search, {query: "..."})
+    SDK->>Wrapper: execute({query: "..."})
+    Wrapper->>Wrapper: Create log entry (RUNNING)
+    Wrapper->>MCP: runMcpTool({id, version, input})
+    MCP-->>Wrapper: Result or Error
+    alt Success
+        Wrapper->>Wrapper: Update log (PASSED)
+        Wrapper-->>SDK: Return output
+    else Failure
+        Wrapper->>Wrapper: Update log (FAILED)
+        Wrapper-->>SDK: Return {error: true, message: "..."}
+    end
+    SDK-->>LLM: Tool result
+```
+
 ### 5.6.5 Step Success Evaluation
 
-After a step completes, the engine evaluates whether it succeeded. This evaluation considers:
+After a step completes, the engine evaluates whether it succeeded. But what does "success" mean for a workflow step?
 
-1. **LLM response validity**: Did the LLM produce a non-empty response?
-2. **Tool call results**: Did all tool calls succeed? Were the results meaningful?
-3. **Content quality signals**: Does the response address the step's instruction?
+**The core question**: Did the step produce **useful output for downstream steps**?
 
-The success evaluation result is included in the context passed to subsequent steps, so later steps know whether earlier steps succeeded or failed and can adjust their behavior accordingly.
+This is a nuanced evaluation because:
+- **Tool failures don't necessarily mean step failure** — the LLM might reason about the failure and still produce useful analysis
+- **Short output might be valid** — but only if no downstream steps depend on it
+- **Error messages aren't useful output** — if the LLM just apologizes, that's not data downstream steps can use
 
-Implementation reference: `evaluateStepSuccess` and `summarizeToolExecution` in `backend/lib/workflowRunner.ts`.
+**Why not just check if tools passed?**
+
+Consider a research step that calls `web_search`. If the search fails, the LLM might respond: "The web search failed, but based on my training data, here's what I know about the topic..." That's still useful! The step should succeed if the output is meaningful, regardless of tool status.
+
+Conversely, if all tools pass but the LLM responds "I found some results but I'm not sure how to interpret them," that's not useful for downstream steps.
+
+**Implementation** (`backend/lib/workflowRunner/workflowRunner.service.ts`):
+
+First, we summarize tool execution results:
 
 ```ts
+/**
+ * Summarize tool execution results from logs.
+ * This gives us counts of passed/failed tools without needing to re-examine each log.
+ */
+const summarizeToolExecution = ( toolLogs: WorkflowToolLogEntry[] ): ToolExecutionSummary => {
+    const passed = toolLogs.filter( log => log.status === 'PASSED' ).length;
+    const failed = toolLogs.filter( log => log.status === 'FAILED' ).length;
+    const failedTools = toolLogs
+        .filter( log => log.status === 'FAILED' )
+        .map( log => log.toolName );
+
+    return { total: toolLogs.length, passed, failed, failedTools };
+};
+```
+
+Then, we evaluate step success based on output quality:
+
+```ts
+/**
+ * Minimum output length to consider meaningful.
+ * Short outputs like "Error" or "OK" don't provide data for downstream steps.
+ */
 const MIN_MEANINGFUL_OUTPUT_LENGTH = 20;
+
+/**
+ * Patterns that indicate the output is an error message, not useful data.
+ * These are checked only if the step has downstream dependencies.
+ */
 const ERROR_OUTPUT_PATTERNS = [
-    /^(error|failed|unable to|cannot|could not|i('m| am) (sorry|unable))/i,
-    /tool (call|execution) failed/i
+    /^(error|failed|unable to|cannot|could not|i('m| am) (sorry|unable))/i
+    , /^(unfortunately|i apologize)/i
+    , /tool (call|execution) failed/i
+    , /no (data|results|information|output) (available|found|returned)/i
 ];
 
+/**
+ * Evaluate whether a step produced sufficient output for downstream steps.
+ * A step fails if it cannot provide meaningful data to the next step,
+ * not just because tools failed.
+ */
 const evaluateStepSuccess = (
     output: string
     , toolSummary: ToolExecutionSummary
-    , hasDownstreamSteps: boolean
+    , hasDownstreamSteps: boolean  // Is this step's output needed by other steps?
 ): StepSuccessEvaluation => {
+
     const trimmedOutput = output.trim();
+
+    // 1. Empty output is always a failure
     if ( trimmedOutput.length === 0 ) {
         return { success: false, reason: 'Step produced no output.', toolSummary };
     }
 
-    if ( hasDownstreamSteps && trimmedOutput.length < MIN_MEANINGFUL_OUTPUT_LENGTH ) {
-        return { success: false, reason: 'Step output too short to feed downstream.', toolSummary };
-    }
+    // 2. If downstream steps depend on this output, be stricter
+    if ( hasDownstreamSteps ) {
 
-    for ( const pattern of ERROR_OUTPUT_PATTERNS ) {
-        if ( pattern.test( trimmedOutput ) ) {
-            return { success: false, reason: 'Step output appears to be an error message.', toolSummary };
+        // 2a. Check minimum length — short outputs can't feed downstream steps
+        if ( trimmedOutput.length < MIN_MEANINGFUL_OUTPUT_LENGTH ) {
+            return {
+                success: false
+                , reason: `Step output too short (${ trimmedOutput.length } chars) to provide meaningful data.`
+                , toolSummary
+            };
+        }
+
+        // 2b. Check if output is just an error message
+        for ( const pattern of ERROR_OUTPUT_PATTERNS ) {
+            if ( pattern.test( trimmedOutput ) ) {
+                return {
+                    success: false
+                    , reason: `Step output appears to be an error message rather than useful data.`
+                    , toolSummary
+                };
+            }
         }
     }
 
-    return { success: true, reason: 'Step succeeded.', toolSummary };
+    // 3. Special case: ALL tools failed but output exists
+    //    Check if the output is just reporting the failures (not useful)
+    if ( toolSummary.total > 0 && toolSummary.failed === toolSummary.total ) {
+        const mentionsToolFailure = ( /tool.*fail|failed to (call|execute|run)/i ).test( trimmedOutput );
+
+        if ( mentionsToolFailure && trimmedOutput.length < 200 ) {
+            return {
+                success: false
+                , reason: `All ${ toolSummary.total } tool(s) failed and step output only reports the failures.`
+                , toolSummary
+            };
+        }
+    }
+
+    // 4. Step produced meaningful output — success!
+    return {
+        success: true
+        , reason: toolSummary.failed > 0
+            ? `Step succeeded despite ${ toolSummary.failed }/${ toolSummary.total } tool(s) failing.`
+            : toolSummary.total > 0
+                ? `Step succeeded with all ${ toolSummary.total } tool(s) passing.`
+                : 'Step succeeded (no tools used).'
+        , toolSummary
+    };
 };
 ```
 
-Tradeoffs of the current implementation:
-- The heuristic length threshold can misclassify concise but valid outputs.
-- Regex‑based error detection is brittle and language‑dependent.
-- “Meaningful output” is subjective; the evaluation is intentionally simple to keep runtime costs low.
-- Tool failures do not automatically fail the step unless the output lacks usable content.
+**Tradeoffs:**
+
+| Decision | Benefit | Drawback |
+|----------|---------|----------|
+| Heuristic length threshold (20 chars) | Fast, no LLM call needed | May misclassify concise valid outputs like "42" |
+| Regex error detection | Fast pattern matching | Brittle, language-dependent, can false-positive |
+| Tool failures don't auto-fail | LLM can recover and still produce useful output | May pass steps with degraded quality |
+| Stricter checks only for upstream steps | Terminal steps can have short outputs | Inconsistent behavior based on position |
+
+The evaluation is intentionally simple to keep runtime costs low. A more sophisticated approach would use another LLM call to judge output quality, but that would add latency and cost to every step.
 
 ### 5.6.6 Streaming to the Client
 
-As each step executes, the LLM's response is streamed to the client via SSE:
+As workflow steps execute, the run status is streamed to the client via SSE. Here is the actual implementation:
 
 ```ts
-// Conceptual SSE streaming
-function streamToClient(res: Response, step: WorkflowStep, llmStream: AsyncIterable<Token>) {
-    // Send step-start event
-    res.write(`event: step_start\ndata: ${JSON.stringify({ stepId: step.id, stepName: step.name })}\n\n`);
+// backend/app/workflowRuns/workflowRuns.ctrl.ts
+export const streamWorkflowRunHandler = async (
+    req: StreamWorkflowRunRequest
+    , res: Response<ResourceError>
+): Promise<Response<ResourceError>> => {
 
-    // Stream tokens
-    for await (const token of llmStream) {
-        res.write(`event: token\ndata: ${JSON.stringify({ stepId: step.id, token: token.text })}\n\n`);
+    // get params
+    const { chatId, workflowRunId } = req.params;
+
+    // set headers for SSE
+    res.setHeader( 'Content-Type', 'text/event-stream' );
+    res.setHeader( 'Cache-Control', 'no-cache' );
+    res.setHeader( 'Connection', 'keep-alive' );
+
+    // ensure headers are flushed
+    if ( typeof res.flushHeaders === 'function' ) {
+        res.flushHeaders();
     }
 
-    // Send step-complete event
-    res.write(`event: step_complete\ndata: ${JSON.stringify({ stepId: step.id })}\n\n`);
-}
+    let isClosed = false;
+    let lastSnapshot = '';
+    let terminalSince: number | null = null;
+    let isPolling = false;
+
+    // helper to send SSE data
+    const sendEvent = ( payload: Record<string, unknown> ) => {
+        res.write( `data: ${ JSON.stringify( payload ) }\n\n` );
+    };
+
+    // helper to fetch and stream snapshot updates
+    const fetchAndSendSnapshot = async () => {
+        if ( isPolling || isClosed ) {
+            return;
+        }
+
+        isPolling = true;
+
+        try {
+            const snapshotResult = await getWorkflowRunSnapshotData( workflowRunId );
+
+            if ( snapshotResult.isError() ) {
+                sendEvent( {
+                    type: 'error'
+                    , error: snapshotResult.value
+                } );
+                res.end();
+                isClosed = true;
+                return;
+            }
+
+            // ... validation and snapshot building ...
+
+            const snapshot = buildWorkflowRunSnapshot( normalizedSource );
+            const snapshotPayload = {
+                type: 'snapshot'
+                , ...snapshot
+            };
+
+            const serialized = JSON.stringify( snapshotPayload );
+
+            // only send if changed
+            if ( serialized !== lastSnapshot ) {
+                sendEvent( snapshotPayload as Record<string, unknown> );
+                lastSnapshot = serialized;
+            }
+
+            // check for terminal status and send complete event
+            if ( isTerminalStatus( snapshot.workflowRun.status ) ) {
+                // ... grace period logic ...
+                sendEvent( {
+                    type: 'complete'
+                    , workflowRunId
+                    , status: snapshot.workflowRun.status
+                } );
+                res.end();
+                isClosed = true;
+            }
+        } finally {
+            isPolling = false;
+        }
+    };
+
+    // send initial snapshot immediately
+    await fetchAndSendSnapshot();
+
+    // poll for updates
+    const interval = setInterval( () => {
+        void fetchAndSendSnapshot();
+    }, WORKFLOW_RUN_POLL_INTERVAL_MS );
+
+    // stop polling on client disconnect
+    req.on( 'close', () => {
+        isClosed = true;
+        clearInterval( interval );
+    } );
+
+    return res;
+
+};
 ```
 
 The SSE protocol uses a specific format: each event has an optional `event:` field (the event type) and a `data:` field (the payload), separated by newlines. Events are separated by double newlines. The client-side SSE handler parses these events and updates the UI accordingly.
-
-Implementation reference: `streamWorkflowRunHandler` in `backend/app/workflowRuns/workflowRuns.ctrl.ts`, which polls for run snapshots and writes SSE `data:` events to the response.
 
 ## 5.7 Error Handling and Recovery
 
@@ -2452,17 +3497,111 @@ SSE status updates are delivered by `streamWorkflowRunHandler` (polling snapshot
 
 ### 5.7.3 The Importance of Idempotency
 
-Idempotency is an **operational goal**, not a fully enforced guarantee in the current implementation. The runner does not use idempotency keys or dedupe repeated executions; re‑running a workflow will create a new workflow run and re‑execute every step.
+**What is idempotency?** An operation is idempotent if running it multiple times produces the same result as running it once. For example, `GET /user/123` is idempotent (fetching the same user twice returns the same data), but `POST /orders` is not (submitting twice creates two orders).
 
-What is implemented today:
-- **Fail‑fast execution** with no automatic retries (so steps are not retried implicitly).
-- **Tool isolation** in the MCP server, but no built‑in deduping. The `http_request` tool can cause side effects if pointed at a mutating endpoint.
+**Current state**: HardWire does NOT enforce idempotency. Re-running a workflow creates a new workflow run and re-executes every step from scratch.
 
-Practical implications:
-- Idempotency depends on **workflow authoring discipline** (avoid side‑effectful tools where possible, or make the target APIs idempotent).
-- If a run is restarted manually, side effects may repeat.
+#### Product Problems Idempotency Would Solve
 
-Relevant code: `runWorkflow` in `backend/lib/workflowRunner.ts` (creates a new workflow run each time) and MCP tool executors in `mcp-tools-server/app/v0/tools/tools.executors.ts` (includes `http_request`).
+| Problem | Scenario | Impact Without Idempotency |
+|---------|----------|---------------------------|
+| **Network retry duplicates** | User's connection drops mid-workflow. Frontend retries the request. | Two workflow runs execute, potentially doubling side effects (emails sent, API calls made, data created) |
+| **Browser refresh duplicates** | User refreshes the page while a workflow is running | New run starts while old run continues, wasting resources and creating duplicate outputs |
+| **Webhook replay** | External system retries a webhook that triggers a workflow | Workflow runs multiple times for the same event |
+| **Manual re-run confusion** | User clicks "Re-run" expecting to resume a failed run | Gets a completely new run instead of resuming, losing partial progress |
+
+#### How Idempotency Would Be Implemented
+
+**1. Idempotency keys at the workflow run level:**
+
+```ts
+// In backend/lib/workflowRunner/workflowRunner.service.ts
+export const runWorkflow = async ( params: {
+    workflowId: string;
+    chatId: string;
+    triggerMessageId: string;
+    userMessage: string;
+    modelId: string;
+    idempotencyKey?: string;  // NEW: Optional client-provided key
+} ) => {
+
+    // If idempotency key provided, check for existing run
+    if ( params.idempotencyKey ) {
+        const existingRun = await findWorkflowRunByIdempotencyKey( params.idempotencyKey );
+        if ( existingRun ) {
+            // Return the existing run instead of creating a new one
+            return success( { workflowRunId: existingRun.id, content: existingRun.output } );
+        }
+    }
+
+    // Create new run with idempotency key stored
+    const workflowRunResult = await createWorkflowRun( {
+        workflowVersionId: latestVersion.id
+        , chatId: params.chatId
+        , triggerMessageId: params.triggerMessageId
+        , idempotencyKey: params.idempotencyKey  // Store for future lookups
+    } );
+
+    // ... rest of execution
+};
+```
+
+**2. Database schema change:**
+
+```sql
+-- Add idempotency key column to workflow_runs table
+ALTER TABLE workflow_runs ADD COLUMN idempotency_key TEXT UNIQUE;
+CREATE INDEX idx_workflow_runs_idempotency_key ON workflow_runs(idempotency_key);
+```
+
+**3. Frontend generates idempotency keys:**
+
+```ts
+// In frontend, when sending a message that triggers a workflow
+const idempotencyKey = `${chatId}-${messageId}-${Date.now()}`;
+await api.post(`/chats/${chatId}/messages`, { content, idempotencyKey });
+```
+
+**4. Tool-level idempotency for side-effectful tools:**
+
+The `http_request` MCP tool can make POST/PUT/DELETE requests to external APIs. To make these idempotent:
+
+```ts
+// In mcp-tools-server/app/v0/tools/tools.executors.ts
+const executeHttpRequest = async ( input: HttpRequestInput ) => {
+    // Generate a hash of the request for deduplication
+    const requestHash = hashObject( { url: input.url, method: input.method, body: input.body } );
+    
+    // Check if we've already executed this exact request recently
+    const cachedResult = await getRecentToolResult( requestHash );
+    if ( cachedResult ) {
+        return cachedResult;  // Return cached result instead of re-executing
+    }
+    
+    // Execute the request
+    const result = await fetch( input.url, { method: input.method, body: input.body } );
+    
+    // Cache the result for deduplication window (e.g., 5 minutes)
+    await cacheToolResult( requestHash, result, TTL_5_MINUTES );
+    
+    return result;
+};
+```
+
+#### What Is Implemented Today
+
+- **Fail-fast execution** with no automatic retries (steps are not retried implicitly)
+- **Tool isolation** in the MCP server, but no built-in deduplication
+- **No idempotency keys** — every `runWorkflow` call creates a new workflow run
+
+#### Practical Implications
+
+Until idempotency is implemented:
+- **Avoid side-effectful tools** in workflows where possible, or ensure target APIs are idempotent
+- **Manual re-runs repeat all side effects** — warn users before re-running workflows that send emails, create records, etc.
+- **Network retries can cause duplicates** — the frontend should not automatically retry workflow triggers
+
+Relevant code: `runWorkflow` in `backend/lib/workflowRunner/workflowRunner.service.ts` and MCP tool executors in `mcp-tools-server/app/v0/tools/tools.executors.ts`.
 
 ## 5.8 Full Execution Sequence Diagram
 
@@ -5494,11 +6633,11 @@ const sqrtEither = (n: number): Either<string, number> => {
 1. Example DAG edges: A→C, A→D, B→D, B→E, C→F, D→F, E→F. In-degrees: A=0, B=0, C=1, D=2, E=1, F=3.
 2. For A→C, B→C, B→D, valid orderings are: A B C D; A B D C; B A C D; B A D C; B D A C. Total: 5.
 3. Input order [C,A,B], edges A→C, B→C. In-degrees: A=0, B=0, C=2. Queue starts [A,B]. Pop A → sorted [A], C indegree=1. Pop B → sorted [A,B], C indegree=0, enqueue C. Pop C → sorted [A,B,C].
-4. White = unvisited, gray = visiting (in recursion stack), black = fully visited.
+4. The three-color algorithm uses recursive DFS to detect cycles. Each node is colored white (unvisited), gray (currently visiting), or black (fully visited). Start DFS from each unvisited node. On entering a node, mark it gray. Recursively visit all dependencies. If you encounter a gray node, you've found a back-edge (a path looping back into the current call stack) — that's a cycle. After visiting all dependencies without finding a cycle, mark the node black and return. The gray set represents the current traversal path; encountering gray means the path loops back on itself.
 5. Encountering gray means a back-edge into the current DFS stack, which forms a cycle.
-6. The sorter returns a partial order and appends remaining nodes; it does not throw. Cycle errors are handled by `validateWorkflowDag` instead.
+6. The sorter returns a partial order and appends remaining nodes; it does not throw. **Why**: The sorter follows single-responsibility principle — its job is sorting, not validation. Throwing would couple sorting with error handling, making the sorter harder to test and reuse. By separating concerns, `validateWorkflowDag` handles all validation (including cycle detection) before sorting runs, providing better error messages. The sorter can assume it receives valid input.
 7. Stability preserves the user’s step ordering when multiple orders are valid, preventing UI “jumps” for independent steps.
-8. Base complexity is O(V+E); stability adds queue sorting overhead (worst-case higher), but workflows are small so the tradeoff is acceptable.
+8. Standard Kahn's is O(V+E): each node and edge is processed once. HardWire's stable variant adds queue sorting on each insertion. With k nodes in the queue and n total nodes, worst-case sorting is O(k log k) per insertion, giving O(n × k log k) total — higher than standard Kahn's. For small workflows (n < 100), this overhead is negligible. The tradeoff: worse theoretical complexity for better UX (stable ordering).
 9. A priority queue reduces sorting overhead to O(log V) per enqueue but adds complexity and still needs a stable tie-break rule.
 10. Skipping unknown deps keeps the sorter pure and fast; validation is responsible for correctness. Alternatives include throwing immediately or auto-creating placeholders, which complicate concerns.
 11. All nodes with in-degree 0 at a given time are safe to run in parallel; the queue identifies these “ready” steps.

@@ -175,7 +175,7 @@ const dataB = resultB.value;
 
 ### Controller Files (`*.ctrl.ts`)
 
-Controllers handle HTTP request/response logic **only**. They orchestrate service calls and helpers but contain no business logic or database access.
+Controllers contain the **business flow orchestration** — the actual logic to carry out the business objective. They extract data from requests, decide what operations need to happen and in what order, call helpers for reusable operations, call services for direct database access, and format HTTP responses.
 
 **NatSpec/TSDoc is OPTIONAL but recommended** for exported handlers:
 
@@ -254,10 +254,9 @@ export const getUserSubscriptionCreditsHandler = async (
 
 **Controller Rules:**
 
-- Controllers must **NOT** query the database directly
-- Controllers must **NOT** contain complex business logic
-- Controllers must call service functions for data access
-- Controllers must call helper functions for business logic
+- Controllers must **NOT** query the database directly (use services)
+- Controllers must call service functions for direct database access
+- Controllers must call helper functions for reusable operations
 - Always use the `Either` pattern (`result.isError()`)
 - Always return early on error
 - Always map external types (GraphQL/Postgraphile scalars) to response types
@@ -590,21 +589,20 @@ The codegen configuration is in `codegen.ts` and uses:
 
 ### Helper Files (`*.helper.ts`)
 
-Helpers contain **pure business logic** and transformations. No IO, no database, no network.
+Helpers contain **reusable operations** that combine service calls with transformations. They encapsulate multi-step operations that may be called from controllers or other helpers.
 
 **What goes in a helper file:**
 
-- Pure transformation functions
+- Reusable operations that combine service calls + transformations
 - Validation logic using Either monad
 - Domain-specific calculations
-- Data filtering/mapping
+- Data filtering/mapping/processing
 
 **What must NOT go in a helper file:**
 
-- Database queries
-- Express request/response handling
-- Joi validation schemas
-- API calls
+- Express request/response handling (that belongs in controllers)
+- Joi validation schemas (that belongs in validation files)
+- Direct PostGraphile calls (use service functions instead)
 
 **Pure Transformation Example:**
 
@@ -760,11 +758,11 @@ export const validateUserHasActiveCredits = async (
 
 **Helper Rules:**
 
-- Functions should be pure with no side effects (when possible)
+- Helpers may call service functions for database access
 - Use `Either` monad for functions that can fail
 - Return typed responses for consistency
 - Small, readable functions with inline comments
-- No Express types; inputs are domain data from service results
+- No Express types; inputs are domain data, not req/res objects
 
 ---
 
@@ -1430,13 +1428,13 @@ This codebase uses specific formatting:
 
 ## Summary: File Responsibility Matrix
 
-| File | Database Access | Express Types | Business Logic | Types Definition |
-|------|-----------------|---------------|----------------|------------------|
-| `*.ctrl.ts` | No | Yes | No (calls helpers) | No |
-| `*.service.ts` | Yes | No | No | No |
-| `*.helper.ts` | No | No | Yes | No |
-| `*.types.ts` | No | Yes (extends Request) | No | Yes |
-| `*.validation.ts` | No | No | No | No |
-| `*.errors.ts` | No | No | No | No |
-| `*.router.ts` | No | Yes | No | No |
-| `*.service.generatedTypes.ts` | No | No | No | Yes (auto-generated) |
+| File | Direct DB Access | Express Types | Role |
+|------|------------------|---------------|------|
+| `*.ctrl.ts` | No (via services) | Yes | Business flow orchestration |
+| `*.service.ts` | Yes | No | Database queries only |
+| `*.helper.ts` | No (via services) | No | Reusable operations |
+| `*.types.ts` | No | Yes (extends Request) | Type definitions |
+| `*.validation.ts` | No | No | Joi schemas |
+| `*.errors.ts` | No | No | Error classes |
+| `*.router.ts` | No | Yes | Route definitions |
+| `*.service.generatedTypes.ts` | No | No | Auto-generated GraphQL types |

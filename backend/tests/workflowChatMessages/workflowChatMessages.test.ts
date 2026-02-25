@@ -5,18 +5,11 @@ import {
     mockSessionOnce
     , mockNoSessionOnce
 } from '../../lib/betterAuth/__mocks__/auth';
+import '../../lib/workflowProposals/__mocks__/workflowProposals.service';
+import '../../lib/workflowProposals/__mocks__/workflowProposals.helper';
+import '../../app/workflowChatMessages/__mocks__/workflowChatMessages.helper';
 
 /* ----------------- Mocks ----------------------- */
-
-// Mock workflow proposals module
-jest.mock( '../../lib/workflowProposals', () => ( {
-    getWorkflowProposal: jest.fn()
-    , getWorkflowProposalsByWorkflowId: jest.fn()
-    , updateWorkflowProposalStatus: jest.fn()
-} ) );
-
-// Mock workflow chat messages helper
-jest.mock( '../../app/workflowChatMessages/workflowChatMessages.helper', () => ( { generateWorkflowChatResponse: jest.fn() } ) );
 
 import supertest from 'supertest';
 import { testApp } from '../tests.server';

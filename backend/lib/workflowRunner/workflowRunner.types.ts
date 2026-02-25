@@ -30,3 +30,10 @@ export interface ToolExecutionSummary {
     failed: number;
     failedTools: string[];
 }
+
+// result of evaluating whether a step succeeded
+export interface StepSuccessEvaluation {
+    success: boolean;
+    reason: string;
+    toolSummary: ToolExecutionSummary;
+}

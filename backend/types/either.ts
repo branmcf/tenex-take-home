@@ -1,7 +1,3 @@
-/*
- *Slab article: https://veryableops.slab.com/posts/type-script-either-monad-0eckzrh2 --> expect redirect
- */
-
 export type Either<L, A> = Error<L, A> | Success<L, A>;
 
 export type EitherNonNullable<L, A> = Error<L, NonNullable<A>> |

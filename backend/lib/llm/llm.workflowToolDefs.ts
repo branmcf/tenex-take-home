@@ -97,7 +97,7 @@ export const workflowTools = {
         , outputSchema: emptyOutputSchema
     } )
     , delete_step: tool( {
-        description: 'Delete a workflow step from the DAG.'
+        description: 'Delete a workflow step from the DAG. rewireStrategy controls how dependent steps are reconnected: "auto" (default) makes dependents inherit the deleted step\'s dependencies — use this when the deleted step was just a pass-through. "manual" rewires dependents to a specific step via rewireToStepId — use this when auto would skip an important step (e.g., deleting a Draft step should rewire Edit/Format to depend on Research, not back to Start).'
         , inputSchema: deleteStepInputSchema
         , outputSchema: emptyOutputSchema
     } )

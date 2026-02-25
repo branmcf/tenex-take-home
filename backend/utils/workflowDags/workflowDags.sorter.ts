@@ -95,8 +95,10 @@ export const sortWorkflowDagSteps = ( steps: WorkflowStep[] ): WorkflowStep[] =>
     const sorted: WorkflowStep[] = [];
 
     while ( queue.length > 0 ) {
+        // remove the next step from the front of the queue
         const step = queue.shift();
 
+        // skip if queue.shift() returned undefined (shouldn't happen in practice)
         if ( !step ) {
             continue;
         }
@@ -104,16 +106,21 @@ export const sortWorkflowDagSteps = ( steps: WorkflowStep[] ): WorkflowStep[] =>
         // record the step, then reduce indegrees of its dependents
         sorted.push( step );
 
+        // get all steps that depend on the current step
         const outgoing = dependents.get( step.id ) ?? [];
         outgoing.forEach( nextId => {
+            // reduce the indegree count for each dependent step
             const nextIndegree = ( indegree.get( nextId ) ?? 0 ) - 1;
             indegree.set( nextId, nextIndegree );
 
+            // if this dependent step now has no remaining dependencies, add it to the queue
             if ( nextIndegree === 0 ) {
                 const nextStep = stepMap.get( nextId );
 
                 if ( nextStep ) {
                     queue.push( nextStep );
+
+                    // maintain stable ordering in the queue
                     sortQueueByOriginalOrder( queue, orderLookup );
                 }
             }
