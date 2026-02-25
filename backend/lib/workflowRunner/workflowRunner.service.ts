@@ -671,9 +671,9 @@ export const runWorkflow = async (
 
             /*
              * If the LLM exhausted all steps on tool calls without producing
-             * text, run a single follow-up call with no tools to force synthesis.
-             * This only triggers when output is empty and tools ran successfully,
-             * so steps that already produce text are unaffected.
+             * text, run a single follow-up call with no tools to force
+             * synthesis. This only triggers when output is empty and tools ran,
+             * successfully so steps that already produce text are unaffected.
              */
             if ( !output && toolExecutionLogs.some( log => log.status === 'PASSED' && log.output ) ) {
                 const toolContext = toolExecutionLogs
@@ -700,11 +700,13 @@ export const runWorkflow = async (
 
             const completedAt = new Date().toISOString();
 
-            // attach tool call ids to tool logs when available
-            // flatten across all steps so multi-step tool calls align with logs by index
+            /*
+             * attach tool call ids to tool logs when available
+             * flatten across all steps so multi-step tool calls
+             * align with logs by index
+             */
             const toolCalls = ( result.steps ?? [] ).flatMap( step =>
-                Array.isArray( step.toolCalls ) ? step.toolCalls : []
-            );
+                Array.isArray( step.toolCalls ) ? step.toolCalls : [] );
 
             toolCalls.forEach( ( toolCall, index ) => {
                 const logEntry = toolExecutionLogs[ index ];
