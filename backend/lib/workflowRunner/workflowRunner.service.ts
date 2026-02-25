@@ -24,6 +24,7 @@ import {
     buildWorkflowStepExecutionPrompt
     , MIN_MEANINGFUL_OUTPUT_LENGTH
     , ERROR_OUTPUT_PATTERNS
+    , DEFAULT_MAX_OUTPUT_TOKENS
 } from '../../utils/constants';
 import type {
     WorkflowRunResult
@@ -660,7 +661,7 @@ export const runWorkflow = async (
             const result = await generateText( {
                 model: getModelProvider( params.modelId )
                 , prompt
-                , maxOutputTokens: 1200
+                , maxOutputTokens: DEFAULT_MAX_OUTPUT_TOKENS
                 , temperature: 0.2
                 , tools: Object.keys( runtimeTools.tools ).length > 0 ? runtimeTools.tools : undefined
                 , toolChoice: Object.keys( runtimeTools.tools ).length > 0 ? 'auto' : undefined
@@ -689,7 +690,7 @@ export const runWorkflow = async (
                 const synthesisResult = await generateText( {
                     model: getModelProvider( params.modelId )
                     , prompt: `${ prompt }\n\nThe following tool results were obtained:\n\n${ toolContext }\n\nSynthesize these results into a coherent response.`
-                    , maxOutputTokens: 1200
+                    , maxOutputTokens: DEFAULT_MAX_OUTPUT_TOKENS
                     , temperature: 0.2
                 } );
 
@@ -738,7 +739,12 @@ export const runWorkflow = async (
              * summary
              */
             const stepLogs = {
-                toolExecutions: toolExecutionLogs.length > 0 ? toolExecutionLogs : null
+                upstreamInputs: upstreamOutputs.length > 0
+                    ? Object.fromEntries(
+                        ( step.dependsOn ?? [] ).map( depId => [ depId, outputs[ depId ] ?? null ] )
+                    )
+                    : null
+                , toolExecutions: toolExecutionLogs.length > 0 ? toolExecutionLogs : null
                 , toolSummary: toolExecutionLogs.length > 0 ? toolSummary : null
                 , evaluation: {
                     success: evaluation.success

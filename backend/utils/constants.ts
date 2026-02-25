@@ -643,6 +643,9 @@ export const WORKFLOW_RUN_POLL_INTERVAL_MS = 1000;
 
 export const WORKFLOW_RUN_TERMINAL_GRACE_MS = 15000;
 
+// default max output tokens for LLM calls
+export const DEFAULT_MAX_OUTPUT_TOKENS = 10000;
+
 // step success evaluation constants
 export const MIN_MEANINGFUL_OUTPUT_LENGTH = 20;
 
