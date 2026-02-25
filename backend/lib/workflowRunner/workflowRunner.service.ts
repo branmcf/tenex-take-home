@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { gql } from 'graphile-utils';
 import {
-    generateText, tool, jsonSchema
+    generateText, tool, jsonSchema, stepCountIs
 } from 'ai';
 import {
     Either
@@ -664,28 +664,36 @@ export const runWorkflow = async (
                 , temperature: 0.2
                 , tools: Object.keys( runtimeTools.tools ).length > 0 ? runtimeTools.tools : undefined
                 , toolChoice: Object.keys( runtimeTools.tools ).length > 0 ? 'auto' : undefined
+                , stopWhen: stepCountIs( 5 )
             } );
 
-            // Get text output, or fallback to tool results if text is empty
             let output = result.text.trim();
 
             /*
-             * If no text output but tools were called, extract output from
-             * successful tool results
+             * If the LLM exhausted all steps on tool calls without producing
+             * text, run a single follow-up call with no tools to force synthesis.
+             * This only triggers when output is empty and tools ran successfully,
+             * so steps that already produce text are unaffected.
              */
-            if ( !output && toolExecutionLogs.length > 0 ) {
-                const successfulToolOutputs = toolExecutionLogs
+            if ( !output && toolExecutionLogs.some( log => log.status === 'PASSED' && log.output ) ) {
+                const toolContext = toolExecutionLogs
                     .filter( log => log.status === 'PASSED' && log.output )
                     .map( log => {
                         const outputStr = typeof log.output === 'string'
                             ? log.output
                             : JSON.stringify( log.output, null, 2 );
                         return `[Tool: ${ log.toolName }]\n${ outputStr }`;
-                    } );
+                    } )
+                    .join( '\n\n' );
 
-                if ( successfulToolOutputs.length > 0 ) {
-                    output = successfulToolOutputs.join( '\n\n' );
-                }
+                const synthesisResult = await generateText( {
+                    model: getModelProvider( params.modelId )
+                    , prompt: `${ prompt }\n\nThe following tool results were obtained:\n\n${ toolContext }\n\nSynthesize these results into a coherent response.`
+                    , maxOutputTokens: 1200
+                    , temperature: 0.2
+                } );
+
+                output = synthesisResult.text.trim();
             }
 
             outputs[ step.id ] = output;
@@ -693,9 +701,10 @@ export const runWorkflow = async (
             const completedAt = new Date().toISOString();
 
             // attach tool call ids to tool logs when available
-            const toolCalls = Array.isArray( result.toolCalls )
-                ? result.toolCalls
-                : [];
+            // flatten across all steps so multi-step tool calls align with logs by index
+            const toolCalls = ( result.steps ?? [] ).flatMap( step =>
+                Array.isArray( step.toolCalls ) ? step.toolCalls : []
+            );
 
             toolCalls.forEach( ( toolCall, index ) => {
                 const logEntry = toolExecutionLogs[ index ];
