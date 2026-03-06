@@ -53,10 +53,7 @@ ls.describe( 'Workflow authoring prompt guards', () => {
                         , dependsOn: []
                     }
                 ]
-                , availableTools: [
-                    { id: 'web_search', name: 'web_search', version: '1.0.0' }
-                    , { id: 'read_url', name: 'read_url', version: '1.0.0' }
-                ]
+                , availableTools: [ { id: 'web_search', name: 'web_search', version: '1.0.0' }, { id: 'read_url', name: 'read_url', version: '1.0.0' } ]
                 , conversationContext: null
             } );
 
