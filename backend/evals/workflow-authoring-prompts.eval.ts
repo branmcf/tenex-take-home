@@ -1,5 +1,6 @@
 /* ----------------- Imports --------------------- */
 import ls from './evals.ls';
+import { logAndAssertExactMatch } from './evals.helper';
 import {
     buildWorkflowToolCallPrompt
     , buildWorkflowStepPlanPrompt
@@ -22,9 +23,17 @@ ls.describe( 'Workflow authoring prompt guards', () => {
                 , conversationContext: null
             } );
 
-            expect( prompt ).toContain( 'structured JSON outputs over prose' );
-            expect( prompt ).toContain( 'name the exact fields it expects to receive' );
-            expect( prompt ).toContain( 'output ERROR:' );
+            const outputs = {
+                includesStructuredJsonRule: prompt.includes( 'structured JSON outputs over prose' )
+                , includesExactFieldsRule: prompt.includes( 'name the exact fields it expects to receive' )
+                , includesErrorRule: prompt.includes( 'output ERROR:' )
+            };
+
+            await logAndAssertExactMatch( ls, outputs, {
+                includesStructuredJsonRule: true
+                , includesExactFieldsRule: true
+                , includesErrorRule: true
+            } );
         }
     );
 
@@ -39,9 +48,17 @@ ls.describe( 'Workflow authoring prompt guards', () => {
                 , conversationContext: null
             } );
 
-            expect( prompt ).toContain( 'For each step, make the instruction specify the exact input fields it expects and the output fields it must produce.' );
-            expect( prompt ).toContain( 'Prefer instructions that produce valid JSON objects when downstream steps need to consume the result.' );
-            expect( prompt ).toContain( 'If required upstream data is missing or invalid, the instruction should say to output ERROR:' );
+            const outputs = {
+                includesExplicitFieldRule: prompt.includes( 'For each step, make the instruction specify the exact input fields it expects and the output fields it must produce.' )
+                , includesJsonOutputRule: prompt.includes( 'Prefer instructions that produce valid JSON objects when downstream steps need to consume the result.' )
+                , includesErrorRule: prompt.includes( 'If required upstream data is missing or invalid, the instruction should say to output ERROR:' )
+            };
+
+            await logAndAssertExactMatch( ls, outputs, {
+                includesExplicitFieldRule: true
+                , includesJsonOutputRule: true
+                , includesErrorRule: true
+            } );
         }
     );
 
@@ -57,15 +74,21 @@ ls.describe( 'Workflow authoring prompt guards', () => {
                     , dependsOn: [ 'step_1' ]
                     , tools: []
                 }
-                , upstreamOutputs: [
-                    'Output from step_1:\n{"location":"Austin","outdoor_ok":true}'
-                ]
+                , upstreamOutputs: [ 'Output from step_1:\n{"location":"Austin","outdoor_ok":true}' ]
                 , toolNames: []
             } );
 
-            expect( prompt ).toContain( 'If an upstream output contains JSON, parse and use that JSON instead of paraphrasing it.' );
-            expect( prompt ).toContain( 'Do not invent missing fields or claim data exists when it does not.' );
-            expect( prompt ).toContain( 'If required upstream data is missing, malformed, or indicates failure, output ERROR:' );
+            const outputs = {
+                includesJsonParsingRule: prompt.includes( 'If an upstream output contains JSON, parse and use that JSON instead of paraphrasing it.' )
+                , includesNoInventingRule: prompt.includes( 'Do not invent missing fields or claim data exists when it does not.' )
+                , includesErrorRule: prompt.includes( 'If required upstream data is missing, malformed, or indicates failure, output ERROR:' )
+            };
+
+            await logAndAssertExactMatch( ls, outputs, {
+                includesJsonParsingRule: true
+                , includesNoInventingRule: true
+                , includesErrorRule: true
+            } );
         }
     );
 
