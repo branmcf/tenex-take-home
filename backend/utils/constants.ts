@@ -262,6 +262,11 @@ Key insight: "X before Y" modifies Y (add X to Y's dependencies), NOT X.
 - Step instructions should be concise, actionable, and assume outputs from dependencies are available.
 - Prefer adding prompt-only steps; tools are optional and handled separately.
 - Step instructions should explicitly reference either the user input or a prior step output when relevant.
+- If a later step will consume the result, prefer structured JSON outputs over prose whenever possible.
+- If a step depends on upstream data, name the exact fields it expects to receive from prior steps.
+- If a step produces data for downstream steps, name the exact output fields it must produce.
+- If required data is missing or malformed, instruct the step to output ERROR: followed by a concise reason rather than guessing.
+- When tool results need to be passed downstream, instruct the step to normalize them into a compact JSON object with stable field names.
 - Do not answer the user's question; only describe changes to the workflow definition.
 - ALWAYS analyze the current dependency chain before adding steps.
 - When user says "before [step]", you MUST use reorder_steps to update that step's dependencies.
@@ -371,6 +376,10 @@ Rules:
 - Do not include tools or dependencies.
 - Step instructions should assume they will receive outputs from earlier steps.
 - Step instructions should reference the user input or upstream outputs where appropriate.
+- For each step, make the instruction specify the exact input fields it expects and the output fields it must produce.
+- Prefer instructions that produce valid JSON objects when downstream steps need to consume the result.
+- If required upstream data is missing or invalid, the instruction should say to output ERROR: followed by a concise reason.
+- Do not use vague phrases like "use the previous step output" without naming the fields the step should read.
 - Output JSON on a single line, no backticks, no extra text.`;
 
 };
@@ -408,6 +417,10 @@ CRITICAL RULES:
 4. NEVER comment on mismatches between the workflow input and the step instruction.
 5. The workflow was designed intentionally - trust the step instruction completely.
 6. Output ONLY the result of executing the step instruction. No meta-commentary.
+7. If an upstream output contains JSON, parse and use that JSON instead of paraphrasing it.
+8. Do not invent missing fields or claim data exists when it does not.
+9. If required upstream data is missing, malformed, or indicates failure, output ERROR: followed by a concise reason.
+10. If the step instruction asks for structured output such as JSON, preserve the exact field names it requests.
 
 Workflow input (context data):
 ${ params.userMessage }
