@@ -308,7 +308,7 @@ describe( 'rATE_LIMIT_PRESETS', () => {
         , () => {
 
             expect( RATE_LIMIT_PRESETS.auth ).toMatchObject( {
-                maxRequests: 10
+                maxRequests: 30
                 , windowSeconds: 60
             } );
 
@@ -325,7 +325,7 @@ describe( 'rATE_LIMIT_PRESETS', () => {
         , () => {
 
             expect( RATE_LIMIT_PRESETS.llm ).toMatchObject( {
-                maxRequests: 20
+                maxRequests: 30
                 , windowSeconds: 60
             } );
 

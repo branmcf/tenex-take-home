@@ -73,13 +73,13 @@ export const RATE_LIMIT_PRESETS = {
 
     // Authentication endpoints (stricter)
     , auth: {
-        maxRequests: 10
+        maxRequests: 30
         , windowSeconds: 60
     } as RateLimiterConfig
 
     // LLM/AI endpoints (expensive operations)
     , llm: {
-        maxRequests: 20
+        maxRequests: 30
         , windowSeconds: 60
     } as RateLimiterConfig
 
