@@ -267,6 +267,8 @@ Key insight: "X before Y" modifies Y (add X to Y's dependencies), NOT X.
 - If a step produces data for downstream steps, name the exact output fields it must produce.
 - If required data is missing or malformed, instruct the step to output ERROR: followed by a concise reason rather than guessing.
 - When tool results need to be passed downstream, instruct the step to normalize them into a compact JSON object with stable field names.
+- If a step must gather facts from websites, prefer a search-then-read pattern: use web_search to find candidate URLs and read_url to fetch the page contents before extracting fields.
+- Do not rely on web_search snippets alone for page-specific facts like ratings, review counts, ingredients, timings, prices, or exact quotes when read_url is available.
 - Do not answer the user's question; only describe changes to the workflow definition.
 - ALWAYS analyze the current dependency chain before adding steps.
 - When user says "before [step]", you MUST use reorder_steps to update that step's dependencies.
@@ -320,6 +322,8 @@ ${ formatToolsForPrompt( params.availableTools ) }
 Decision rules:
 - Default to no tools.
 - Only choose tools if the user explicitly requested a tool OR the step requires external data, side effects, or higher reliability.
+- Use web_search to discover candidate URLs and read_url to fetch page contents when page-specific facts are required.
+- If a step needs ratings, review counts, ingredients, timings, prices, or other page-specific facts, prefer web_search plus read_url instead of web_search alone.
 - If you choose tools, include tool id and version exactly as listed above.
 - Output JSON with the exact shape:
 {"steps":[{"stepId":"string","useTools":true,"tools":[{"id":"string","version":"string"}]}]}
@@ -380,6 +384,7 @@ Rules:
 - Prefer instructions that produce valid JSON objects when downstream steps need to consume the result.
 - If required upstream data is missing or invalid, the instruction should say to output ERROR: followed by a concise reason.
 - Do not use vague phrases like "use the previous step output" without naming the fields the step should read.
+- If a step needs facts from a webpage, instruct it to use web_search to find relevant URLs and read_url to inspect the actual page contents before extracting structured fields.
 - Output JSON on a single line, no backticks, no extra text.`;
 
 };
@@ -419,8 +424,9 @@ CRITICAL RULES:
 6. Output ONLY the result of executing the step instruction. No meta-commentary.
 7. If an upstream output contains JSON, parse and use that JSON instead of paraphrasing it.
 8. Do not invent missing fields or claim data exists when it does not.
-9. If required upstream data is missing, malformed, or indicates failure, output ERROR: followed by a concise reason.
-10. If the step instruction asks for structured output such as JSON, preserve the exact field names it requests.
+9. If some required information is unavailable but the step can still provide a useful partial result, return the best structured result you can and clearly note which fields are missing or unverified.
+10. Only output ERROR: when the step truly cannot continue or produce any useful result.
+11. If the step instruction asks for structured output such as JSON, preserve the exact field names it requests.
 
 Workflow input (context data):
 ${ params.userMessage }
